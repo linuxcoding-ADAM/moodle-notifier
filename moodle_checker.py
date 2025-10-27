@@ -1,23 +1,24 @@
+# FINAL RENDER-READY SCRIPT
+
 import requests
 import json
 from bs4 import BeautifulSoup
 import time
 import re
-import os # <-- IMPORTANT: Make sure this line is here
+import os
 
-# --- CONFIGURATION: READS SECURELY FROM GITHUB SECRETS ---
+# --- CONFIGURATION: READS SECURELY FROM RENDER'S ENVIRONMENT ---
 LOGIN_URL = 'https://elearning.univ-bejaia.dz/login/index.php'
 AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
 
-# These lines securely read the secrets you created in your GitHub repository settings
 MOODLE_USERNAME = os.getenv('MOODLE_USERNAME')
 MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 # --- END OF SECURE CONFIGURATION ---
 
-
-SEEN_IDS_FILE = 'seen_ids.json'
+# IMPORTANT: This path points to Render's persistent disk
+SEEN_IDS_FILE = '/var/data/seen_ids.json'
 
 def get_seen_ids():
     """Loads seen announcement IDs from the JSON file."""
@@ -25,10 +26,11 @@ def get_seen_ids():
         with open(SEEN_IDS_FILE, 'r') as f:
             return set(json.load(f))
     except (FileNotFoundError, json.JSONDecodeError):
+        # If the file doesn't exist on the disk yet, start with an empty set
         return set()
 
 def save_seen_ids(ids):
-    """Saves announcement IDs to the JSON file."""
+    """Saves announcement IDs to the JSON file on the persistent disk."""
     with open(SEEN_IDS_FILE, 'w') as f:
         json.dump(list(ids), f)
 
@@ -78,6 +80,11 @@ def send_telegram_message(message):
 
 def main():
     """Main function to run the scraper and send notifications."""
+    # Check if credentials are set
+    if not all([MOODLE_USERNAME, MOODLE_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]):
+        print("!!! ERROR: One or more environment variables (secrets) are missing. Please check Render's Environment settings.")
+        return
+
     print("Starting check for new announcements...")
     seen_ids = get_seen_ids()
     
@@ -100,7 +107,7 @@ def main():
             return
 
         if "Invalid login" in response.text or "loginerrors" in response.text:
-            print("!!! Login Failed! Check credentials.")
+            print("!!! Login Failed! Check credentials in Render's Environment variables.")
             return
         print("Login successful.")
         
@@ -153,11 +160,9 @@ def main():
                 
                 seen_ids.add(item['id'])
                 save_seen_ids(seen_ids)
-                time.sleep(1) # a small delay between messages
+                time.sleep(1)
         else:
             print("No new announcements found.")
 
 if __name__ == '__main__':
     main()
-
-# A small change to ensure the workflow stays active.
