@@ -1,4 +1,4 @@
-# FINAL, ROBUST RAILWAY SCRIPT (Fixes the "Amnesia" Bug)
+# FINAL, ROBUST RAILWAY SCRIPT (Fixes the "Amnesia" and the "item" Bug)
 
 import requests
 import json
@@ -29,14 +29,10 @@ def get_seen_ids():
     except (FileNotFoundError, json.JSONDecodeError):
         return set()
 
-# NEW: "Safe Save" function to prevent file corruption
 def save_seen_ids(ids):
     os.makedirs(os.path.dirname(SEEN_IDS_FILE), exist_ok=True)
-    # Write to a temporary file first
     with open(SEEN_IDS_FILE_TMP, 'w') as f:
         json.dump(list(ids), f)
-    # If the write was successful, rename the temp file to the real file
-    # This is an "atomic" operation and prevents corruption
     os.rename(SEEN_IDS_FILE_TMP, SEEN_IDS_FILE)
 
 def html_to_plain_text_and_links(tag):
@@ -86,7 +82,7 @@ def run_check():
         logging.warning("No announcements found on page.")
         return
         
-    found_new = False # A flag to track if we found anything new
+    found_new = False
     for tag in announcement_tags:
         parent_li = tag.find_parent('li', class_='activity')
         item_id = parent_li.get('id') if parent_li else None
@@ -96,20 +92,21 @@ def run_check():
                 found_new = True
                 
             plain_text, links = html_to_plain_text_and_links(tag)
-            message = f"📣 Nouvelle Affiche\n================\n\n{item['content']}"
+            
+            # --- THIS IS THE CORRECTED LINE ---
+            message = f"📣 Nouvelle Affiche\n================\n\n{plain_text}"
+            
             if links: message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in links)
             send_telegram_message(message)
             seen_ids.add(item_id)
             time.sleep(1)
 
     if found_new:
-        # Only save the file if there were changes
         save_seen_ids(seen_ids)
     else:
         logging.info("No new announcements found.")
 
 if __name__ == "__main__":
-    # NEW: Add a startup delay to prevent the race condition
     logging.info("Script started. Waiting 5 seconds for volume to mount...")
     time.sleep(5)
     logging.info("Entering main loop.")
