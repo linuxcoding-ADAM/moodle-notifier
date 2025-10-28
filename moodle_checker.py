@@ -1,4 +1,4 @@
-# FINAL, BULLETPROOF RAILWAY SCRIPT (All fixes included + Paranoid Login Check)
+# FINAL, DEFINITIVE RAILWAY SCRIPT (All fixes included + Correct Order + Error Details)
 
 import requests
 import json
@@ -7,6 +7,7 @@ import time
 import re
 import os
 import logging
+import traceback # New import for detailed error formatting
 
 # --- CONFIGURATION ---
 LOGIN_URL = 'https://elearning.univ-bejaia.dz/login/index.php'
@@ -17,8 +18,7 @@ MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-# NEW: Add your name as it appears on the Moodle site (e.g., "Adam Smith")
-# This is used to verify that the login was successful.
+# Your full name as it appears when you are logged into the Moodle site.
 USER_FULL_NAME = os.getenv('USER_FULL_NAME')
 # --- END OF CONFIGURATION ---
 
@@ -66,97 +66,110 @@ def perform_login(session):
     """Logs into Moodle and verifies the login was successful."""
     logging.info("Attempting to log in...")
     try:
-        # Step 1: Get the login page to retrieve the logintoken
         login_page = session.get(LOGIN_URL, timeout=30)
-        login_page.raise_for_status() # Raise an error for bad status codes
+        login_page.raise_for_status()
         soup = BeautifulSoup(login_page.text, 'html.parser')
         logintoken = soup.find('input', {'name': 'logintoken'})['value']
         
-        # Step 2: Post the login credentials
         login_payload = {'username': MOODLE_USERNAME, 'password': MOODLE_PASSWORD, 'logintoken': logintoken}
         response = session.post(LOGIN_URL, data=login_payload, timeout=30)
         response.raise_for_status()
 
-        # Step 3: PARANOID LOGIN CHECK - Verify login by looking for the user's name or a logout link
         if USER_FULL_NAME and USER_FULL_NAME.lower() in response.text.lower():
-            logging.info("Login successful! User name found on page.")
+            logging.info("Login successful! User name found.")
             return True
         elif 'action="logout"' in response.text:
-            logging.info("Login successful! Logout link found on page.")
+            logging.info("Login successful! Logout link found.")
             return True
         else:
-            logging.error("Login failed! Could not find user name or logout link on the page after login post.")
+            error_message = "🔴 Login Verification Failed!\n\nCould not find user name or logout link after posting credentials. The Moodle site might have changed, or the session is invalid. The bot will retry in 10 minutes."
+            logging.error(error_message)
+            send_telegram_message(error_message, TELEGRAM_CHAT_ID)
             return False
             
     except requests.exceptions.RequestException as e:
-        logging.error(f"A network error occurred during login: {e}")
+        error_message = f"🔴 A network error occurred during login:\n\n`{e}`\n\nThe Moodle site may be down. The bot will retry in 10 minutes."
+        logging.error(error_message)
+        send_telegram_message(error_message, TELEGRAM_CHAT_ID)
         return False
     except (TypeError, KeyError):
-        logging.error("Failed to parse login page. The page structure may have changed.")
+        error_message = "🔴 Failed to parse Moodle login page.\n\nThe page structure has likely changed. The bot will retry in 10 minutes."
+        logging.error(error_message)
+        send_telegram_message(error_message, TELEGRAM_CHAT_ID)
         return False
 
 def fetch_and_process_announcements(session, seen_ids):
     """Fetches the announcements page and processes new items."""
     try:
-        logging.info(f"Accessing announcements page: {AFFICHAGE_URL}")
+        logging.info(f"Accessing announcements page...")
         page = session.get(AFFICHAGE_URL, timeout=30)
         page.raise_for_status()
         soup = BeautifulSoup(page.text, 'html.parser')
     except requests.exceptions.RequestException as e:
-        logging.error(f"A network error occurred while fetching announcements: {e}")
+        error_message = f"🔴 A network error occurred while fetching announcements:\n\n`{e}`\n\nThe Moodle site may be down. The bot will retry in 10 minutes."
+        logging.error(error_message)
+        send_telegram_message(error_message, TELEGRAM_CHAT_ID)
         return
 
     announcement_tags = soup.select('li.activity.modtype_label .activity-altcontent')
     if not announcement_tags:
-        logging.warning("No announcement tags found. This could indicate a login failure or a change in the page layout.")
+        logging.warning("No announcement tags found on page. This is unusual and could indicate a silent login failure.")
         return
 
-    new_items_found = False
+    new_announcements = []
     for tag in announcement_tags:
         parent_li = tag.find_parent('li', class_='activity')
         item_id = parent_li.get('id') if parent_li else None
-        
         if item_id and item_id not in seen_ids:
-            new_items_found = True
-            logging.info(f"Found new announcement: {item_id}")
-            
             plain_text, links = html_to_plain_text_and_links(tag)
-            message = f"📣 Nouvelle Affiche\n================\n\n{plain_text}"
-            if links:
-                message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in links)
+            new_announcements.append({'id': item_id, 'content': plain_text, 'links': links})
+    
+    if new_announcements:
+        logging.info(f"Found {len(new_announcements)} new announcements!")
+        # CORRECTED ORDER: Send oldest new item first.
+        # We iterate through the list normally, not reversed.
+        for item in new_announcements:
+            message = f"📣 Nouvelle Affiche\n================\n\n{item['content']}"
+            if item['links']:
+                message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in item['links'])
             
             if send_telegram_message(message, TELEGRAM_CHAT_ID):
-                seen_ids.add(item_id)
+                seen_ids.add(item['id'])
                 save_seen_ids(seen_ids)
-                logging.info(f"Successfully processed and saved ID: {item_id}")
+                logging.info(f"Successfully processed and saved ID: {item['id']}")
             else:
-                logging.warning(f"Failed to send notification for {item_id}. It will be retried on the next check.")
+                logging.warning(f"Failed to send notification for {item['id']}. It will be retried on the next check.")
             
-            time.sleep(1) # Stagger notifications
-    
-    if not new_items_found:
+            time.sleep(1)
+    else:
         logging.info("No new announcements found.")
 
 def html_to_plain_text_and_links(tag):
     """Helper function to convert HTML to text and extract links."""
     links = [a['href'] for a in tag.find_all("a", href=True) if a.get('href')]
-    for a_link in links:
-        if not a_link.startswith('http'): a_link = 'https://elearning.univ-bejaia.dz' + a_link
+    full_links = []
+    for link in links:
+        if not link.startswith('http'):
+            full_links.append('https://elearning.univ-bejaia.dz' + link)
+        else:
+            full_links.append(link)
     for br in tag.find_all("br"): br.replace_with("\n")
     for p in tag.find_all("p"): p.append("\n")
     text = tag.get_text()
     lines = (line.strip() for line in text.splitlines())
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-    return "\n".join(chunk for chunk in chunks if chunk), links
+    return "\n".join(chunk for chunk in chunks if chunk), full_links
 
 # --- MAIN EXECUTION LOOP ---
 
 def main_check():
-    """The main logic for a single check, designed to be called in a loop."""
+    """The main logic for a single check."""
     if not all([MOODLE_USERNAME, MOODLE_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, USER_FULL_NAME]):
-        logging.error("CRITICAL: One or more environment variables are missing! Check USER_FULL_NAME.")
-        # Send a startup failure notification if possible
-        send_telegram_message("🔴 BOT STARTUP FAILED: Missing essential credentials. Please check Railway variables.", TELEGRAM_CHAT_ID)
+        error_msg = "🔴 BOT STARTUP FAILED: One or more essential credentials (like USER_FULL_NAME) are missing. Please check Railway variables."
+        logging.critical(error_msg)
+        send_telegram_message(error_msg, TELEGRAM_CHAT_ID)
+        # Stop the script from running if config is broken
+        time.sleep(3600) # Wait an hour before retrying
         return
 
     session = requests.Session()
@@ -167,10 +180,9 @@ def main_check():
 if __name__ == "__main__":
     logging.info("Script is starting up...")
     
-    # NEW: Send a startup/restart notification to confirm the bot is alive.
     send_telegram_message("✅ Bot has started/restarted and is now monitoring for announcements.", TELEGRAM_CHAT_ID)
     
-    time.sleep(5) # Wait for volume to mount
+    time.sleep(5)
     
     while True:
         try:
@@ -178,6 +190,4 @@ if __name__ == "__main__":
             logging.info("Check complete. Waiting for 10 minutes...")
             time.sleep(600)
         except Exception as e:
-            logging.critical(f"A critical, unexpected error occurred in the main loop: {e}")
-            send_telegram_message(f"🔴 BOT CRITICAL ERROR: The script has crashed. Error: {e}. It will restart in 5 minutes.", TELEGRAM_CHAT_ID)
-            time.sleep(300)
+            # Format the full error traceback for debuggi
