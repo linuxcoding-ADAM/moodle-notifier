@@ -1,4 +1,4 @@
-# FINAL RAILWAY-READY SCRIPT (with while True loop)
+# FINAL, ROBUST RAILWAY SCRIPT (Fixes the "Amnesia" Bug)
 
 import requests
 import json
@@ -8,7 +8,7 @@ import re
 import os
 import logging
 
-# --- CONFIGURATION: READS SECURELY FROM RAILWAY'S ENVIRONMENT ---
+# --- CONFIGURATION ---
 LOGIN_URL = 'https://elearning.univ-bejaia.dz/login/index.php'
 AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
 
@@ -16,12 +16,12 @@ MOODLE_USERNAME = os.getenv('MOODLE_USERNAME')
 MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-# --- END OF SECURE CONFIGURATION ---
+# --- END OF CONFIGURATION ---
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# IMPORTANT: This path points to Railway's persistent Volume
 SEEN_IDS_FILE = '/data/seen_ids.json'
+SEEN_IDS_FILE_TMP = '/data/seen_ids.json.tmp' # Temp file for safe saving
 
 def get_seen_ids():
     try:
@@ -29,10 +29,15 @@ def get_seen_ids():
     except (FileNotFoundError, json.JSONDecodeError):
         return set()
 
+# NEW: "Safe Save" function to prevent file corruption
 def save_seen_ids(ids):
-    # Ensure the /data directory exists before writing
     os.makedirs(os.path.dirname(SEEN_IDS_FILE), exist_ok=True)
-    with open(SEEN_IDS_FILE, 'w') as f: json.dump(list(ids), f)
+    # Write to a temporary file first
+    with open(SEEN_IDS_FILE_TMP, 'w') as f:
+        json.dump(list(ids), f)
+    # If the write was successful, rename the temp file to the real file
+    # This is an "atomic" operation and prevents corruption
+    os.rename(SEEN_IDS_FILE_TMP, SEEN_IDS_FILE)
 
 def html_to_plain_text_and_links(tag):
     links = []
@@ -60,7 +65,7 @@ def send_telegram_message(message):
 
 def run_check():
     if not all([MOODLE_USERNAME, MOODLE_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]):
-        logging.error("One or more environment variables are missing! Please check your variables on the Railway dashboard.")
+        logging.error("One or more environment variables are missing!")
         return
     logging.info("Starting check...")
     seen_ids = get_seen_ids()
@@ -80,31 +85,38 @@ def run_check():
     if not announcement_tags:
         logging.warning("No announcements found on page.")
         return
-    new_announcements = []
+        
+    found_new = False # A flag to track if we found anything new
     for tag in announcement_tags:
         parent_li = tag.find_parent('li', class_='activity')
         item_id = parent_li.get('id') if parent_li else None
         if item_id and item_id not in seen_ids:
+            if not found_new:
+                logging.info("Found new announcements!")
+                found_new = True
+                
             plain_text, links = html_to_plain_text_and_links(tag)
-            new_announcements.append({'id': item_id, 'content': plain_text, 'links': links})
-    if new_announcements:
-        logging.info(f"Found {len(new_announcements)} new announcements!")
-        for item in reversed(new_announcements):
             message = f"📣 Nouvelle Affiche\n================\n\n{item['content']}"
-            if item['links']: message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in item['links'])
+            if links: message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in links)
             send_telegram_message(message)
-            seen_ids.add(item['id'])
-            save_seen_ids(seen_ids)
+            seen_ids.add(item_id)
             time.sleep(1)
+
+    if found_new:
+        # Only save the file if there were changes
+        save_seen_ids(seen_ids)
     else:
         logging.info("No new announcements found.")
 
 if __name__ == "__main__":
-    logging.info("Script started. Entering main loop.")
+    # NEW: Add a startup delay to prevent the race condition
+    logging.info("Script started. Waiting 5 seconds for volume to mount...")
+    time.sleep(5)
+    logging.info("Entering main loop.")
+    
     while True:
         try:
             run_check()
-            # Wait for 10 minutes (600 seconds)
             logging.info("Check complete. Waiting for 10 minutes...")
             time.sleep(600) 
         except Exception as e:
