@@ -1,4 +1,4 @@
-# FINAL, DEFINITIVE RAILWAY SCRIPT (All fixes included + Correct Order + Error Details)
+# FINAL, DEFINITIVE RAILWAY SCRIPT (All fixes included + Indentation Fix)
 
 import requests
 import json
@@ -7,7 +7,7 @@ import time
 import re
 import os
 import logging
-import traceback # New import for detailed error formatting
+import traceback
 
 # --- CONFIGURATION ---
 LOGIN_URL = 'https://elearning.univ-bejaia.dz/login/index.php'
@@ -18,7 +18,6 @@ MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-# Your full name as it appears when you are logged into the Moodle site.
 USER_FULL_NAME = os.getenv('USER_FULL_NAME')
 # --- END OF CONFIGURATION ---
 
@@ -26,8 +25,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 SEEN_IDS_FILE = '/data/seen_ids.json'
 SEEN_IDS_FILE_TMP = '/data/seen_ids.json.tmp'
-
-# --- CORE FUNCTIONS ---
 
 def get_seen_ids():
     try:
@@ -41,14 +38,13 @@ def save_seen_ids(ids):
     os.rename(SEEN_IDS_FILE_TMP, SEEN_IDS_FILE)
 
 def send_telegram_message(message, chat_id):
-    """Sends a message to a specific chat ID."""
     if not all([TELEGRAM_BOT_TOKEN, chat_id]):
         logging.error("Telegram token or chat ID is missing.")
         return False
     if len(message) > 4096: message = message[:4090] + "\n\n...(msg truncated)"
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {'chat_id': chat_id, 'text': message, 'disable_web_page_preview': True}
+    payload = {'chat_id': chat_id, 'text': message, 'parse_mode': 'Markdown', 'disable_web_page_preview': True}
     
     try:
         response = requests.post(url, json=payload, timeout=20)
@@ -63,7 +59,6 @@ def send_telegram_message(message, chat_id):
         return False
 
 def perform_login(session):
-    """Logs into Moodle and verifies the login was successful."""
     logging.info("Attempting to log in...")
     try:
         login_page = session.get(LOGIN_URL, timeout=30)
@@ -99,7 +94,6 @@ def perform_login(session):
         return False
 
 def fetch_and_process_announcements(session, seen_ids):
-    """Fetches the announcements page and processes new items."""
     try:
         logging.info(f"Accessing announcements page...")
         page = session.get(AFFICHAGE_URL, timeout=30)
@@ -126,9 +120,7 @@ def fetch_and_process_announcements(session, seen_ids):
     
     if new_announcements:
         logging.info(f"Found {len(new_announcements)} new announcements!")
-        # CORRECTED ORDER: Send oldest new item first.
-        # We iterate through the list normally, not reversed.
-        for item in new_announcements:
+        for item in new_announcements: # Corrected order
             message = f"📣 Nouvelle Affiche\n================\n\n{item['content']}"
             if item['links']:
                 message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in item['links'])
@@ -145,7 +137,6 @@ def fetch_and_process_announcements(session, seen_ids):
         logging.info("No new announcements found.")
 
 def html_to_plain_text_and_links(tag):
-    """Helper function to convert HTML to text and extract links."""
     links = [a['href'] for a in tag.find_all("a", href=True) if a.get('href')]
     full_links = []
     for link in links:
@@ -160,16 +151,12 @@ def html_to_plain_text_and_links(tag):
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
     return "\n".join(chunk for chunk in chunks if chunk), full_links
 
-# --- MAIN EXECUTION LOOP ---
-
 def main_check():
-    """The main logic for a single check."""
     if not all([MOODLE_USERNAME, MOODLE_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, USER_FULL_NAME]):
         error_msg = "🔴 BOT STARTUP FAILED: One or more essential credentials (like USER_FULL_NAME) are missing. Please check Railway variables."
         logging.critical(error_msg)
         send_telegram_message(error_msg, TELEGRAM_CHAT_ID)
-        # Stop the script from running if config is broken
-        time.sleep(3600) # Wait an hour before retrying
+        time.sleep(3600)
         return
 
     session = requests.Session()
@@ -190,4 +177,11 @@ if __name__ == "__main__":
             logging.info("Check complete. Waiting for 10 minutes...")
             time.sleep(600)
         except Exception as e:
-            # Format the full error traceback for debuggi
+            # --- THIS IS THE CORRECTED BLOCK ---
+            # Format the full error traceback for debugging
+            error_details = traceback.format_exc()
+            # Note the use of Markdown for code blocks
+            error_message = f"🔴 BOT CRITICAL ERROR: The script has crashed unexpectedly.\n\n*Error:*\n`{e}`\n\n*Full Traceback:*\n```{error_details}```\n\nThe bot will restart in 5 minutes."
+            logging.critical(error_message)
+            send_telegram_message(error_message, TELEGRAM_CHAT_ID)
+            time.sleep(300)`
