@@ -1,4 +1,4 @@
-# FINAL, DEFINITIVE RAILWAY SCRIPT (All fixes included + Indentation Fix)
+# FINAL, DEFINITIVE RAILWAY SCRIPT (All fixes included + CORRECT notification order)
 
 import requests
 import json
@@ -77,18 +77,18 @@ def perform_login(session):
             logging.info("Login successful! Logout link found.")
             return True
         else:
-            error_message = "🔴 Login Verification Failed!\n\nCould not find user name or logout link after posting credentials. The Moodle site might have changed, or the session is invalid. The bot will retry in 10 minutes."
+            error_message = "🔴 Login Verification Failed!\n\nCould not find user name or logout link. The bot will retry in 10 minutes."
             logging.error(error_message)
             send_telegram_message(error_message, TELEGRAM_CHAT_ID)
             return False
             
     except requests.exceptions.RequestException as e:
-        error_message = f"🔴 A network error occurred during login:\n\n`{e}`\n\nThe Moodle site may be down. The bot will retry in 10 minutes."
+        error_message = f"🔴 A network error occurred during login:\n\n`{e}`\n\nThe bot will retry in 10 minutes."
         logging.error(error_message)
         send_telegram_message(error_message, TELEGRAM_CHAT_ID)
         return False
     except (TypeError, KeyError):
-        error_message = "🔴 Failed to parse Moodle login page.\n\nThe page structure has likely changed. The bot will retry in 10 minutes."
+        error_message = "🔴 Failed to parse Moodle login page.\n\nThe page structure may have changed. The bot will retry in 10 minutes."
         logging.error(error_message)
         send_telegram_message(error_message, TELEGRAM_CHAT_ID)
         return False
@@ -100,14 +100,14 @@ def fetch_and_process_announcements(session, seen_ids):
         page.raise_for_status()
         soup = BeautifulSoup(page.text, 'html.parser')
     except requests.exceptions.RequestException as e:
-        error_message = f"🔴 A network error occurred while fetching announcements:\n\n`{e}`\n\nThe Moodle site may be down. The bot will retry in 10 minutes."
+        error_message = f"🔴 A network error occurred while fetching announcements:\n\n`{e}`\n\nThe bot will retry in 10 minutes."
         logging.error(error_message)
         send_telegram_message(error_message, TELEGRAM_CHAT_ID)
         return
 
     announcement_tags = soup.select('li.activity.modtype_label .activity-altcontent')
     if not announcement_tags:
-        logging.warning("No announcement tags found on page. This is unusual and could indicate a silent login failure.")
+        logging.warning("No announcement tags found on page. This could indicate a silent login failure.")
         return
 
     new_announcements = []
@@ -120,7 +120,10 @@ def fetch_and_process_announcements(session, seen_ids):
     
     if new_announcements:
         logging.info(f"Found {len(new_announcements)} new announcements!")
-        for item in new_announcements: # Corrected order
+        # --- THIS IS THE CORRECTED LINE ---
+        # By reversing the list, we process the oldest new item first,
+        # so they appear in chronological order in the Telegram chat.
+        for item in reversed(new_announcements):
             message = f"📣 Nouvelle Affiche\n================\n\n{item['content']}"
             if item['links']:
                 message += "\n\n----------------\n🔗 Liens:\n" + "\n".join(f"- {link}" for link in item['links'])
@@ -177,10 +180,7 @@ if __name__ == "__main__":
             logging.info("Check complete. Waiting for 10 minutes...")
             time.sleep(600)
         except Exception as e:
-            # --- THIS IS THE CORRECTED BLOCK ---
-            # Format the full error traceback for debugging
             error_details = traceback.format_exc()
-            # Note the use of Markdown for code blocks
             error_message = f"🔴 BOT CRITICAL ERROR: The script has crashed unexpectedly.\n\n*Error:*\n`{e}`\n\n*Full Traceback:*\n```{error_details}```\n\nThe bot will restart in 5 minutes."
             logging.critical(error_message)
             send_telegram_message(error_message, TELEGRAM_CHAT_ID)
