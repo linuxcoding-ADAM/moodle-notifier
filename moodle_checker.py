@@ -184,4 +184,4 @@ if __name__ == "__main__":
             error_message = f"🔴 BOT CRITICAL ERROR: The script has crashed unexpectedly.\n\n*Error:*\n`{e}`\n\n*Full Traceback:*\n```{error_details}```\n\nThe bot will restart in 5 minutes."
             logging.critical(error_message)
             send_telegram_message(error_message, TELEGRAM_CHAT_ID)
-            time.sleep(300)`
+            time.sleep(300)
