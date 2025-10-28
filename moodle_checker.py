@@ -7,7 +7,7 @@ import re
 import os
 import logging
 import traceback
-from bs4 import BeautifulSoup, NavigableString # <-- IMPORT IS NOW AT THE TOP LEVEL
+from bs4 import BeautifulSoup, NavigableString # <-- IMPORT IS NOW CORRECTLY AT THE TOP LEVEL
 
 # --- CONFIGURATION CLASS ---
 class Config:
@@ -61,11 +61,12 @@ def _send_telegram_message(token, chat_id, message, parse_mode='MarkdownV2'):
         logging.error(f"Exception while sending message: {e}")
         return False
 
-# CORRECTED: These now call the correct bot tokens
 def send_announcement(message):
+    """Sends a new announcement using the main bot."""
     return _send_telegram_message(Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID, message)
 
 def send_error_alert(message):
+    """Sends an error or health alert using the error bot."""
     return _send_telegram_message(Config.TELEGRAM_ERROR_BOT_TOKEN, Config.TELEGRAM_CHAT_ID, message, parse_mode='Markdown')
 
 def get_seen_ids():
@@ -196,10 +197,10 @@ if __name__ == "__main__":
     if not all(os.getenv(var) for var in required_vars):
         startup_error = "🔴 BOT STARTUP FAILED: One or more essential environment variables are missing. Please check all 6 variables on the Railway dashboard."
         logging.critical(startup_error)
-        send_error_alert(startup_error)
+        send_error_alert(startup_error) # CORRECTED: Uses the error bot
     else:
         logging.info("Script is starting up...")
-        send_error_alert("✅ Bot has started/restarted and is now monitoring.")
+        send_error_alert("✅ Bot has started/restarted and is now monitoring.") # CORRECTED: Uses the error bot
         time.sleep(Config.STARTUP_DELAY)
         
         scraper = MoodleScraper()
@@ -213,5 +214,5 @@ if __name__ == "__main__":
                 error_details = traceback.format_exc()
                 error_message = f"🔴 BOT CRITICAL ERROR: The main loop has crashed.\n\n*Error:*\n`{e}`\n\n*Traceback:*\n```{error_details}```\n\nThe bot will restart its loop in {Config.ERROR_RETRY_DELAY // 60} minutes."
                 logging.critical(error_message)
-                send_error_alert(error_message)
+                send_error_alert(error_message) # CORRECTED: Uses the error bot
                 time.sleep(Config.ERROR_RETRY_DELAY)
