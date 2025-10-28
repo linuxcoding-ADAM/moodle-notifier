@@ -1,5 +1,4 @@
 # The Definitive, Two-Bot, Bulletproof Moodle Scraper
-
 import requests
 import json
 import time
