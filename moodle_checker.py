@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Selenium Fix)
+# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Explicit Driver Path)
 
 import requests
 import json
@@ -31,7 +31,6 @@ class Config:
     ERROR_RETRY_DELAY = 300
 
 # --- LOGGING, HELPERS (Unchanged) ---
-# ... (All the helper functions from before remain exactly the same)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 def send_telegram_message(message_text, parse_mode='Markdown'):
     if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]): return False
@@ -86,7 +85,7 @@ def format_announcement_text(text):
     matches = re.findall(pattern, text)
     if not matches: return text
     return "\n\n".join([f"*{label.strip()} :*\n{value.strip()}" for label, value in matches])
-    
+
 # --- CORE SCRAPER CLASS (MODIFIED INITIALIZE DRIVER) ---
 class MoodleScraper:
     def __init__(self):
@@ -103,14 +102,15 @@ class MoodleScraper:
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             
-            # This tells Selenium to use the chromedriver that Nixpacks installed
-            service = ChromeService()
+            # --- THIS IS THE FIX ---
+            # Force Selenium to use the 'chromedriver' command from the system's PATH
+            service = ChromeService(executable_path="chromedriver")
             
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
             logging.info("WebDriver initialized successfully.")
             return True
         except Exception as e:
-            logging.critical(f"Failed to initialize WebDriver: {e}", exc_info=True) # Log full traceback
+            logging.critical(f"Failed to initialize WebDriver: {e}", exc_info=True)
             return False
 
     def _login(self):
@@ -118,7 +118,6 @@ class MoodleScraper:
         if not self.driver:
             if not self._initialize_driver():
                 return False
-        
         logging.info("Attempting login via Selenium...")
         try:
             self.driver.get(Config.LOGIN_URL)
@@ -184,7 +183,6 @@ class MoodleScraper:
             
 # --- MAIN EXECUTION BLOCK (Unchanged) ---
 if __name__ == "__main__":
-    # ... (Main block is unchanged)
     if not all(os.getenv(var) for var in ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'USER_FULL_NAME']):
         logging.critical("BOT STARTUP FAILED: Missing environment variables.")
     else:
