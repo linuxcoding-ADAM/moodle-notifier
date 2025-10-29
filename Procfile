@@ -1,1 +1,1 @@
-worker: bash start.sh
+worker: python moodle_checker.py
