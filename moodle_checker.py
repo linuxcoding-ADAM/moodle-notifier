@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Self-Contained Path Finding)
+# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - API Based)
 
 import requests
 import json
@@ -7,32 +7,34 @@ import re
 import os
 import logging
 import traceback
-import shutil  # <-- IMPORT THE SHUTIL LIBRARY
 from bs4 import BeautifulSoup, NavigableString, Tag
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, WebDriverException
 
-# --- CONFIGURATION (Unchanged) ---
+# --- CONFIGURATION CLASS ---
 class Config:
-    LOGIN_URL = 'https://elearning.univ-bejaia.dz/login/index.php'
-    AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
+    BASE_URL = 'https://elearning.univ-bejaia.dz'
+    LOGIN_URL = f'{BASE_URL}/login/index.php'
+    # This is the Moodle Web Service API endpoint
+    API_URL = f'{BASE_URL}/webservice/rest/server.php'
+    # The ID of the course page we want to check
+    COURSE_ID = 19989 
+    
     MOODLE_USERNAME = os.getenv('MOODLE_USERNAME')
     MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
     TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
     USER_FULL_NAME = os.getenv('USER_FULL_NAME')
+
     SEEN_IDS_FILE = '/data/seen_ids.json'
     SEEN_IDS_FILE_TMP = '/data/seen_ids.json.tmp'
+
     CHECK_INTERVAL = 600
     STARTUP_DELAY = 10
     ERROR_RETRY_DELAY = 300
 
-# --- LOGGING, HELPERS (Unchanged) ---
+# --- LOGGING SETUP ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# --- UNCHANGED HELPER FUNCTIONS ---
 def send_telegram_message(message_text, parse_mode='Markdown'):
     if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]): return False
     if len(message_text) > 4096: message_text = message_text[:4090] + "\n\n...(truncated)"
@@ -55,142 +57,158 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
 def get_seen_ids():
     try:
         with open(Config.SEEN_IDS_FILE, 'r') as f: return set(json.load(f))
-    except (FileNotFoundError, json.JSONDecodeError): return set()
+    except (FileNotFoundError, json.JSONDecodeError):
+        logging.info("seen_ids.json not found or invalid. Starting with an empty set.")
+        return set()
 def save_seen_ids(ids):
     try:
         os.makedirs(os.path.dirname(Config.SEEN_IDS_FILE), exist_ok=True)
-        with open(Config.SEEN_IDS_FILE_TMP, 'w') as f: json.dump(list(ids), f)
+        with open(Config.SEEN_IDS_FILE_TMP, 'w') as f: json.dump(list(ids), f, indent=2)
         os.rename(Config.SEEN_IDS_FILE_TMP, Config.SEEN_IDS_FILE)
-    except Exception as e: logging.critical(f"Could not save seen_ids.json: {e}")
-def html_to_markdown(tag):
+    except Exception as e: logging.critical(f"FATAL: Could not save seen_ids.json! Error: {e}")
+def html_to_markdown(html_content):
+    if not html_content: return ""
+    soup = BeautifulSoup(html_content, 'html.parser')
     text_parts = []
-    for child in tag.children:
-        if isinstance(child, NavigableString): text_parts.append(child.string)
-        elif isinstance(child, Tag):
-            child_text = html_to_markdown(child)
-            if child.name in ['b', 'strong']: text_parts.append(f"*{child_text}*")
-            elif child.name in ['i', 'em']: text_parts.append(f"_{child_text}_")
-            elif child.name in ['p', 'div', 'li', 'br']: text_parts.append(f"\n{child_text}\n")
-            else: text_parts.append(child_text)
-    return re.sub(r'\n\s*\n', '\n\n', "".join(text_parts)).strip()
-def extract_links(tag):
-    links = []
-    for a in tag.find_all("a", href=True):
-        href = a.get('href')
-        if href and href.strip() not in ['#', '']:
-            if not href.startswith('http'): href = 'https://elearning.univ-bejaia.dz' + href
-            links.append(href)
-    return links
+    for element in soup.recursiveChildGenerator():
+        if isinstance(element, NavigableString):
+            text_parts.append(element.string)
+        elif isinstance(element, Tag):
+            if element.name in ['b', 'strong']:
+                text_parts.append(f"*{element.get_text()}*")
+            elif element.name in ['i', 'em']:
+                text_parts.append(f"_{element.get_text()}_")
+            elif element.name in ['p', 'div', 'br']:
+                text_parts.append("\n")
+    full_text = "".join(text_parts)
+    return re.sub(r'\n\s*\n', '\n\n', full_text).strip()
 def format_announcement_text(text):
     pattern = r'(?s)\*(.*?):\*\s*(.*?)(?=\s*\*.*?\*:|\Z)'
     matches = re.findall(pattern, text)
     if not matches: return text
     return "\n\n".join([f"*{label.strip()} :*\n{value.strip()}" for label, value in matches])
 
-# --- CORE SCRAPER CLASS (MODIFIED INITIALIZE DRIVER) ---
+# --- CORE SCRAPER CLASS (API BASED) ---
 class MoodleScraper:
     def __init__(self):
+        self.session = requests.Session()
         self.seen_ids = get_seen_ids()
-        self.driver = None
+        self.api_token = None
 
-    def _initialize_driver(self):
-        """Sets up the Selenium WebDriver by finding the executable itself."""
-        logging.info("Initializing Selenium WebDriver...")
+    def _login_and_get_token(self):
+        """Logs in via the web page to get a session, then uses the session to get an API token."""
+        logging.info("Attempting login to get session cookie...")
         try:
-            # --- THIS IS THE NEW, SIMPLER FIX ---
-            # Use Python's built-in tool to find the chromedriver executable in the system's PATH
-            driver_path = shutil.which("chromedriver")
-            
-            if not driver_path:
-                logging.critical("Could not find 'chromedriver' in the system PATH!")
-                logging.error(f"Current PATH is: {os.getenv('PATH')}")
+            # Step 1: Get the logintoken from the login page
+            login_page = self.session.get(Config.LOGIN_URL, timeout=30)
+            login_page.raise_for_status()
+            soup = BeautifulSoup(login_page.text, 'html.parser')
+            logintoken = soup.find('input', {'name': 'logintoken'})['value']
+
+            # Step 2: Perform the login to establish a session
+            payload = {'username': Config.MOODLE_USERNAME, 'password': Config.MOODLE_PASSWORD, 'logintoken': logintoken}
+            response = self.session.post(Config.LOGIN_URL, data=payload, timeout=30)
+            response.raise_for_status()
+            if Config.USER_FULL_NAME.lower() not in response.text.lower():
+                logging.error("Login verification failed. User name not found on page.")
                 return False
-
-            logging.info(f"Found chromedriver executable at: {driver_path}")
-
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.add_argument("--headless")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-dev-shm-usage")
             
-            service = ChromeService(executable_path=driver_path)
+            logging.info("Login successful. Session established.")
             
-            self.driver = webdriver.Chrome(service=service, options=chrome_options)
-            logging.info("WebDriver initialized successfully.")
+            # Step 3: Extract the sesskey from the page, which is needed for the API token call
+            sesskey_match = re.search(r'"sesskey":"(.*?)"', response.text)
+            if not sesskey_match:
+                logging.error("Could not find sesskey on the page after login.")
+                return False
+            sesskey = sesskey_match.group(1)
+            
+            # Step 4: Use the session and sesskey to request an API token
+            api_token_payload = {
+                'sesskey': sesskey,
+                'info': 'core_course_get_contents'
+            }
+            # This is a special endpoint that generates tokens for the mobile API
+            token_response = self.session.post(f"{Config.BASE_URL}/lib/ajax/service.php", json=[{"index":0, "methodname":"core_course_get_contents", "args":api_token_payload}])
+            token_response.raise_for_status()
+            
+            # Moodle AJAX API is weird, it returns an array of responses. We expect one.
+            self.api_token = self.session.cookies.get('MoodleSession')
+            if not self.api_token:
+                 logging.error("Failed to get API token after login.")
+                 return False
+
+            logging.info("Successfully obtained API token.")
             return True
+            
         except Exception as e:
-            logging.critical(f"Failed to initialize WebDriver: {e}", exc_info=True)
+            logging.error(f"An error occurred during login/token fetch: {e}", exc_info=True)
             return False
 
-    def _login(self):
-        # ... (Login function is unchanged)
-        if not self.driver:
-            if not self._initialize_driver():
-                return False
-        logging.info("Attempting login via Selenium...")
-        try:
-            self.driver.get(Config.LOGIN_URL)
-            wait = WebDriverWait(self.driver, 15)
-            wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(Config.MOODLE_USERNAME)
-            self.driver.find_element(By.ID, "password").send_keys(Config.MOODLE_PASSWORD)
-            self.driver.find_element(By.ID, "loginbtn").click()
-            wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "body"), Config.USER_FULL_NAME))
-            logging.info("Login successful! User name confirmed.")
-            return True
-        except (TimeoutException, WebDriverException) as e:
-            logging.error(f"Failed to log in with Selenium: {e}")
-            return False
-            
     def run_check(self):
-        # ... (run_check function is unchanged)
         logging.info("--- Starting new check cycle ---")
-        if not self.driver:
-            if not self._login():
-                logging.error("Aborting check due to login failure.")
-                if self.driver: self.driver.quit()
-                self.driver = None
+        if not self.api_token:
+            if not self._login_and_get_token():
+                logging.error("Aborting check due to login/token failure.")
                 return
+
         try:
-            logging.info(f"Navigating to announcements page: {Config.AFFICHAGE_URL}")
-            self.driver.get(Config.AFFICHAGE_URL)
-            wait = WebDriverWait(self.driver, 20)
-            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "li.activity.modtype_label")))
-            page_html = self.driver.page_source
-            if "login/index.php" in self.driver.current_url:
-                logging.warning("Session expired. Re-authenticating.")
-                self.driver.quit()
-                self.driver = None
+            # Use the API to get course contents directly
+            params = {
+                'wstoken': self.api_token,
+                'wsfunction': 'core_course_get_contents',
+                'moodlewsrestformat': 'json',
+                'courseid': Config.COURSE_ID
+            }
+            response = self.session.get(Config.API_URL, params=params, timeout=30)
+            response.raise_for_status()
+            course_data = response.json()
+
+            if isinstance(course_data, dict) and course_data.get("exception"):
+                logging.error(f"API returned an error: {course_data.get('message')}")
+                if course_data.get('errorcode') == 'invalidtoken':
+                    logging.warning("API token is invalid. Forcing re-login on next cycle.")
+                    self.api_token = None
                 return
-        except (TimeoutException, WebDriverException) as e:
-            logging.error(f"Error loading announcements page: {e}")
-            self.driver.quit()
-            self.driver = None
-            return
-        soup = BeautifulSoup(page_html, 'html.parser')
-        announcement_tags = soup.select('li.activity.modtype_label .activity-altcontent')
-        if not announcement_tags:
-            logging.warning("No announcement tags found.")
-            return
-        new_items = [{'id': tag.find_parent('li', class_='activity').get('id'), 'tag': tag} for tag in announcement_tags if tag.find_parent('li', class_='activity')]
-        new_items = [item for item in new_items if item['id'] and item['id'] not in self.seen_ids]
-        if new_items:
-            logging.info(f"Found {len(new_items)} new announcement(s)!")
-            for item in reversed(new_items):
-                item_id, item_tag = item['id'], item['tag']
-                content_text = format_announcement_text(html_to_markdown(item_tag))
-                links = extract_links(item_tag)
-                message = f"📣 *Nouvelle Affiche*\n================\n\n{content_text}"
-                if links: message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in sorted(list(set(links))))
-                message += f"\n\n------------\nid : `{item_id}`"
-                if send_telegram_message(message):
-                    self.seen_ids.add(item_id)
-                    save_seen_ids(self.seen_ids)
-                    logging.info(f"Successfully processed and saved ID: {item_id}")
-                else: logging.warning(f"Failed to send notification for {item_id}. Retrying next cycle.")
-                time.sleep(2)
-        else: logging.info("No new announcements found.")
-            
-# --- MAIN EXECUTION BLOCK (Unchanged) ---
+
+            new_items = []
+            for section in course_data:
+                for module in section.get('modules', []):
+                    # Announcements are usually of type 'label'
+                    if module.get('modname') == 'label' and 'id' in module:
+                        item_id = module['id']
+                        if item_id not in self.seen_ids:
+                            new_items.append(module)
+
+            if new_items:
+                logging.info(f"Found {len(new_items)} new announcement(s) via API!")
+                # The API returns items in chronological order, so we don't need to reverse
+                for item in new_items:
+                    item_id = item['id']
+                    content_text = ""
+                    if 'description' in item:
+                        content_text = format_announcement_text(html_to_markdown(item['description']))
+                    
+                    message = f"📣 *Nouvelle Affiche*\n================\n\n{content_text}"
+                    message += f"\n\n------------\nid : `{item_id}`"
+
+                    if send_telegram_message(message):
+                        self.seen_ids.add(item_id)
+                        save_seen_ids(self.seen_ids)
+                        logging.info(f"Successfully processed and saved ID: {item_id}")
+                    else:
+                        logging.warning(f"Failed to send notification for {item_id}. It will be retried.")
+                    time.sleep(2)
+            else:
+                logging.info("No new announcements found via API.")
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Network error during API check: {e}")
+        except json.JSONDecodeError:
+            logging.error("Failed to decode JSON response from API.")
+        except Exception as e:
+            logging.critical(f"An unexpected error occurred in run_check: {e}", exc_info=True)
+
+# --- MAIN EXECUTION BLOCK ---
 if __name__ == "__main__":
     if not all(os.getenv(var) for var in ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'USER_FULL_NAME']):
         logging.critical("BOT STARTUP FAILED: Missing environment variables.")
@@ -209,6 +227,4 @@ if __name__ == "__main__":
                 error_message = f"🔴 *BOT CRITICAL ERROR*\nCrashed with:\n`{e}`\n```{error_details}```\nRestarting in {Config.ERROR_RETRY_DELAY // 60} minutes."
                 logging.critical(f"Unexpected error in main loop: {e}", exc_info=True)
                 send_telegram_message(error_message, parse_mode='Markdown')
-                if scraper.driver: scraper.driver.quit()
-                scraper.driver = None
                 time.sleep(Config.ERROR_RETRY_DELAY)
