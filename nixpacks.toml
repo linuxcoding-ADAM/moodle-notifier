@@ -1,4 +1,29 @@
-# nixpacks.toml
+# nixpacks.toml (Updated and Robust Version)
 
 [phases.setup]
-nixPkgs = ["...", "pkgs.chromedriver", "pkgs.google-chrome"]
+nixPkgs = [
+    "...", # This keeps all the default packages
+    "pkgs.chromedriver",
+    "pkgs.google-chrome",
+    "pkgs.libx11",
+    "pkgs.libxcomposite",
+    "pkgs.libxdamage",
+    "pkgs.libxext",
+    "pkgs.libxfixes",
+    "pkgs.libxrandr",
+    "pkgs.nss",
+    "pkgs.alsa-lib",
+    "pkgs.libxrender",
+    "pkgs.libxshmfence",
+    "pkgs.at-spi2-atk",
+    "pkgs.cairo",
+    "pkgs.cups",
+    "pkgs.dbus",
+    "pkgs.expat",
+    "pkgs.fontconfig",
+    "pkgs.freetype",
+    "pkgs.gdk-pixbuf",
+    "pkgs.glib",
+    "pkgs.gtk3",
+    "pkgs.pango"
+]
