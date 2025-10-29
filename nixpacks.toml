@@ -1,0 +1,4 @@
+# nixpacks.toml
+
+[phases.setup]
+nixPkgs = ["...", "pkgs.chromedriver", "pkgs.google-chrome"]
