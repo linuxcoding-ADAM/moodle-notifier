@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Explicit Driver Path)
+# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Absolute Path Fix)
 
 import requests
 import json
@@ -31,6 +31,7 @@ class Config:
     ERROR_RETRY_DELAY = 300
 
 # --- LOGGING, HELPERS (Unchanged) ---
+# ... (All helper functions remain exactly the same)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 def send_telegram_message(message_text, parse_mode='Markdown'):
     if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]): return False
@@ -103,8 +104,9 @@ class MoodleScraper:
             chrome_options.add_argument("--disable-dev-shm-usage")
             
             # --- THIS IS THE FIX ---
-            # Force Selenium to use the 'chromedriver' command from the system's PATH
-            service = ChromeService(executable_path="chromedriver")
+            # Provide the absolute path to the chromedriver installed by Nixpacks
+            # This is the standard location for Nix-installed binaries.
+            service = ChromeService(executable_path="/usr/bin/chromedriver")
             
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
             logging.info("WebDriver initialized successfully.")
