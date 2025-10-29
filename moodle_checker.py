@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (Final Version, Final Formatting)
+# The Definitive, Bulletproof Moodle Scraper (Final Version, Final Formatting Fix)
 
 import requests
 import json
@@ -136,18 +136,18 @@ def extract_links(tag):
             links.append(href)
     return links
 
-# --- NEW FUNCTION FOR DETAILED FORMATTING ---
+# --- NEW FUNCTION FOR DETAILED FORMATTING (FIXED) ---
 def format_announcement_text(text):
     """
     Parses the announcement text to separate labels from values and formats them
     into a "Label :\n\nValue" structure.
     """
-    # This pattern looks for a bolded label (e.g., *Title:*), captures the label and its value.
-    pattern = r'\*(.*?):\*\s*(?s)(.*?)(?=\s*\*.*?\*:|\Z)'
+    # --- THIS IS THE FIXED LINE ---
+    # The (?s) flag MUST be at the beginning of the expression.
+    pattern = r'(?s)\*(.*?):\*\s*(.*?)(?=\s*\*.*?\*:|\Z)'
     
     matches = re.findall(pattern, text)
     
-    # If the text doesn't follow the "Label: Value" pattern, return it as is to be safe.
     if not matches:
         return text
 
@@ -156,7 +156,6 @@ def format_announcement_text(text):
         clean_label = label.strip()
         clean_value = value.strip()
         
-        # Reconstruct in the desired format: "Label :\n\nValue"
         formatted_parts.append(f"*{clean_label} :*\n{clean_value}")
 
     return "\n\n".join(formatted_parts)
@@ -255,7 +254,6 @@ class MoodleScraper:
             for item in reversed(new_items):
                 item_id, item_tag = item['id'], item['tag']
                 
-                # --- MODIFICATION: Apply new formatting ---
                 raw_text = html_to_markdown(item_tag)
                 content_text = format_announcement_text(raw_text)
                 
@@ -267,7 +265,6 @@ class MoodleScraper:
                     unique_links = sorted(list(set(links)))
                     message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in unique_links)
                 
-                # --- MODIFICATION: Updated ID format ---
                 message += f"\n\n------------\nid : `{item_id}`"
 
                 if send_telegram_message(message):
