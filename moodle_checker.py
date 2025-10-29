@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (Final Version, Polished)
+# The Definitive, Bulletproof Moodle Scraper (Final Version, Polished + ID Feature)
 
 import requests
 import json
@@ -57,14 +57,15 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
     }
     
     # Remove parse_mode key if it's None to send as plain text
-    if payload['parse_mode'] is None:
+    if payload.get('parse_mode') is None:
         del payload['parse_mode']
 
     try:
         response = requests.post(url, json=payload, timeout=30)
         
         if response.status_code == 200:
-            logging.info(f"Successfully sent message (mode: {parse_mode or 'Plain Text'}).")
+            current_mode = parse_mode if 'parse_mode' in payload else 'Plain Text'
+            logging.info(f"Successfully sent message (mode: {current_mode}).")
             return True
         
         response_json = response.json()
@@ -73,7 +74,6 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
             parse_mode):
             
             logging.warning("Markdown parsing failed. Retrying as plain text.")
-            # Recursive call with parse_mode=None
             return send_telegram_message(message_text, parse_mode=None)
         
         logging.error(f"Failed to send message. Status: {response.status_code}, Response: {response.text}")
@@ -114,29 +114,22 @@ def html_to_markdown(tag):
         if isinstance(child, NavigableString):
             text_parts.append(child.string.strip())
         elif isinstance(child, Tag):
-            # Get the processed text from the child tag
             child_text = html_to_markdown(child)
             
-            # Apply formatting based on the tag name
             if child.name in ['b', 'strong']:
                 text_parts.append(f"*{child_text}*")
             elif child.name in ['i', 'em']:
                 text_parts.append(f"_{child_text}_")
             elif child.name == 'a':
-                # Links are extracted separately, so we just keep the text
                 text_parts.append(child_text)
             elif child.name in ['p', 'div', 'li']:
-                # Block-level elements should have newlines after them
                 text_parts.append(f"\n{child_text}\n")
             elif child.name == 'br':
                 text_parts.append("\n")
             else:
-                # For any other tag (like <span>), just use its text
                 text_parts.append(child_text)
 
-    # Join all parts and clean up whitespace
     full_text = "".join(text_parts)
-    # Consolidate multiple newlines into a maximum of two
     return re.sub(r'\n\s*\n', '\n\n', full_text).strip()
 
 
@@ -252,9 +245,12 @@ class MoodleScraper:
                 message = f"📣 *Nouvelle Affiche*\n================\n\n{content_text}"
                 
                 if links:
-                    unique_links = sorted(list(set(links))) # Remove duplicate links
+                    unique_links = sorted(list(set(links)))
                     message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in unique_links)
                 
+                # --- THIS IS THE NEW LINE YOU REQUESTED ---
+                message += f"\n\n----------------\n`ID: {item_id}`"
+
                 if send_telegram_message(message):
                     self.seen_ids.add(item_id)
                     save_seen_ids(self.seen_ids)
