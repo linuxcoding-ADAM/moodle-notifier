@@ -1,4 +1,4 @@
-# nixpacks.toml (Final and Corrected)
+# nixpacks.toml (Corrected)
 
 [phases.setup]
 nixPkgs = [
@@ -11,7 +11,3 @@ nixPkgs = [
     "pkgs.cups", "pkgs.dbus", "pkgs.expat", "pkgs.fontconfig", "pkgs.freetype",
     "pkgs.gdk-pixbuf", "pkgs.glib", "pkgs.gtk3", "pkgs.pango"
 ]
-
-# This new section runs after installation and before the app starts
-[start]
-cmd = "export CHROMEDRIVER_PATH=$(which chromedriver) && python moodle_checker.py"
