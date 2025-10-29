@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (Final Version, Polished + ID Feature)
+# The Definitive, Bulletproof Moodle Scraper (Final Version, Polished + ID + Cache-Busting)
 
 import requests
 import json
@@ -27,6 +27,13 @@ class Config:
     CHECK_INTERVAL = 600
     STARTUP_DELAY = 10
     ERROR_RETRY_DELAY = 300
+    
+    # --- NEW: HEADERS TO MIMIC A BROWSER AND AVOID CACHING ---
+    HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+    }
 
 # --- LOGGING SETUP ---
 logging.basicConfig(
@@ -34,12 +41,8 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# --- TELEGRAM NOTIFICATION FUNCTION (IMPROVED) ---
+# --- TELEGRAM NOTIFICATION FUNCTION ---
 def send_telegram_message(message_text, parse_mode='Markdown'):
-    """
-    Sends a message to the configured Telegram chat.
-    Fixes the fallback issue by removing the parse_mode key for plain text.
-    """
     if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]):
         logging.error("Telegram credentials are not set. Cannot send message.")
         return False
@@ -56,7 +59,6 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
         'disable_web_page_preview': True
     }
     
-    # Remove parse_mode key if it's None to send as plain text
     if payload.get('parse_mode') is None:
         del payload['parse_mode']
 
@@ -85,7 +87,6 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
 
 # --- DATA PERSISTENCE FUNCTIONS ---
 def get_seen_ids():
-    """Loads the set of seen announcement IDs from a JSON file."""
     try:
         with open(Config.SEEN_IDS_FILE, 'r') as f:
             return set(json.load(f))
@@ -94,7 +95,6 @@ def get_seen_ids():
         return set()
 
 def save_seen_ids(ids):
-    """Saves the set of seen IDs to a JSON file atomically."""
     try:
         os.makedirs(os.path.dirname(Config.SEEN_IDS_FILE), exist_ok=True)
         with open(Config.SEEN_IDS_FILE_TMP, 'w') as f:
@@ -103,12 +103,8 @@ def save_seen_ids(ids):
     except Exception as e:
         logging.critical(f"FATAL: Could not save seen_ids.json! Error: {e}")
 
-# --- HTML TO MARKDOWN CONVERSION (IMPROVED) ---
+# --- HTML TO MARKDOWN CONVERSION ---
 def html_to_markdown(tag):
-    """
-    Recursively converts a BeautifulSoup tag to clean Markdown,
-    handling various tags and stripping any unrecognized ones.
-    """
     text_parts = []
     for child in tag.children:
         if isinstance(child, NavigableString):
@@ -134,7 +130,6 @@ def html_to_markdown(tag):
 
 
 def extract_links(tag):
-    """Extracts all hyperlinks from a BeautifulSoup tag."""
     links = []
     for a in tag.find_all("a", href=True):
         href = a.get('href')
@@ -149,13 +144,16 @@ def extract_links(tag):
 class MoodleScraper:
     def __init__(self):
         self.session = requests.Session()
+        # --- MODIFICATION: APPLY HEADERS TO THE SESSION ---
+        self.session.headers.update(Config.HEADERS)
         self.seen_ids = get_seen_ids()
         self.logged_in = False
 
     def _login(self):
-        """Establishes a new session and logs into Moodle."""
         logging.info("Attempting a fresh login...")
+        # We start a new session to clear any old cookies
         self.session = requests.Session()
+        self.session.headers.update(Config.HEADERS)
         self.logged_in = False
         
         try:
@@ -197,7 +195,6 @@ class MoodleScraper:
             return False
 
     def run_check(self):
-        """The main logic for checking for new announcements."""
         logging.info("--- Starting new check cycle ---")
         
         if not self.logged_in:
@@ -248,7 +245,6 @@ class MoodleScraper:
                     unique_links = sorted(list(set(links)))
                     message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in unique_links)
                 
-                # --- THIS IS THE NEW LINE YOU REQUESTED ---
                 message += f"\n\n----------------\n`ID: {item_id}`"
 
                 if send_telegram_message(message):
