@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - API Based)
+# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Correct API Authentication)
 
 import requests
 import json
@@ -13,16 +13,14 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 class Config:
     BASE_URL = 'https://elearning.univ-bejaia.dz'
     LOGIN_URL = f'{BASE_URL}/login/index.php'
-    # This is the Moodle Web Service API endpoint
+    TOKEN_URL = f'{BASE_URL}/login/token.php'  # <-- URL to get the real token
     API_URL = f'{BASE_URL}/webservice/rest/server.php'
-    # The ID of the course page we want to check
-    COURSE_ID = 19989 
+    COURSE_ID = 19989
     
     MOODLE_USERNAME = os.getenv('MOODLE_USERNAME')
     MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
     TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-    USER_FULL_NAME = os.getenv('USER_FULL_NAME')
 
     SEEN_IDS_FILE = '/data/seen_ids.json'
     SEEN_IDS_FILE_TMP = '/data/seen_ids.json.tmp'
@@ -69,90 +67,58 @@ def save_seen_ids(ids):
 def html_to_markdown(html_content):
     if not html_content: return ""
     soup = BeautifulSoup(html_content, 'html.parser')
-    text_parts = []
-    for element in soup.recursiveChildGenerator():
-        if isinstance(element, NavigableString):
-            text_parts.append(element.string)
-        elif isinstance(element, Tag):
-            if element.name in ['b', 'strong']:
-                text_parts.append(f"*{element.get_text()}*")
-            elif element.name in ['i', 'em']:
-                text_parts.append(f"_{element.get_text()}_")
-            elif element.name in ['p', 'div', 'br']:
-                text_parts.append("\n")
-    full_text = "".join(text_parts)
-    return re.sub(r'\n\s*\n', '\n\n', full_text).strip()
+    text = soup.get_text(separator='\n', strip=True)
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+    return text
 def format_announcement_text(text):
-    pattern = r'(?s)\*(.*?):\*\s*(.*?)(?=\s*\*.*?\*:|\Z)'
-    matches = re.findall(pattern, text)
-    if not matches: return text
-    return "\n\n".join([f"*{label.strip()} :*\n{value.strip()}" for label, value in matches])
+    # This simplified version should be more robust
+    return text
 
-# --- CORE SCRAPER CLASS (API BASED) ---
+# --- CORE SCRAPER CLASS (CORRECT API AUTH) ---
 class MoodleScraper:
     def __init__(self):
         self.session = requests.Session()
         self.seen_ids = get_seen_ids()
         self.api_token = None
 
-    def _login_and_get_token(self):
-        """Logs in via the web page to get a session, then uses the session to get an API token."""
-        logging.info("Attempting login to get session cookie...")
+    def _get_api_token(self):
+        """Gets a proper Moodle Web Service API token."""
+        logging.info("Attempting to get Moodle API token...")
         try:
-            # Step 1: Get the logintoken from the login page
-            login_page = self.session.get(Config.LOGIN_URL, timeout=30)
-            login_page.raise_for_status()
-            soup = BeautifulSoup(login_page.text, 'html.parser')
-            logintoken = soup.find('input', {'name': 'logintoken'})['value']
-
-            # Step 2: Perform the login to establish a session
-            payload = {'username': Config.MOODLE_USERNAME, 'password': Config.MOODLE_PASSWORD, 'logintoken': logintoken}
-            response = self.session.post(Config.LOGIN_URL, data=payload, timeout=30)
-            response.raise_for_status()
-            if Config.USER_FULL_NAME.lower() not in response.text.lower():
-                logging.error("Login verification failed. User name not found on page.")
-                return False
-            
-            logging.info("Login successful. Session established.")
-            
-            # Step 3: Extract the sesskey from the page, which is needed for the API token call
-            sesskey_match = re.search(r'"sesskey":"(.*?)"', response.text)
-            if not sesskey_match:
-                logging.error("Could not find sesskey on the page after login.")
-                return False
-            sesskey = sesskey_match.group(1)
-            
-            # Step 4: Use the session and sesskey to request an API token
-            api_token_payload = {
-                'sesskey': sesskey,
-                'info': 'core_course_get_contents'
+            params = {
+                'username': Config.MOODLE_USERNAME,
+                'password': Config.MOODLE_PASSWORD,
+                'service': 'moodle_mobile_app'  # Standard service for the official app
             }
-            # This is a special endpoint that generates tokens for the mobile API
-            token_response = self.session.post(f"{Config.BASE_URL}/lib/ajax/service.php", json=[{"index":0, "methodname":"core_course_get_contents", "args":api_token_payload}])
-            token_response.raise_for_status()
+            response = self.session.post(Config.TOKEN_URL, data=params, timeout=30)
+            response.raise_for_status()
             
-            # Moodle AJAX API is weird, it returns an array of responses. We expect one.
-            self.api_token = self.session.cookies.get('MoodleSession')
-            if not self.api_token:
-                 logging.error("Failed to get API token after login.")
-                 return False
+            data = response.json()
+            if 'token' in data:
+                self.api_token = data['token']
+                logging.info("Successfully obtained Moodle API token.")
+                return True
+            elif 'error' in data:
+                logging.error(f"Failed to get API token. Moodle error: {data['error']}")
+                return False
 
-            logging.info("Successfully obtained API token.")
-            return True
-            
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Network error while getting API token: {e}")
+        except json.JSONDecodeError:
+            logging.error("Failed to decode JSON response when getting API token.")
         except Exception as e:
-            logging.error(f"An error occurred during login/token fetch: {e}", exc_info=True)
-            return False
+            logging.critical(f"An unexpected error occurred in _get_api_token: {e}", exc_info=True)
+        
+        return False
 
     def run_check(self):
         logging.info("--- Starting new check cycle ---")
         if not self.api_token:
-            if not self._login_and_get_token():
-                logging.error("Aborting check due to login/token failure.")
+            if not self._get_api_token():
+                logging.error("Aborting check due to token failure.")
                 return
 
         try:
-            # Use the API to get course contents directly
             params = {
                 'wstoken': self.api_token,
                 'wsfunction': 'core_course_get_contents',
@@ -173,7 +139,6 @@ class MoodleScraper:
             new_items = []
             for section in course_data:
                 for module in section.get('modules', []):
-                    # Announcements are usually of type 'label'
                     if module.get('modname') == 'label' and 'id' in module:
                         item_id = module['id']
                         if item_id not in self.seen_ids:
@@ -181,12 +146,11 @@ class MoodleScraper:
 
             if new_items:
                 logging.info(f"Found {len(new_items)} new announcement(s) via API!")
-                # The API returns items in chronological order, so we don't need to reverse
                 for item in new_items:
                     item_id = item['id']
                     content_text = ""
                     if 'description' in item:
-                        content_text = format_announcement_text(html_to_markdown(item['description']))
+                        content_text = html_to_markdown(item['description'])
                     
                     message = f"📣 *Nouvelle Affiche*\n================\n\n{content_text}"
                     message += f"\n\n------------\nid : `{item_id}`"
@@ -203,6 +167,9 @@ class MoodleScraper:
 
         except requests.exceptions.RequestException as e:
             logging.error(f"Network error during API check: {e}")
+            if e.response and e.response.status_code == 403:
+                logging.warning("Got a 403 Forbidden error. The token may be invalid. Forcing re-login.")
+                self.api_token = None
         except json.JSONDecodeError:
             logging.error("Failed to decode JSON response from API.")
         except Exception as e:
@@ -210,8 +177,8 @@ class MoodleScraper:
 
 # --- MAIN EXECUTION BLOCK ---
 if __name__ == "__main__":
-    if not all(os.getenv(var) for var in ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'USER_FULL_NAME']):
-        logging.critical("BOT STARTUP FAILED: Missing environment variables.")
+    if not all(os.getenv(var) for var in ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']):
+        logging.critical("BOT STARTUP FAILED: Missing essential environment variables.")
     else:
         logging.info("Script is starting up.")
         send_telegram_message("✅ *Bot started/restarted* and is now monitoring.", parse_mode='Markdown')
