@@ -1,1 +1,1 @@
-worker: export CHROMEDRIVER_PATH=$(which chromedriver) && python moodle_checker.py
+worker: bash start.sh
