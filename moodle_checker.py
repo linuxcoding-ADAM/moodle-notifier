@@ -107,7 +107,7 @@ def html_to_markdown(tag):
     text_parts = []
     for child in tag.children:
         if isinstance(child, NavigableString):
-            text_parts.append(child.string.strip())
+            text_parts.append(child.string)
         elif isinstance(child, Tag):
             child_text = html_to_markdown(child)
             
@@ -117,10 +117,8 @@ def html_to_markdown(tag):
                 text_parts.append(f"_{child_text}_")
             elif child.name == 'a':
                 text_parts.append(child_text)
-            elif child.name in ['p', 'div', 'li']:
+            elif child.name in ['p', 'div', 'li', 'br']:
                 text_parts.append(f"\n{child_text}\n")
-            elif child.name == 'br':
-                text_parts.append("\n")
             else:
                 text_parts.append(child_text)
 
@@ -138,20 +136,30 @@ def extract_links(tag):
             links.append(href)
     return links
 
-# --- NEW FUNCTION FOR BETTER FORMATTING ---
+# --- NEW FUNCTION FOR DETAILED FORMATTING ---
 def format_announcement_text(text):
     """
-    Adds a hyphen before lines that look like labels (e.g., "*Title:*").
+    Parses the announcement text to separate labels from values and formats them
+    into a "Label :\n\nValue" structure.
     """
-    lines = text.split('\n')
-    formatted_lines = []
-    for line in lines:
-        # If a line starts with a bolded label, add a hyphen before it.
-        if re.match(r'^\s*\*.*\*:', line.strip()):
-            formatted_lines.append(f"- {line.strip()}")
-        else:
-            formatted_lines.append(line)
-    return "\n".join(formatted_lines)
+    # This pattern looks for a bolded label (e.g., *Title:*), captures the label and its value.
+    pattern = r'\*(.*?):\*\s*(?s)(.*?)(?=\s*\*.*?\*:|\Z)'
+    
+    matches = re.findall(pattern, text)
+    
+    # If the text doesn't follow the "Label: Value" pattern, return it as is to be safe.
+    if not matches:
+        return text
+
+    formatted_parts = []
+    for label, value in matches:
+        clean_label = label.strip()
+        clean_value = value.strip()
+        
+        # Reconstruct in the desired format: "Label :\n\nValue"
+        formatted_parts.append(f"*{clean_label} :*\n{clean_value}")
+
+    return "\n\n".join(formatted_parts)
 
 # --- CORE SCRAPER CLASS ---
 class MoodleScraper:
@@ -259,7 +267,8 @@ class MoodleScraper:
                     unique_links = sorted(list(set(links)))
                     message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in unique_links)
                 
-                message += f"\n\n----------------\n`ID: {item_id}`"
+                # --- MODIFICATION: Updated ID format ---
+                message += f"\n\n------------\nid : `{item_id}`"
 
                 if send_telegram_message(message):
                     self.seen_ids.add(item_id)
