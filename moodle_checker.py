@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (Final Version, Polished + ID + Cache-Busting)
+# The Definitive, Bulletproof Moodle Scraper (Final Version, Final Formatting)
 
 import requests
 import json
@@ -28,7 +28,6 @@ class Config:
     STARTUP_DELAY = 10
     ERROR_RETRY_DELAY = 300
     
-    # --- NEW: HEADERS TO MIMIC A BROWSER AND AVOID CACHING ---
     HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Cache-Control': 'no-cache',
@@ -103,7 +102,7 @@ def save_seen_ids(ids):
     except Exception as e:
         logging.critical(f"FATAL: Could not save seen_ids.json! Error: {e}")
 
-# --- HTML TO MARKDOWN CONVERSION ---
+# --- HTML CONVERSION AND FORMATTING ---
 def html_to_markdown(tag):
     text_parts = []
     for child in tag.children:
@@ -128,7 +127,6 @@ def html_to_markdown(tag):
     full_text = "".join(text_parts)
     return re.sub(r'\n\s*\n', '\n\n', full_text).strip()
 
-
 def extract_links(tag):
     links = []
     for a in tag.find_all("a", href=True):
@@ -140,18 +138,31 @@ def extract_links(tag):
             links.append(href)
     return links
 
+# --- NEW FUNCTION FOR BETTER FORMATTING ---
+def format_announcement_text(text):
+    """
+    Adds a hyphen before lines that look like labels (e.g., "*Title:*").
+    """
+    lines = text.split('\n')
+    formatted_lines = []
+    for line in lines:
+        # If a line starts with a bolded label, add a hyphen before it.
+        if re.match(r'^\s*\*.*\*:', line.strip()):
+            formatted_lines.append(f"- {line.strip()}")
+        else:
+            formatted_lines.append(line)
+    return "\n".join(formatted_lines)
+
 # --- CORE SCRAPER CLASS ---
 class MoodleScraper:
     def __init__(self):
         self.session = requests.Session()
-        # --- MODIFICATION: APPLY HEADERS TO THE SESSION ---
         self.session.headers.update(Config.HEADERS)
         self.seen_ids = get_seen_ids()
         self.logged_in = False
 
     def _login(self):
         logging.info("Attempting a fresh login...")
-        # We start a new session to clear any old cookies
         self.session = requests.Session()
         self.session.headers.update(Config.HEADERS)
         self.logged_in = False
@@ -163,7 +174,7 @@ class MoodleScraper:
             soup = BeautifulSoup(login_page_res.text, 'html.parser')
             logintoken_input = soup.find('input', {'name': 'logintoken'})
             if not logintoken_input:
-                logging.error("Could not find 'logintoken' field. Page structure may have changed.")
+                logging.error("Could not find 'logintoken' field.")
                 send_telegram_message("🔴 *Login Error*\nCould not find login token.", parse_mode='Markdown')
                 return False
             logintoken = logintoken_input['value']
@@ -236,7 +247,10 @@ class MoodleScraper:
             for item in reversed(new_items):
                 item_id, item_tag = item['id'], item['tag']
                 
-                content_text = html_to_markdown(item_tag)
+                # --- MODIFICATION: Apply new formatting ---
+                raw_text = html_to_markdown(item_tag)
+                content_text = format_announcement_text(raw_text)
+                
                 links = extract_links(item_tag)
                 
                 message = f"📣 *Nouvelle Affiche*\n================\n\n{content_text}"
