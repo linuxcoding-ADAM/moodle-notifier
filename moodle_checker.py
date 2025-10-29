@@ -309,4 +309,4 @@ if __name__ == "__main__":
                                  f"Restarting in {Config.ERROR_RETRY_DELAY // 60} minutes.")
                 logging.critical(f"Unexpected error in main loop: {e}", exc_info=True)
                 send_telegram_message(error_message, parse_mode='Markdown')
-                time.sleep(Config.ERROR_RETRY_DELAY)```
+                time.sleep(Config.ERROR_RETRY_DELAY)
