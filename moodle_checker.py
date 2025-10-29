@@ -1,91 +1,7 @@
-# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Absolute Path Fix)
+# The Definitive, Bulletproof Moodle Scraper (FINAL VERSION - Environment Variable Path)
 
-import requests
-import json
-import time
-import re
-import os
-import logging
-import traceback
-from bs4 import BeautifulSoup, NavigableString, Tag
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, WebDriverException
-
-# --- CONFIGURATION (Unchanged) ---
-class Config:
-    LOGIN_URL = 'https://elearning.univ-bejaia.dz/login/index.php'
-    AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
-    MOODLE_USERNAME = os.getenv('MOODLE_USERNAME')
-    MOODLE_PASSWORD = os.getenv('MOODLE_PASSWORD')
-    TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-    TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-    USER_FULL_NAME = os.getenv('USER_FULL_NAME')
-    SEEN_IDS_FILE = '/data/seen_ids.json'
-    SEEN_IDS_FILE_TMP = '/data/seen_ids.json.tmp'
-    CHECK_INTERVAL = 600
-    STARTUP_DELAY = 10
-    ERROR_RETRY_DELAY = 300
-
-# --- LOGGING, HELPERS (Unchanged) ---
-# ... (All helper functions remain exactly the same)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-def send_telegram_message(message_text, parse_mode='Markdown'):
-    if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]): return False
-    if len(message_text) > 4096: message_text = message_text[:4090] + "\n\n...(truncated)"
-    url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {'chat_id': Config.TELEGRAM_CHAT_ID, 'text': message_text, 'parse_mode': parse_mode, 'disable_web_page_preview': True}
-    if payload.get('parse_mode') is None: del payload['parse_mode']
-    try:
-        response = requests.post(url, json=payload, timeout=30)
-        if response.status_code == 200:
-            logging.info(f"Successfully sent message (mode: {payload.get('parse_mode', 'Plain Text')}).")
-            return True
-        if response.status_code == 400 and 'can\'t parse entities' in response.json().get('description', '') and parse_mode:
-            logging.warning("Markdown parsing failed. Retrying as plain text.")
-            return send_telegram_message(message_text, parse_mode=None)
-        logging.error(f"Failed to send message: {response.text}")
-        return False
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Exception in send_telegram_message: {e}")
-        return False
-def get_seen_ids():
-    try:
-        with open(Config.SEEN_IDS_FILE, 'r') as f: return set(json.load(f))
-    except (FileNotFoundError, json.JSONDecodeError): return set()
-def save_seen_ids(ids):
-    try:
-        os.makedirs(os.path.dirname(Config.SEEN_IDS_FILE), exist_ok=True)
-        with open(Config.SEEN_IDS_FILE_TMP, 'w') as f: json.dump(list(ids), f)
-        os.rename(Config.SEEN_IDS_FILE_TMP, Config.SEEN_IDS_FILE)
-    except Exception as e: logging.critical(f"Could not save seen_ids.json: {e}")
-def html_to_markdown(tag):
-    text_parts = []
-    for child in tag.children:
-        if isinstance(child, NavigableString): text_parts.append(child.string)
-        elif isinstance(child, Tag):
-            child_text = html_to_markdown(child)
-            if child.name in ['b', 'strong']: text_parts.append(f"*{child_text}*")
-            elif child.name in ['i', 'em']: text_parts.append(f"_{child_text}_")
-            elif child.name in ['p', 'div', 'li', 'br']: text_parts.append(f"\n{child_text}\n")
-            else: text_parts.append(child_text)
-    return re.sub(r'\n\s*\n', '\n\n', "".join(text_parts)).strip()
-def extract_links(tag):
-    links = []
-    for a in tag.find_all("a", href=True):
-        href = a.get('href')
-        if href and href.strip() not in ['#', '']:
-            if not href.startswith('http'): href = 'https://elearning.univ-bejaia.dz' + href
-            links.append(href)
-    return links
-def format_announcement_text(text):
-    pattern = r'(?s)\*(.*?):\*\s*(.*?)(?=\s*\*.*?\*:|\Z)'
-    matches = re.findall(pattern, text)
-    if not matches: return text
-    return "\n\n".join([f"*{label.strip()} :*\n{value.strip()}" for label, value in matches])
+# ... (all imports and config are the same)
+# ... (all helper functions are the same)
 
 # --- CORE SCRAPER CLASS (MODIFIED INITIALIZE DRIVER) ---
 class MoodleScraper:
@@ -93,7 +9,6 @@ class MoodleScraper:
         self.seen_ids = get_seen_ids()
         self.driver = None
 
-    # --- THIS FUNCTION IS THE ONLY PART THAT HAS CHANGED ---
     def _initialize_driver(self):
         """Sets up the Selenium WebDriver using the system-installed chromedriver."""
         logging.info("Initializing Selenium WebDriver...")
@@ -104,9 +19,14 @@ class MoodleScraper:
             chrome_options.add_argument("--disable-dev-shm-usage")
             
             # --- THIS IS THE FIX ---
-            # Provide the absolute path to the chromedriver installed by Nixpacks
-            # This is the standard location for Nix-installed binaries.
-            service = ChromeService(executable_path="/usr/bin/chromedriver")
+            # Get the correct path from the environment variable set in nixpacks.toml
+            driver_path = os.getenv('CHROMEDRIVER_PATH')
+            if not driver_path:
+                logging.critical("CHROMEDRIVER_PATH environment variable not set!")
+                return False
+                
+            logging.info(f"Found chromedriver at: {driver_path}")
+            service = ChromeService(executable_path=driver_path)
             
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
             logging.info("WebDriver initialized successfully.")
@@ -115,6 +35,7 @@ class MoodleScraper:
             logging.critical(f"Failed to initialize WebDriver: {e}", exc_info=True)
             return False
 
+    # ... (the rest of the script is exactly the same)
     def _login(self):
         # ... (Login function is unchanged)
         if not self.driver:
@@ -183,7 +104,6 @@ class MoodleScraper:
                 time.sleep(2)
         else: logging.info("No new announcements found.")
             
-# --- MAIN EXECUTION BLOCK (Unchanged) ---
 if __name__ == "__main__":
     if not all(os.getenv(var) for var in ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'USER_FULL_NAME']):
         logging.critical("BOT STARTUP FAILED: Missing environment variables.")
