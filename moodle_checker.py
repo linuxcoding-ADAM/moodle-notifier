@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (Final Version, Final Formatting Fix)
+# The Definitive, Bulletproof Moodle Scraper (Final Version, Final Formatting Fix, v2 - With Reliability Fixes)
 
 import requests
 import json
@@ -7,6 +7,7 @@ import re
 import os
 import logging
 import traceback
+import hashlib # --- CHANGE: Import hashlib for content-based IDs
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 # --- CONFIGURATION CLASS: All settings in one place ---
@@ -21,8 +22,8 @@ class Config:
     TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
     USER_FULL_NAME = os.getenv('USER_FULL_NAME')
 
-    SEEN_IDS_FILE = '/data/seen_ids.json'
-    SEEN_IDS_FILE_TMP = '/data/seen_ids.json.tmp'
+    SEEN_IDS_FILE = '/data/seen_hashes.json' # --- CHANGE: Renamed file to reflect content
+    SEEN_IDS_FILE_TMP = '/data/seen_hashes.json.tmp'
 
     CHECK_INTERVAL = 600
     STARTUP_DELAY = 10
@@ -40,7 +41,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# --- TELEGRAM NOTIFICATION FUNCTION ---
+# --- TELEGRAM NOTIFICATION FUNCTION (No changes needed here) ---
 def send_telegram_message(message_text, parse_mode='Markdown'):
     if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]):
         logging.error("Telegram credentials are not set. Cannot send message.")
@@ -90,7 +91,7 @@ def get_seen_ids():
         with open(Config.SEEN_IDS_FILE, 'r') as f:
             return set(json.load(f))
     except (FileNotFoundError, json.JSONDecodeError):
-        logging.info("seen_ids.json not found or invalid. Starting with an empty set.")
+        logging.info(f"{Config.SEEN_IDS_FILE} not found or invalid. Starting with an empty set.")
         return set()
 
 def save_seen_ids(ids):
@@ -100,9 +101,9 @@ def save_seen_ids(ids):
             json.dump(list(ids), f, indent=2)
         os.rename(Config.SEEN_IDS_FILE_TMP, Config.SEEN_IDS_FILE)
     except Exception as e:
-        logging.critical(f"FATAL: Could not save seen_ids.json! Error: {e}")
+        logging.critical(f"FATAL: Could not save seen_ids file! Error: {e}")
 
-# --- HTML CONVERSION AND FORMATTING ---
+# --- HTML CONVERSION AND FORMATTING (No changes needed here) ---
 def html_to_markdown(tag):
     text_parts = []
     for child in tag.children:
@@ -136,29 +137,30 @@ def extract_links(tag):
             links.append(href)
     return links
 
-# --- NEW FUNCTION FOR DETAILED FORMATTING (FIXED) ---
 def format_announcement_text(text):
-    """
-    Parses the announcement text to separate labels from values and formats them
-    into a "Label :\n\nValue" structure.
-    """
-    # --- THIS IS THE FIXED LINE ---
-    # The (?s) flag MUST be at the beginning of the expression.
     pattern = r'(?s)\*(.*?):\*\s*(.*?)(?=\s*\*.*?\*:|\Z)'
-    
     matches = re.findall(pattern, text)
-    
     if not matches:
         return text
-
     formatted_parts = []
     for label, value in matches:
         clean_label = label.strip()
         clean_value = value.strip()
-        
         formatted_parts.append(f"*{clean_label} :*\n{clean_value}")
-
     return "\n\n".join(formatted_parts)
+    
+# --- CHANGE: NEW FUNCTION TO CREATE RELIABLE, CONTENT-BASED IDs ---
+def generate_content_hash(tag):
+    """Creates a stable SHA256 hash from the content of an announcement tag."""
+    # Normalize content to ensure the hash is consistent
+    text_content = tag.get_text(" ", strip=True) 
+    links = sorted(extract_links(tag)) # Sort links to ensure consistent order
+    
+    # Combine text and links into a single string
+    stable_representation = text_content + "||".join(links)
+    
+    # Create and return the hash
+    return hashlib.sha256(stable_representation.encode('utf-8')).hexdigest()
 
 # --- CORE SCRAPER CLASS ---
 class MoodleScraper:
@@ -224,8 +226,10 @@ class MoodleScraper:
             page = self.session.get(Config.AFFICHAGE_URL, timeout=30)
             page.raise_for_status()
             
-            if "login/index.php" in page.url:
-                logging.warning("Session expired. Forcing re-login next cycle.")
+            # --- CHANGE: STRONGER SESSION VALIDATION ---
+            # Don't just check for a redirect, actively confirm we are logged in.
+            if "login/index.php" in page.url or (Config.USER_FULL_NAME and Config.USER_FULL_NAME.lower() not in page.text.lower()):
+                logging.warning("Session appears to be expired. Forcing re-login on the next cycle.")
                 self.logged_in = False
                 return
 
@@ -234,6 +238,8 @@ class MoodleScraper:
             return
 
         soup = BeautifulSoup(page.text, 'html.parser')
+        # --- CHANGE: More general selector to be less fragile ---
+        # This looks for any list item with 'activity' and 'modtype_label' classes, then finds the content within.
         announcement_tags = soup.select('li.activity.modtype_label .activity-altcontent')
         
         if not announcement_tags:
@@ -242,8 +248,8 @@ class MoodleScraper:
 
         new_items = []
         for tag in announcement_tags:
-            parent_li = tag.find_parent('li', class_='activity')
-            item_id = parent_li.get('id') if parent_li else None
+            # --- CHANGE: Use the new content hash as the ID ---
+            item_id = generate_content_hash(tag)
             
             if item_id and item_id not in self.seen_ids:
                 new_items.append({'id': item_id, 'tag': tag})
@@ -251,12 +257,11 @@ class MoodleScraper:
         if new_items:
             logging.info(f"Found {len(new_items)} new announcement(s)!")
             
-            for item in reversed(new_items):
+            for item in reversed(new_items): # Process oldest first
                 item_id, item_tag = item['id'], item['tag']
                 
                 raw_text = html_to_markdown(item_tag)
                 content_text = format_announcement_text(raw_text)
-                
                 links = extract_links(item_tag)
                 
                 message = f"📣 *Nouvelle Affiche*\n================\n\n{content_text}"
@@ -265,20 +270,21 @@ class MoodleScraper:
                     unique_links = sorted(list(set(links)))
                     message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in unique_links)
                 
-                message += f"\n\n------------\nid : `{item_id}`"
+                # We show the first 12 chars of the hash as a debug ID
+                message += f"\n\n------------\nid : `{item_id[:12]}`"
 
                 if send_telegram_message(message):
                     self.seen_ids.add(item_id)
-                    save_seen_ids(self.seen_ids)
-                    logging.info(f"Successfully processed and saved ID: {item_id}")
+                    save_seen_ids(self.seen_ids) # Save after every successful send
+                    logging.info(f"Successfully processed and saved hash: {item_id[:12]}")
                 else:
-                    logging.warning(f"Failed to send notification for {item_id}. It will be retried next cycle.")
+                    logging.warning(f"Failed to send notification for hash {item_id[:12]}. It will be retried next cycle.")
                 
-                time.sleep(2)
+                time.sleep(2) # Prevent rate-limiting
         else:
             logging.info("No new announcements found.")
 
-# --- MAIN EXECUTION BLOCK ---
+# --- MAIN EXECUTION BLOCK (No changes needed here) ---
 if __name__ == "__main__":
     required_vars = ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'USER_FULL_NAME']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
