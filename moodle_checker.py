@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper - PUBLIC BOT VERSION (Complete)
+# The Definitive, Bulletproof Moodle Scraper - PUBLIC BOT VERSION (v3 - Directory Fix)
 
 import requests
 import json
@@ -47,7 +47,11 @@ logging.basicConfig(
 
 # --- SUBSCRIBER DATABASE MANAGEMENT ---
 def setup_database():
-    """Creates the subscribers table if it doesn't exist."""
+    """Creates the data directory and the subscribers table if they don't exist."""
+    # --- THIS IS THE FIX ---
+    # Ensure the directory for the database file exists before trying to connect.
+    os.makedirs(os.path.dirname(Config.DB_FILE), exist_ok=True)
+    
     con = sqlite3.connect(Config.DB_FILE)
     cur = con.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS subscribers (chat_id INTEGER PRIMARY KEY)')
@@ -126,7 +130,7 @@ async def broadcast_message(message_text: str, context: ContextTypes.DEFAULT_TYP
                 chat_id=chat_id, text=message_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
             )
         except TelegramError as e:
-            if "can't parse entities" in e.message:
+            if "can't parse entities" in str(e):
                 logging.warning(f"Markdown failed for chat_id {chat_id}. Retrying as plain text.")
                 try:
                     await context.bot.send_message(
@@ -189,7 +193,7 @@ def generate_content_hash(tag):
     text_content = tag.get_text(" ", strip=True) 
     links = sorted(extract_links(tag))
     stable_representation = text_content + "||".join(links)
-    return hashlib.sha25ECRET256(stable_representation.encode('utf-8')).hexdigest()
+    return hashlib.sha256(stable_representation.encode('utf-8')).hexdigest()
 
 # --- CORE SCRAPER CLASS ---
 class MoodleScraper:
