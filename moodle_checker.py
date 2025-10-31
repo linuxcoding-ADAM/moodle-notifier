@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper - PUBLIC BOT VERSION (v3 - Directory Fix)
+# The Definitive, Bulletproof Moodle Scraper - PUBLIC BOT VERSION (v4 - Final)
 
 import requests
 import json
@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
-from telegram.error import TelegramError
+from telegram.error import TelegramError, BadRequest
 
 # --- CONFIGURATION CLASS: All settings in one place ---
 class Config:
@@ -48,8 +48,6 @@ logging.basicConfig(
 # --- SUBSCRIBER DATABASE MANAGEMENT ---
 def setup_database():
     """Creates the data directory and the subscribers table if they don't exist."""
-    # --- THIS IS THE FIX ---
-    # Ensure the directory for the database file exists before trying to connect.
     os.makedirs(os.path.dirname(Config.DB_FILE), exist_ok=True)
     
     con = sqlite3.connect(Config.DB_FILE)
@@ -114,9 +112,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/stop - Unsubscribe from notifications"
     )
 
-# --- TELEGRAM BROADCASTING ---
+# --- ROBUST TELEGRAM BROADCASTING (THE ONLY CHANGED FUNCTION) ---
 async def broadcast_message(message_text: str, context: ContextTypes.DEFAULT_TYPE):
-    """Sends a message to all subscribers."""
+    """Sends a message to all subscribers with a fallback for Markdown errors."""
     subscribers = get_all_subscribers()
     if not subscribers:
         logging.info("New announcement found, but no one is subscribed.")
@@ -126,11 +124,13 @@ async def broadcast_message(message_text: str, context: ContextTypes.DEFAULT_TYP
     
     for chat_id in subscribers:
         try:
+            # First, try to send with Markdown
             await context.bot.send_message(
                 chat_id=chat_id, text=message_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
             )
-        except TelegramError as e:
-            if "can't parse entities" in str(e):
+        except BadRequest as e:
+            # If a BadRequest happens AND it's a parsing error, retry as plain text.
+            if "can't parse entities" in e.message:
                 logging.warning(f"Markdown failed for chat_id {chat_id}. Retrying as plain text.")
                 try:
                     await context.bot.send_message(
@@ -139,12 +139,18 @@ async def broadcast_message(message_text: str, context: ContextTypes.DEFAULT_TYP
                 except TelegramError as e_plain:
                     logging.error(f"Failed to send plain text message to {chat_id}: {e_plain}")
             else:
-                logging.error(f"Failed to send message to {chat_id}: {e}")
+                # The error was a different kind of bad request (e.g., chat not found)
+                logging.error(f"A BadRequest error occurred for chat {chat_id}: {e.message}")
+        except TelegramError as e:
+            # Handle all other potential Telegram errors (network, etc.)
+            logging.error(f"A Telegram error occurred for chat {chat_id}: {e.message}")
+        
         await asyncio.sleep(0.1) # Small delay to avoid hitting rate limits
+        
     logging.info("Broadcast complete.")
 
 
-# --- DATA PERSISTENCE & HTML HELPERS ---
+# --- DATA PERSISTENCE & HTML HELPERS (UNCHANGED) ---
 def get_seen_ids():
     try:
         with open(Config.SEEN_HASHES_FILE, 'r') as f: return set(json.load(f))
@@ -195,7 +201,7 @@ def generate_content_hash(tag):
     stable_representation = text_content + "||".join(links)
     return hashlib.sha256(stable_representation.encode('utf-8')).hexdigest()
 
-# --- CORE SCRAPER CLASS ---
+# --- CORE SCRAPER CLASS (UNCHANGED) ---
 class MoodleScraper:
     def __init__(self, bot_context: ContextTypes.DEFAULT_TYPE):
         self.session = requests.Session()
@@ -296,7 +302,7 @@ class MoodleScraper:
             logging.info("No new announcements found.")
 
 
-# --- MAIN EXECUTION BLOCK ---
+# --- MAIN EXECUTION BLOCK (UNCHANGED) ---
 def main():
     # 1. Check for required environment variables
     required_vars = ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'USER_FULL_NAME']
