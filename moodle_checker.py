@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (v3 - "Smart" Update Detection)
+# The Definitive, Bulletproof Moodle Scraper (v5 - Final Order Fix)
 
 import requests
 import json
@@ -21,7 +21,6 @@ class Config:
     TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
     USER_FULL_NAME = os.getenv('USER_FULL_NAME')
 
-    # --- CHANGE: We now store a dictionary of key-hash pairs ---
     DATA_FILE = '/data/announcement_data.json'
     DATA_FILE_TMP = '/data/announcement_data.json.tmp'
 
@@ -36,9 +35,8 @@ class Config:
 # --- LOGGING SETUP ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# --- TELEGRAM NOTIFICATION FUNCTION (No changes needed) ---
+# --- TELEGRAM NOTIFICATION FUNCTION ---
 def send_telegram_message(message_text, parse_mode='Markdown'):
-    # (This function is the same as before, no changes needed)
     if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]): return False
     url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {'chat_id': Config.TELEGRAM_CHAT_ID, 'text': message_text, 'parse_mode': parse_mode, 'disable_web_page_preview': True}
@@ -57,26 +55,21 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
 
 # --- DATA PERSISTENCE FUNCTIONS ---
 def get_announcement_data():
-    """Loads the dictionary of seen announcements from the JSON file."""
     try:
-        with open(Config.DATA_FILE, 'r') as f:
-            return json.load(f)
+        with open(Config.DATA_FILE, 'r') as f: return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         logging.info(f"{Config.DATA_FILE} not found or invalid. Starting with an empty dictionary.")
         return {}
 
 def save_announcement_data(data):
-    """Saves the dictionary of announcements atomically."""
     try:
         os.makedirs(os.path.dirname(Config.DATA_FILE), exist_ok=True)
-        with open(Config.DATA_FILE_TMP, 'w') as f:
-            json.dump(data, f, indent=2)
+        with open(Config.DATA_FILE_TMP, 'w') as f: json.dump(data, f, indent=2)
         os.rename(Config.DATA_FILE_TMP, Config.DATA_FILE)
     except Exception as e:
         logging.critical(f"FATAL: Could not save data file! Error: {e}")
 
-# --- HTML CONVERSION AND FORMATTING (No changes needed) ---
-# (html_to_markdown, extract_links, format_announcement_text functions are unchanged)
+# --- HTML CONVERSION AND FORMATTING ---
 def html_to_markdown(tag):
     text_parts = []
     for child in tag.children:
@@ -106,27 +99,19 @@ def format_announcement_text(text):
     if not matches: return text
     return "\n\n".join([f"*{label.strip()} :*\n{value.strip()}" for label, value in matches])
 
-# --- NEW IDENTIFIER FUNCTIONS ---
+# --- IDENTIFIER FUNCTIONS ---
 def generate_content_hash(tag):
-    """Creates a stable SHA256 hash from the FULL content of an announcement tag."""
     text_content = tag.get_text(" ", strip=True) 
     links = sorted(extract_links(tag))
     stable_representation = text_content + "||".join(links)
     return hashlib.sha256(stable_representation.encode('utf-8')).hexdigest()
 
 def generate_stable_key(tag):
-    """Creates a more stable key for an announcement, based on its title."""
-    # We find the bold text, assuming it's the title part.
-    # This is an assumption, but it's likely to be stable.
     title_tag = tag.find(['b', 'strong'])
     if title_tag:
-        # We normalize the title text to create a consistent key
         title_text = title_tag.get_text(" ", strip=True)
-        # We create a hash of the title to keep the key short and clean
         return hashlib.sha256(title_text.encode('utf-8')).hexdigest()[:16]
-    # Fallback: if no title, use a hash of the first 30 chars of text
     return hashlib.sha256(tag.get_text(" ", strip=True)[:30].encode('utf-8')).hexdigest()[:16]
-
 
 # --- CORE SCRAPER CLASS ---
 class MoodleScraper:
@@ -137,7 +122,6 @@ class MoodleScraper:
         self.logged_in = False
 
     def _login(self):
-        # (This function is the same, no changes needed)
         logging.info("Attempting a fresh login...")
         self.session = requests.Session(); self.session.headers.update(Config.HEADERS); self.logged_in = False
         try:
@@ -167,64 +151,67 @@ class MoodleScraper:
         announcement_tags = soup.select('li.activity.modtype_label .activity-altcontent')
         if not announcement_tags:
             logging.warning("Could not find any announcement tags."); return
-
-        found_something_new = False
+        
+        # --- THIS IS THE MAIN LOGIC CHANGE ---
+        items_to_process = []
         current_page_keys = set()
 
+        # First, loop through all announcements to identify new and updated ones
         for tag in announcement_tags:
             key = generate_stable_key(tag)
             content_hash = generate_content_hash(tag)
             current_page_keys.add(key)
-
-            # --- THE NEW LOGIC ---
-            if key not in self.announcement_data:
-                # CASE 1: Brand new announcement (key has never been seen)
-                logging.info(f"Found new announcement! Key: {key[:8]}")
-                message_title = "📣 *Nouvelle Affiche*"
-                found_something_new = True
-            elif self.announcement_data[key] != content_hash:
-                # CASE 2: Updated announcement (key exists, but content hash is different)
-                logging.info(f"Found updated announcement! Key: {key[:8]}")
-                message_title = "✏️ *Affiche Mise à Jour*" # "Updated Announcement"
-                found_something_new = True
-            else:
-                # CASE 3: Unchanged announcement (key and hash both match)
-                continue
-
-            # --- Send Notification for Case 1 or 2 ---
-            content_text = format_announcement_text(html_to_markdown(tag))
-            links = extract_links(tag)
-            message = f"{message_title}\n================\n\n{content_text}"
-            if links:
-                message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in sorted(list(set(links))))
             
-            # We add a debug ID using the key, not the full hash
-            message += f"\n\n------------\nid : `{key[:12]}`"
+            if key not in self.announcement_data:
+                # This is a brand new announcement
+                items_to_process.append({'tag': tag, 'key': key, 'hash': content_hash, 'status': 'new'})
+            elif self.announcement_data[key] != content_hash:
+                # This is an updated announcement
+                items_to_process.append({'tag': tag, 'key': key, 'hash': content_hash, 'status': 'updated'})
 
-            if send_telegram_message(message):
-                self.announcement_data[key] = content_hash # Add or update the hash for this key
-                logging.info(f"Successfully processed and saved key: {key[:8]}")
-            else:
-                logging.warning(f"Failed to send notification for key {key[:8]}. It will be retried.")
-            time.sleep(2)
+        # Now, process the items in the correct (reversed) order
+        if items_to_process:
+            logging.info(f"Found {len(items_to_process)} new or updated announcement(s)!")
+            
+            # *** THE REVERSED ORDER IS BACK! ***
+            for item in reversed(items_to_process):
+                tag = item['tag']
+                key = item['key']
+                content_hash = item['hash']
+                status = item['status']
 
-        # --- Clean up old announcements that are no longer on the page ---
-        removed_keys = set(self.announcement_data.keys()) - current_page_keys
-        if removed_keys:
-            logging.info(f"Removing {len(removed_keys)} old/deleted announcement(s) from data file.")
-            for key in removed_keys:
-                del self.announcement_data[key]
-            found_something_new = True # Mark that we need to save the file
-        
-        if found_something_new:
-            save_announcement_data(self.announcement_data)
+                message_title = "📣 *Nouvelle Affiche*" if status == 'new' else "✏️ *Affiche Mise à Jour*"
+                
+                content_text = format_announcement_text(html_to_markdown(tag))
+                links = extract_links(tag)
+                message = f"{message_title}\n================\n\n{content_text}"
+                if links:
+                    message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in sorted(list(set(links))))
+                
+                message += f"\n\n------------\nid : `{key[:12]}`"
+
+                if send_telegram_message(message):
+                    self.announcement_data[key] = content_hash
+                    logging.info(f"Successfully processed and saved key: {key[:8]} (Status: {status})")
+                else:
+                    logging.warning(f"Failed to send notification for key {key[:8]}. It will be retried.")
+                time.sleep(2)
         else:
             logging.info("No new or updated announcements found.")
 
+        # --- Clean up old announcements ---
+        removed_keys = set(self.announcement_data.keys()) - current_page_keys
+        if removed_keys:
+            logging.info(f"Removing {len(removed_keys)} old/deleted announcement(s).")
+            for key in removed_keys:
+                del self.announcement_data[key]
+        
+        # Save the data file if anything changed (new, updated, or removed items)
+        if items_to_process or removed_keys:
+            save_announcement_data(self.announcement_data)
 
 # --- MAIN EXECUTION BLOCK ---
 if __name__ == "__main__":
-    # (This is the same as before)
     if not all(os.getenv(var) for var in ['MOODLE_USERNAME', 'MOODLE_PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'USER_FULL_NAME']):
         logging.critical("FATAL: Missing one or more environment variables.")
     else:
