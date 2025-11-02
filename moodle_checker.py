@@ -1,4 +1,4 @@
-# The Definitive, Bulletproof Moodle Scraper (v5 - Final Order Fix)
+# The Definitive, Bulletproof Moodle Scraper (v6 - Final Key Generation Fix)
 
 import requests
 import json
@@ -106,12 +106,23 @@ def generate_content_hash(tag):
     stable_representation = text_content + "||".join(links)
     return hashlib.sha256(stable_representation.encode('utf-8')).hexdigest()
 
+# --- *** THIS IS THE ONLY FUNCTION THAT HAS CHANGED *** ---
 def generate_stable_key(tag):
-    title_tag = tag.find(['b', 'strong'])
-    if title_tag:
-        title_text = title_tag.get_text(" ", strip=True)
-        return hashlib.sha256(title_text.encode('utf-8')).hexdigest()[:16]
-    return hashlib.sha256(tag.get_text(" ", strip=True)[:30].encode('utf-8')).hexdigest()[:16]
+    """Creates a more unique stable key by combining title and content."""
+    title_text = ""
+    # Find all bold/strong tags and join their text
+    title_tags = tag.find_all(['b', 'strong'])
+    if title_tags:
+        title_text = " ".join(t.get_text(" ", strip=True) for t in title_tags)
+
+    # Get the first 50 characters of the announcement's plain text content
+    content_preview = tag.get_text(" ", strip=True)[:50]
+    
+    # Combine them to create a unique source string for the key
+    key_source = title_text + "||" + content_preview
+    
+    # Return a hash of the combined string
+    return hashlib.sha256(key_source.encode('utf-8')).hexdigest()[:16]
 
 # --- CORE SCRAPER CLASS ---
 class MoodleScraper:
@@ -152,42 +163,30 @@ class MoodleScraper:
         if not announcement_tags:
             logging.warning("Could not find any announcement tags."); return
         
-        # --- THIS IS THE MAIN LOGIC CHANGE ---
         items_to_process = []
         current_page_keys = set()
 
-        # First, loop through all announcements to identify new and updated ones
         for tag in announcement_tags:
             key = generate_stable_key(tag)
             content_hash = generate_content_hash(tag)
             current_page_keys.add(key)
             
             if key not in self.announcement_data:
-                # This is a brand new announcement
                 items_to_process.append({'tag': tag, 'key': key, 'hash': content_hash, 'status': 'new'})
             elif self.announcement_data[key] != content_hash:
-                # This is an updated announcement
                 items_to_process.append({'tag': tag, 'key': key, 'hash': content_hash, 'status': 'updated'})
 
-        # Now, process the items in the correct (reversed) order
         if items_to_process:
             logging.info(f"Found {len(items_to_process)} new or updated announcement(s)!")
             
-            # *** THE REVERSED ORDER IS BACK! ***
             for item in reversed(items_to_process):
-                tag = item['tag']
-                key = item['key']
-                content_hash = item['hash']
-                status = item['status']
-
+                tag, key, content_hash, status = item['tag'], item['key'], item['hash'], item['status']
                 message_title = "📣 *Nouvelle Affiche*" if status == 'new' else "✏️ *Affiche Mise à Jour*"
-                
                 content_text = format_announcement_text(html_to_markdown(tag))
                 links = extract_links(tag)
                 message = f"{message_title}\n================\n\n{content_text}"
                 if links:
                     message += "\n\n----------------\n🔗 *Liens:*\n" + "\n".join(f"• {link}" for link in sorted(list(set(links))))
-                
                 message += f"\n\n------------\nid : `{key[:12]}`"
 
                 if send_telegram_message(message):
@@ -199,14 +198,12 @@ class MoodleScraper:
         else:
             logging.info("No new or updated announcements found.")
 
-        # --- Clean up old announcements ---
         removed_keys = set(self.announcement_data.keys()) - current_page_keys
         if removed_keys:
             logging.info(f"Removing {len(removed_keys)} old/deleted announcement(s).")
             for key in removed_keys:
                 del self.announcement_data[key]
         
-        # Save the data file if anything changed (new, updated, or removed items)
         if items_to_process or removed_keys:
             save_announcement_data(self.announcement_data)
 
