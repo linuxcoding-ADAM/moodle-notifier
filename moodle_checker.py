@@ -1,6 +1,5 @@
-# The Definitive, Moodle Scraper (v6 - Final Key Generation Fix)
-# Message Formatting Enhanced by mila adem 
-# St group C3 2025/2026
+# The Definitive, Bulletproof Moodle Scraper (v6 - Final Key Generation Fix)
+# Message Formatting Enhanced by Gemini (v2 - Regex Fix)
 
 import requests
 import json
@@ -181,55 +180,45 @@ class MoodleScraper:
             logging.info(f"Found {len(items_to_process)} new or updated announcement(s)!")
             
             for item in reversed(items_to_process):
-                # --- *** MESSAGE FORMATTING LOGIC HAS BEEN UPDATED HERE *** ---
                 tag, key, content_hash, status = item['tag'], item['key'], item['hash'], item['status']
                 
-                # Determine header based on status
                 if status == 'new':
                     message_header = "📣 *Nouvelle Affiche*"
                 else:
                     message_header = "✏️ *Affiche Mise à Jour*"
 
-                # Extract and format the main content
                 content_text = format_announcement_text(html_to_markdown(tag))
 
-                # Try to find the title (often the first bolded line)
                 title_search = re.search(r'^\s*\*([^*]+)\*\s*', content_text)
                 if title_search:
                     announcement_title = title_search.group(1).strip()
-                    # Remove the title from the main body to avoid showing it twice
                     main_body = content_text.replace(title_search.group(0), '', 1).strip()
                 else:
-                    # Fallback if no clear title is found
                     announcement_title = "Information Importante"
                     main_body = content_text
 
-                # Assemble the beautiful message
                 message = f"{message_header}\n"
                 message += "========================\n\n"
                 message += f"📄 *Titre:* __{announcement_title}__\n\n"
                 message += f"{main_body}\n"
 
-                # Add links if they exist
                 links = extract_links(tag)
                 if links:
                     message += "\n------------------------------------\n"
                     message += "🔗 *Liens et Documents Attachés:*\n"
                     for link in sorted(list(set(links))):
-                        # Make the link clickable with a clean name
                         message += f"  • [Cliquer ici pour ouvrir]({link})\n"
 
-                # Add a clean footer with the ID
                 message += f"\n------------------------------------\n"
                 
-                # Try to extract the date it was posted
-                posted_on_match = re.search(r'Affiché le\s*([0-9/-\w]+\s*à\s*[\d:Hh]+)', tag.get_text())
+                # --- *** THIS IS THE ONLY LINE THAT HAS CHANGED *** ---
+                posted_on_match = re.search(r'Affiché le\s*([0-9/\-\w]+\s*à\s*[\d:Hh]+)', tag.get_text())
+
                 if posted_on_match:
                     posted_date = posted_on_match.group(1).strip()
                     message += f"🗓️ *Publié le:* {posted_date}\n"
 
                 message += f"🔑 *ID:* `{key[:12]}`"
-                # --- *** END OF MESSAGE FORMATTING CHANGES *** ---
 
                 if send_telegram_message(message):
                     self.announcement_data[key] = content_hash
