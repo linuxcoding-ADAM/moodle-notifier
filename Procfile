@@ -1,1 +1,1 @@
-worker: python moodle_checker.py
+web: gunicorn app:app
