@@ -3,24 +3,39 @@ let displayedCount = 0;
 const BATCH_SIZE = 15;
 let isLoading = false;
 
-// 1. Fetch Data
+// --- INITIALIZATION ---
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Check Theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        updateThemeUI(true);
+    }
+    
+    // 2. Check Notifications
+    if (localStorage.getItem('notifications') === 'true') {
+        updateNotifUI(true);
+    }
+
+    // 3. Load App
+    initApp();
+});
+
+// --- CORE LOGIC ---
 async function initApp() {
     try {
         const response = await fetch('/api/announcements');
         allAnnouncements = await response.json();
         
         const container = document.getElementById('cards-container');
-        container.innerHTML = ''; // Clear loader
+        container.innerHTML = ''; 
         
         if (allAnnouncements.length === 0) {
             container.innerHTML = '<div class="text-center text-gray-500 mt-20">Waiting for data...</div>';
             return;
         }
 
-        // Load first batch
         loadMore();
-
-        // Attach Scroll Listener for Infinite Scroll
         window.addEventListener('scroll', handleScroll);
 
     } catch (error) {
@@ -28,7 +43,6 @@ async function initApp() {
     }
 }
 
-// 2. Load More Logic (Lazy Loading)
 function loadMore() {
     if (isLoading || displayedCount >= allAnnouncements.length) return;
     isLoading = true;
@@ -39,29 +53,31 @@ function loadMore() {
     nextBatch.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'glass-card';
-        // Stagger animation slightly
         card.style.animationDelay = `${index * 0.05}s`;
 
         let linksHtml = '';
         if (item.links && item.links.length > 0) {
-            linksHtml = `<div class="mt-2">`;
             item.links.forEach(link => {
                 linksHtml += `
                     <a href="${link}" class="link-btn">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Attachment
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        Open Attachment
                     </a>`;
             });
-            linksHtml += `</div>`;
         }
 
+        // Updated Layout: Centered Title, Green Date, Justified Text
         card.innerHTML = `
-            <div class="flex justify-between items-start mb-3">
-                <span class="card-tag">Academics</span>
-                <span class="text-xs text-gray-500 font-medium">${item.date}</span>
+            <div class="flex flex-col items-center mb-4">
+                <span class="announcement-date">📅 ${item.date}</span>
+                <h3 class="announcement-title">${item.title}</h3>
+                <div class="w-12 h-1 bg-blue-500/30 rounded-full mt-2"></div>
             </div>
-            <h3 class="text-[1.05rem] font-bold text-white mb-3 leading-snug">${item.title}</h3>
-            <div class="announcement-body opacity-90">${item.body}</div>
+            
+            <div class="announcement-body">
+                ${item.body}
+            </div>
+            
             ${linksHtml}
         `;
         container.appendChild(card);
@@ -82,7 +98,7 @@ function handleScroll() {
     }
 }
 
-// 3. Tab Switching
+// --- NAVIGATION ---
 function switchTab(tab) {
     const homePage = document.getElementById('page-home');
     const settingsPage = document.getElementById('page-settings');
@@ -107,35 +123,54 @@ function switchTab(tab) {
     }
 }
 
-// 4. Notification Toggle (Visual Logic)
-function toggleNotifications() {
-    const switchBg = document.getElementById('notif-switch');
-    const dot = document.getElementById('notif-dot');
-    const isEnabled = switchBg.classList.contains('bg-green-500');
+// --- SETTINGS LOGIC ---
 
-    if (isEnabled) {
-        switchBg.classList.remove('bg-green-500');
+// 1. Dark Mode Toggle
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    updateThemeUI(isLight);
+}
+
+function updateThemeUI(isLight) {
+    const switchBg = document.getElementById('theme-switch');
+    const dot = document.getElementById('theme-dot');
+    
+    if (isLight) {
+        switchBg.classList.remove('bg-gray-700');
+        switchBg.classList.add('bg-blue-600');
+        dot.style.transform = 'translateX(20px)';
+    } else {
+        switchBg.classList.remove('bg-blue-600');
         switchBg.classList.add('bg-gray-700');
         dot.style.transform = 'translateX(0)';
-        localStorage.setItem('notifications', 'false');
-    } else {
-        switchBg.classList.remove('bg-gray-700');
-        switchBg.classList.add('bg-green-500');
-        dot.style.transform = 'translateX(20px)';
-        localStorage.setItem('notifications', 'true');
-        // Request permission if supported
-        if ("Notification" in window) Notification.requestPermission();
     }
 }
 
-// Initialize Notification State
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-    if (localStorage.getItem('notifications') === 'true') {
-        const switchBg = document.getElementById('notif-switch');
-        const dot = document.getElementById('notif-dot');
+// 2. Notifications Toggle
+function toggleNotifications() {
+    const current = localStorage.getItem('notifications') === 'true';
+    const newState = !current;
+    
+    localStorage.setItem('notifications', newState.toString());
+    updateNotifUI(newState);
+    
+    if (newState && "Notification" in window) {
+        Notification.requestPermission();
+    }
+}
+
+function updateNotifUI(isEnabled) {
+    const switchBg = document.getElementById('notif-switch');
+    const dot = document.getElementById('notif-dot');
+    
+    if (isEnabled) {
         switchBg.classList.remove('bg-gray-700');
         switchBg.classList.add('bg-green-500');
         dot.style.transform = 'translateX(20px)';
+    } else {
+        switchBg.classList.remove('bg-green-500');
+        switchBg.classList.add('bg-gray-700');
+        dot.style.transform = 'translateX(0)';
     }
-});
+}
