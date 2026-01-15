@@ -1,5 +1,4 @@
-# requirements.txt (Correct)
+flask
+gunicorn
 requests
 beautifulsoup4
-python-telegram-bot[job-queue]
-schedule
