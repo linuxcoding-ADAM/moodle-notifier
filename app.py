@@ -4,6 +4,7 @@ import requests
 import re
 import hashlib
 import os
+import json
 from flask import Flask, render_template, jsonify
 from bs4 import BeautifulSoup, NavigableString, Tag
 
@@ -13,7 +14,12 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
+# --- ONESIGNAL CONFIG (LOADED FROM RAILWAY VARIABLES) ---
+ONESIGNAL_APP_ID = os.environ.get('ONESIGNAL_APP_ID')
+ONESIGNAL_API_KEY = os.environ.get('ONESIGNAL_API_KEY')
+
 latest_data = []
+first_run = True # Prevents sending 20 notifications when you restart the server
 app = Flask(__name__)
 
 # --- HELPERS ---
@@ -29,9 +35,7 @@ def clean_html_text(tag):
             elif child.name == 'a': text_parts.append(child_text)
             elif child.name in ['p', 'div', 'li', 'br']: text_parts.append(f"<br>{child_text}<br>")
             else: text_parts.append(child_text)
-    
-    full_text = "".join(text_parts)
-    return re.sub(r'<br>\s*<br>', '<br>', full_text).strip()
+    return re.sub(r'<br>\s*<br>', '<br>', "".join(text_parts)).strip()
 
 def extract_links(tag):
     links = []
@@ -42,9 +46,32 @@ def extract_links(tag):
         if href: links.append(href)
     return links
 
+def send_notification(title, message):
+    """Sends Push Notification via OneSignal"""
+    if not ONESIGNAL_APP_ID or "PASTE" in ONESIGNAL_APP_ID:
+        print("⚠️ OneSignal Keys not set.")
+        return
+
+    header = {"Content-Type": "application/json; charset=utf-8",
+              "Authorization": f"Basic {ONESIGNAL_API_KEY}"}
+
+    payload = {
+        "app_id": ONESIGNAL_APP_ID,
+        "included_segments": ["All"],
+        "headings": {"en": "Nouvelle Annonce ST"},
+        "contents": {"en": title}, # Shows the title of the announcement
+        "small_icon": "ic_stat_onesignal_default"
+    }
+    
+    try:
+        req = requests.post("https://onesignal.com/api/v1/notifications", headers=header, data=json.dumps(payload))
+        print("🚀 Notification Sent:", req.status_code)
+    except Exception as e:
+        print(f"❌ Notification Error: {e}")
+
 # --- SCRAPER ---
 def background_scraper():
-    global latest_data
+    global latest_data, first_run
     print("--- Scraper Thread Started ---")
     while True:
         try:
@@ -79,8 +106,15 @@ def background_scraper():
                     "date": date
                 })
             
+            # CHECK FOR NEW ITEMS
             if new_data:
+                # If this is NOT the first run, and the top item is different...
+                if not first_run and latest_data and new_data[0]['id'] != latest_data[0]['id']:
+                    print("🔔 New Item Detected! Sending Notification...")
+                    send_notification(new_data[0]['title'], "Click to see details")
+                
                 latest_data = new_data
+                first_run = False
                 print(f"✅ Updated {len(new_data)} items.")
             else:
                 print("⚠️ No items found.")
