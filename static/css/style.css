@@ -2,24 +2,24 @@
     /* Dark Theme (Default) */
     --bg-color: #0B1121;
     --text-main: #ffffff;
-    --text-muted: #94a3b8; /* Slate 400 */
+    --text-muted: #e2e8f0; /* Changed from #94a3b8 to lighter Slate-200 for better visibility */
     --card-bg: rgba(30, 41, 59, 0.7);
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.9);
     --accent-color: #3b82f6;
-    --date-color: #34d399; /* Emerald 400 */
+    --date-color: #34d399;
 }
 
 .light-mode {
     /* Light Theme Variables */
-    --bg-color: #F1F5F9; /* Slate 100 */
-    --text-main: #0F172A; /* Slate 900 */
-    --text-muted: #475569; /* Slate 600 */
+    --bg-color: #F1F5F9;
+    --text-main: #0F172A;
+    --text-muted: #334155; /* Darker Slate for readability on white */
     --card-bg: #FFFFFF;
     --card-border: rgba(0, 0, 0, 0.05);
     --nav-bg: rgba(255, 255, 255, 0.9);
     --accent-color: #2563eb;
-    --date-color: #059669; /* Emerald 600 */
+    --date-color: #059669;
 }
 
 body {
@@ -77,7 +77,7 @@ h1, h2, h3 { color: var(--text-main); }
     font-size: 1.15rem;
     font-weight: 800; /* Extra Bold */
     color: var(--text-main);
-    text-align: center; /* Centered Title */
+    text-align: center;
     line-height: 1.4;
     margin-bottom: 0.75rem;
 }
@@ -97,11 +97,12 @@ h1, h2, h3 { color: var(--text-main); }
     color: var(--text-muted);
     font-size: 0.95rem;
     line-height: 1.7;
-    text-align: justify; /* Newspaper style alignment */
+    text-align: justify; /* Kept Justified alignment */
     font-weight: 500;
+    white-space: pre-line; /* Ensures line breaks show up correctly */
 }
 
-/* Bolder text inside body */
+/* Bold text inside body */
 .announcement-body b, .announcement-body strong {
     color: var(--text-main);
     font-weight: 700;
