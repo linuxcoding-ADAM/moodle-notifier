@@ -144,6 +144,12 @@ def manual_test():
         return "<h1>Notification Sent!</h1><p>Check your phone now.</p>"
     except Exception as e:
         return f"<h1>Error</h1><p>{str(e)}</p>"
+
+# --- DOWNLOAD PAGE ---
+@app.route('/install')
+def install_page():
+    return render_template('download.html')
+    
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
