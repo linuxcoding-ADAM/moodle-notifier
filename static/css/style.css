@@ -1,25 +1,11 @@
 :root {
-    /* Dark Theme (Default) */
-    --bg-color: #0B1121;
-    --text-main: #ffffff;
-    --text-muted: #e2e8f0; /* Changed from #94a3b8 to lighter Slate-200 for better visibility */
-    --card-bg: rgba(30, 41, 59, 0.7);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --nav-bg: rgba(15, 23, 42, 0.9);
-    --accent-color: #3b82f6;
-    --date-color: #34d399;
-}
-
-.light-mode {
-    /* Light Theme Variables */
-    --bg-color: #F1F5F9;
-    --text-main: #0F172A;
-    --text-muted: #334155; /* Darker Slate for readability on white */
-    --card-bg: #FFFFFF;
-    --card-border: rgba(0, 0, 0, 0.05);
-    --nav-bg: rgba(255, 255, 255, 0.9);
-    --accent-color: #2563eb;
-    --date-color: #059669;
+    /* Theme Variables */
+    --bg-color: #0B1121;       /* Deep Navy Background */
+    --card-bg: #1E293B;        /* Slate 800 (Settings Cards) */
+    --text-main: #FFFFFF;
+    --text-sub: #94A3B8;       /* Slate 400 */
+    --accent: #3B82F6;         /* Bright Blue */
+    --border: rgba(255, 255, 255, 0.05);
 }
 
 body {
@@ -28,110 +14,133 @@ body {
     font-family: 'Plus Jakarta Sans', sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Glass Utilities */
+/* --- GLASS HEADER (Home Page) --- */
 .header-glass {
-    background: var(--nav-bg);
+    background: rgba(11, 17, 33, 0.95);
     backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--card-border);
-    transition: background 0.3s ease;
+    border-bottom: 1px solid var(--border);
 }
 
-.glass-nav {
-    background: var(--nav-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
+/* --- SETTINGS PAGE DESIGN --- */
+
+/* The Header Area */
+.settings-header {
+    padding: 2rem 1.5rem 1rem 1.5rem;
+}
+.settings-title {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.settings-subtitle {
+    color: var(--text-sub);
+    font-size: 0.9rem;
+    margin-top: 4px;
 }
 
-.glass-panel {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+/* The Cards */
+.settings-card {
+    background-color: var(--card-bg);
     border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+    height: 72px;
 }
 
-/* Cards */
-.glass-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 1.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1.25rem;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeInUp 0.4s ease forwards;
-    transition: background 0.3s ease;
-}
-
-@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-
-/* Typography Overrides */
-h1, h2, h3 { color: var(--text-main); }
-
-.announcement-title {
-    font-size: 1.15rem;
-    font-weight: 800; /* Extra Bold */
-    color: var(--text-main);
-    text-align: center;
-    line-height: 1.4;
-    margin-bottom: 0.75rem;
-}
-
-.announcement-date {
-    color: var(--date-color);
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    text-align: center;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.announcement-body {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    line-height: 1.7;
-    text-align: justify; /* Kept Justified alignment */
-    font-weight: 500;
-    white-space: pre-line; /* Ensures line breaks show up correctly */
-}
-
-/* Bold text inside body */
-.announcement-body b, .announcement-body strong {
-    color: var(--text-main);
-    font-weight: 700;
-}
-
-/* Link Buttons */
-.link-btn {
+/* Icon Container */
+.icon-box {
+    width: 40px;
+    height: 40px;
+    background-color: #334155; /* Darker Slate for icon bg */
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    background: rgba(59, 130, 246, 0.1);
-    padding: 10px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--accent-color);
-    margin-top: 1rem;
-    transition: background 0.2s;
+    margin-right: 16px;
+    color: #F8FAFC; /* White Icon */
 }
-.link-btn:active { background: rgba(59, 130, 246, 0.2); }
+
+.setting-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+}
+
+/* The Switch (iOS Style) */
+.toggle-switch {
+    width: 52px;
+    height: 30px;
+    background-color: #334155; /* Inactive Gray */
+    border-radius: 99px;
+    position: relative;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.toggle-switch.active {
+    background-color: var(--accent); /* Active Blue */
+}
+
+.toggle-dot {
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.active .toggle-dot {
+    transform: translateX(22px);
+}
+
+/* Footer Info */
+.app-footer {
+    text-align: center;
+    margin-top: 4rem;
+    opacity: 0.5;
+}
+.footer-badge {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60A5FA;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+/* --- HOME PAGE CARDS (Keep existing) --- */
+.glass-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1.25rem;
+}
+.announcement-title { font-size: 1.15rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; }
+.announcement-date { color: #34d399; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; text-align: center; display: block; margin-bottom: 0.5rem;}
+.announcement-body { color: #CBD5E1; font-size: 0.95rem; line-height: 1.6; text-align: justify; }
+.card-tag { background: rgba(59, 130, 246, 0.15); color: #60A5FA; font-size: 0.65rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+.link-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; color: #93C5FD; margin-top: 0.8rem; transition: background 0.2s; }
 
 /* Loader */
-.loader {
-    width: 32px; height: 32px;
-    border: 3px solid var(--card-border);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 40px auto;
-}
+.loader { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Bottom Nav */
+.glass-nav { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); }
+.nav-btn.active { color: var(--accent); }
