@@ -8,26 +8,34 @@ import json
 from flask import Flask, render_template, jsonify
 from bs4 import BeautifulSoup, NavigableString, Tag
 
+# --- FIREBASE ADMIN SETUP ---
+import firebase_admin
+from firebase_admin import credentials, messaging
+
+# Load credentials from Railway Variable
+cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+if cred_json:
+    cred_dict = json.loads(cred_json)
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+else:
+    print("⚠️ WARNING: FIREBASE_CREDENTIALS variable missing!")
+
 # --- CONFIG ---
 AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
-# --- ONESIGNAL CONFIG (LOADED FROM RAILWAY VARIABLES) ---
-ONESIGNAL_APP_ID = os.environ.get('ONESIGNAL_APP_ID')
-ONESIGNAL_API_KEY = os.environ.get('ONESIGNAL_API_KEY')
-
 latest_data = []
-first_run = True # Prevents sending 20 notifications when you restart the server
+first_run = True
 app = Flask(__name__)
 
 # --- HELPERS ---
 def clean_html_text(tag):
     text_parts = []
     for child in tag.children:
-        if isinstance(child, NavigableString): 
-            text_parts.append(child.string)
+        if isinstance(child, NavigableString): text_parts.append(child.string)
         elif isinstance(child, Tag):
             child_text = clean_html_text(child)
             if child.name in ['b', 'strong']: text_parts.append(f"<b>{child_text}</b>")
@@ -46,28 +54,22 @@ def extract_links(tag):
         if href: links.append(href)
     return links
 
-def send_notification(title, message):
-    """Sends Push Notification via OneSignal"""
-    if not ONESIGNAL_APP_ID or "PASTE" in ONESIGNAL_APP_ID:
-        print("⚠️ OneSignal Keys not set.")
-        return
-
-    header = {"Content-Type": "application/json; charset=utf-8",
-              "Authorization": f"Basic {ONESIGNAL_API_KEY}"}
-
-    payload = {
-        "app_id": ONESIGNAL_APP_ID,
-        "included_segments": ["All"],
-        "headings": {"en": "Nouvelle Annonce ST"},
-        "contents": {"en": title}, # Shows the title of the announcement
-        "small_icon": "ic_stat_onesignal_default"
-    }
-    
+def send_fcm_notification(title):
+    """Sends directly to FCM Topic 'announcements'"""
     try:
-        req = requests.post("https://onesignal.com/api/v1/notifications", headers=header, data=json.dumps(payload))
-        print("🚀 Notification Sent:", req.status_code)
+        # Create the message
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title="Nouvelle Annonce ST",
+                body=title,
+            ),
+            topic='announcements', # Sending to everyone subscribed to this topic
+        )
+        # Send
+        response = messaging.send(message)
+        print(f"🚀 FCM Notification Sent: {response}")
     except Exception as e:
-        print(f"❌ Notification Error: {e}")
+        print(f"❌ FCM Error: {e}")
 
 # --- SCRAPER ---
 def background_scraper():
@@ -106,12 +108,11 @@ def background_scraper():
                     "date": date
                 })
             
-            # CHECK FOR NEW ITEMS
             if new_data:
-                # If this is NOT the first run, and the top item is different...
                 if not first_run and latest_data and new_data[0]['id'] != latest_data[0]['id']:
-                    print("🔔 New Item Detected! Sending Notification...")
-                    send_notification(new_data[0]['title'], "Click to see details")
+                    print(f"🔔 NEW: {new_data[0]['title']}")
+                    # Send via FCM
+                    send_fcm_notification(new_data[0]['title'])
                 
                 latest_data = new_data
                 first_run = False
@@ -122,9 +123,8 @@ def background_scraper():
         except Exception as e:
             print(f"❌ Scraper Error: {e}")
         
-        time.sleep(600) # 10 Minutes
+        time.sleep(600)
 
-# --- ROUTES ---
 @app.route('/')
 def index():
     return render_template('index.html')
