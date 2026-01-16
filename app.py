@@ -135,6 +135,15 @@ def api_data():
 
 threading.Thread(target=background_scraper, daemon=True).start()
 
+# --- MANUAL TEST ROUTE ---
+@app.route('/test-notification')
+def manual_test():
+    try:
+        # This calls the function that talks to Google
+        send_fcm_notification("Success! Railway is talking to your phone.")
+        return "<h1>Notification Sent!</h1><p>Check your phone now.</p>"
+    except Exception as e:
+        return f"<h1>Error</h1><p>{str(e)}</p>"
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
