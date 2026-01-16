@@ -12,15 +12,12 @@
 
     <!-- PAGE: HOME -->
     <div id="page-home" class="active">
-        <!-- Header -->
         <div class="header-glass sticky top-0 z-50 px-6 py-5">
             <div class="flex flex-col items-center">
                 <span class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1">Univ Bejaia</span>
                 <h1 class="text-xl font-extrabold tracking-tight">ST Affichage</h1>
             </div>
         </div>
-
-        <!-- Content -->
         <div class="px-4 mt-6">
             <div id="cards-container" class="min-h-[50vh]">
                 <div class="loader"></div>
@@ -29,64 +26,54 @@
         </div>
     </div>
 
-    <!-- PAGE: SETTINGS -->
+    <!-- PAGE: SETTINGS (Redesigned) -->
     <div id="page-settings" class="hidden">
-        <div class="header-glass sticky top-0 z-50 px-6 py-5">
-            <h1 class="text-2xl font-bold tracking-tight">Settings</h1>
+        
+        <!-- Header -->
+        <div class="settings-header">
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">Customize your app experience.</p>
         </div>
 
-        <div class="px-5 mt-6 space-y-4">
-            <!-- Appearance -->
-            <div class="glass-panel p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Preferences</h3>
-                
-                <!-- Light Mode Toggle -->
-                <div class="flex justify-between items-center py-2 cursor-pointer" onclick="toggleTheme()">
-                    <div class="flex items-center gap-3">
-                        <div class="icon-circle bg-blue-500/10 text-blue-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        </div>
-                        <span class="font-medium">Light Mode</span>
-                    </div>
-                    <div id="theme-switch" class="w-11 h-6 bg-gray-700 rounded-full relative transition-colors duration-300">
-                        <div id="theme-dot" class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm transition-transform duration-300"></div>
-                    </div>
-                </div>
-
-                <div class="h-px bg-white/5 my-2"></div>
-
-                <!-- Notifications Toggle -->
-                <div class="flex justify-between items-center py-2 cursor-pointer" onclick="toggleNotifications()">
-                    <div class="flex items-center gap-3">
-                        <div class="icon-circle bg-green-500/10 text-green-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        </div>
-                        <span class="font-medium">Notifications</span>
-                    </div>
-                    <div id="notif-switch" class="w-11 h-6 bg-gray-700 rounded-full relative transition-colors duration-300">
-                        <div id="notif-dot" class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm transition-transform duration-300"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- About (TEXT RESTORED AS REQUESTED) -->
-            <div class="glass-panel p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">About</h3>
-                <p class="text-sm opacity-70 leading-relaxed mb-4">
-                    This application scrapes announcements from the Univ Bejaia e-learning platform. It is an independent project made from student to students to improve the mobile experience.
-                </p>
-                <div class="flex items-center gap-2 mt-4">
-                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span class="text-xs text-green-500 font-mono">System Online</span>
-                </div>
-            </div>
+        <div class="px-5">
             
-            <!-- Credits -->
-            <div class="text-center pt-8 pb-4">
-                <p class="text-xs text-gray-500">Designed & Developed by</p>
-                <p class="text-sm font-bold mt-1">Adam Mila</p>
-                <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
+            <!-- Dark Mode Card -->
+            <div class="settings-card">
+                <div class="flex items-center">
+                    <div class="icon-box">
+                        <!-- Solid Moon Icon -->
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </div>
+                    <span class="setting-label">Dark Mode</span>
+                </div>
+                <!-- Switch -->
+                <div id="theme-switch" class="toggle-switch active" onclick="toggleTheme()">
+                    <div class="toggle-dot"></div>
+                </div>
             </div>
+
+            <!-- Notifications Card -->
+            <div class="settings-card">
+                <div class="flex items-center">
+                    <div class="icon-box">
+                        <!-- Solid Bell Icon -->
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12.02 2.909c-.373-1.708-2.652-1.727-2.98.053l-.936 6.315c-.297 1.636-1.936 3.737-3.155 3.737 2.145 3.321 8.528 3.332 10.655-.027-1.127-.197-2.67-2.128-2.887-3.71l-.7-6.368h.003zm-4.708 14.091c1.556 1.34 3.792 1.34 5.348 0"/></svg>
+                    </div>
+                    <span class="setting-label">Enable Notifications</span>
+                </div>
+                <!-- Switch -->
+                <div id="notif-switch" class="toggle-switch active" onclick="toggleNotifications()">
+                    <div class="toggle-dot"></div>
+                </div>
+            </div>
+
+            <!-- Footer (Announcer App Style) -->
+            <div class="app-footer">
+                <div class="footer-badge">⚡ ANNOUNCER APP</div>
+                <p class="text-xs text-gray-500">Version 1.4.0 Beta (Build 2026)</p>
+                <p class="text-[10px] text-gray-600 mt-2">Made by Adam Mila</p>
+            </div>
+
         </div>
     </div>
 
