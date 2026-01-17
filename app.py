@@ -136,12 +136,12 @@ def api_data():
 threading.Thread(target=background_scraper, daemon=True).start()
 
 # --- MANUAL TEST ROUTE ---
-@app.route('/test-notification')
+@app.route('/test-notification-railway')
 def manual_test():
     try:
-        # This calls the function that talks to Google
-        send_fcm_notification("Success! Railway is talking to your phone.")
-        return "<h1>Notification Sent!</h1><p>Check your phone now.</p>"
+        #  calls the function that talks to Google
+        send_fcm_notification("hey we are sorry this is just a test.")
+        return "<h1>Notification Sent to all users!</h1><p>Check your phone now.</p>"
     except Exception as e:
         return f"<h1>Error</h1><p>{str(e)}</p>"
 
