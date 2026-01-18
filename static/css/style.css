@@ -1,252 +1,135 @@
 :root {
-    /* --- COLOR PALETTE (Cold, Engineered) --- */
-    
-    /* Dark Mode (Default) */
-    --bg-gradient-start: #0f172a; /* Slate 900 */
-    --bg-gradient-end: #020617;   /* Slate 950 */
-    
-    /* The Glass Material */
-    --glass-surface: rgba(30, 41, 59, 0.88); /* High Opacity */
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-highlight: rgba(255, 255, 255, 0.03);
-    
-    /* Heavy Glass (Nav) */
-    --heavy-glass: rgba(15, 23, 42, 0.92);
-    
-    /* Text */
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8; /* Cool Grey */
-    
-    /* Accents */
-    --accent: #3b82f6;       /* Tech Blue */
-    --accent-glow: rgba(59, 130, 246, 0.4);
-    --success: #10b981;      /* Emerald */
-    
-    /* Metric */
-    --radius-lg: 16px;
-    --radius-md: 12px;
+    /* Dark Theme (Default) */
+    --bg-color: #0B1121;
+    --text-main: #ffffff;
+    --text-muted: #e2e8f0; /* Changed from #94a3b8 to lighter Slate-200 for better visibility */
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --nav-bg: rgba(15, 23, 42, 0.9);
+    --accent-color: #3b82f6;
+    --date-color: #34d399;
 }
 
 .light-mode {
-    /* Light Mode (Engineered Paper) */
-    --bg-gradient-start: #f1f5f9;
-    --bg-gradient-end: #e2e8f0;
-    
-    --glass-surface: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(0, 0, 0, 0.06);
-    --glass-highlight: rgba(255, 255, 255, 0.4);
-    
-    --heavy-glass: rgba(255, 255, 255, 0.95);
-    
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    
-    --accent: #2563eb;
-    --success: #059669;
+    /* Light Theme Variables */
+    --bg-color: #F1F5F9;
+    --text-main: #0F172A;
+    --text-muted: #334155; /* Darker Slate for readability on white */
+    --card-bg: #FFFFFF;
+    --card-border: rgba(0, 0, 0, 0.05);
+    --nav-bg: rgba(255, 255, 255, 0.9);
+    --accent-color: #2563eb;
+    --date-color: #059669;
 }
 
-/* --- BASE SETUP --- */
 body {
-    background: radial-gradient(circle at top left, var(--bg-gradient-start), var(--bg-gradient-end));
+    background-color: var(--bg-color);
     color: var(--text-main);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* System font stack */
-    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     -webkit-tap-highlight-color: transparent;
-    transition: color 0.3s ease;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* NOISE TEXTURE (The "Material" Secret) */
-.noise-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-/* --- COMPONENTS --- */
-
-/* 1. Header */
+/* Glass Utilities */
 .header-glass {
-    background: var(--heavy-glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--glass-border);
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+    transition: background 0.3s ease;
 }
-.text-accent { color: var(--accent); }
-.text-main { color: var(--text-main); }
 
-/* 2. Cards (The Structural Blocks) */
+.glass-nav {
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+}
+
+.glass-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Cards */
 .glass-card {
-    background: var(--glass-surface);
-    border: 1px solid var(--glass-border);
-    border-top: 1px solid var(--glass-highlight); /* Subtle top light */
-    border-radius: var(--radius-lg);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
     padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
-    /* Animation */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.25rem;
     opacity: 0;
     transform: translateY(10px);
-    animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation: fadeInUp 0.4s ease forwards;
+    transition: background 0.3s ease;
 }
 
-@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-/* Typography inside Cards */
-.announcement-meta-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 12px;
-}
-.announcement-date {
-    font-family: 'Inter', monospace; /* Tech feel */
-    color: var(--success);
-    font-size: 0.7rem;
-    font-weight: 600;
-    background: rgba(16, 185, 129, 0.1);
-    padding: 4px 10px;
-    border-radius: 4px;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    letter-spacing: 0.05em;
-}
+/* Typography Overrides */
+h1, h2, h3 { color: var(--text-main); }
 
 .announcement-title {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    font-weight: 800; /* Extra Bold */
+    color: var(--text-main);
     text-align: center;
-    line-height: 1.35;
-    margin-bottom: 1rem;
-    letter-spacing: -0.01em;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+}
+
+.announcement-date {
+    color: var(--date-color);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    display: block;
+    margin-bottom: 0.5rem;
 }
 
 .announcement-body {
-    font-size: 0.925rem;
-    line-height: 1.65;
     color: var(--text-muted);
-    text-align: justify;
-    font-weight: 400;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    text-align: justify; /* Kept Justified alignment */
+    font-weight: 500;
+    white-space: pre-line; /* Ensures line breaks show up correctly */
 }
-.announcement-body b { color: var(--text-main); font-weight: 600; }
 
-/* 3. Buttons (Tactile) */
+/* Bold text inside body */
+.announcement-body b, .announcement-body strong {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* Link Buttons */
 .link-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    margin-top: 1.25rem;
-    padding: 12px;
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: var(--radius-md);
-    color: var(--accent);
+    gap: 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 10px;
+    border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 600;
-    transition: all 0.2s ease;
-}
-.link-btn:active {
-    background: rgba(59, 130, 246, 0.15);
-    transform: scale(0.98); /* Physical press effect */
-}
-
-/* 4. Settings Elements */
-.section-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-left: 4px;
-    margin-bottom: 8px;
-    opacity: 0.7;
-}
-
-.settings-card {
-    background: var(--glass-surface);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    color: var(--accent-color);
+    margin-top: 1rem;
     transition: background 0.2s;
 }
-.settings-card:active { background: rgba(255,255,255,0.03); }
-
-/* Glass Icon Box */
-.icon-box-glass {
-    width: 42px; height: 42px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-main);
-}
-
-.setting-label { font-size: 0.95rem; font-weight: 600; display: block; }
-.setting-sublabel { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 2px; }
-
-/* Engineered Toggle Switch */
-.toggle-switch {
-    width: 48px; height: 26px;
-    background: #1e293b;
-    border-radius: 99px;
-    padding: 2px;
-    transition: background 0.3s ease;
-    border: 1px solid var(--glass-border);
-    position: relative;
-}
-.toggle-switch.active { background: var(--accent); border-color: var(--accent); }
-
-.toggle-knob {
-    width: 20px; height: 20px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.toggle-switch.active .toggle-knob { transform: translateX(22px); }
-
-/* 5. Navigation Bar */
-.glass-nav {
-    background: var(--heavy-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
-}
-
-.nav-btn { color: var(--text-muted); transition: color 0.3s; }
-.nav-btn.active { color: var(--accent); }
-.nav-btn.active .nav-icon-container {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    box-shadow: 0 0 15px var(--accent-glow);
-}
-
-.nav-icon-container {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.3s ease;
-}
-
-/* 6. Info Panel */
-.glass-panel {
-    background: rgba(16, 185, 129, 0.03); /* Subtle green tint */
-    border: 1px dashed rgba(16, 185, 129, 0.2); /* Dashed technical border */
-    border-radius: var(--radius-lg);
-}
+.link-btn:active { background: rgba(59, 130, 246, 0.2); }
 
 /* Loader */
 .loader {
-    width: 24px; height: 24px;
-    border: 2px solid rgba(255,255,255,0.1);
-    border-top-color: var(--accent);
+    width: 32px; height: 32px;
+    border: 3px solid var(--card-border);
+    border-top-color: var(--accent-color);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 40px auto;
