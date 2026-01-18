@@ -5,118 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Switch to INTER font for that "Engineered/System" look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-
-    <!-- Global Noise Overlay (The "Material" feel) -->
-    <div class="noise-overlay"></div>
+<body class="pb-24">
 
     <!-- PAGE: HOME -->
-    <div id="page-home" class="active relative z-10">
+    <div id="page-home" class="active">
         <!-- Header -->
         <div class="header-glass sticky top-0 z-50 px-6 py-5">
             <div class="flex flex-col items-center">
-                <span class="text-[10px] font-bold tracking-[0.25em] text-accent uppercase mb-1 opacity-80">Univ Bejaïa</span>
-                <h1 class="text-lg font-bold tracking-tight text-main">ST AFFICHAGE</h1>
+                <span class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1">Univ Bejaïa</span>
+                <h1 class="text-xl font-extrabold tracking-tight">ST Affichage</h1>
             </div>
         </div>
 
         <!-- Content -->
-        <div class="px-4 mt-6 pb-32">
+        <div class="px-4 mt-6">
             <div id="cards-container" class="min-h-[50vh]">
                 <div class="loader"></div>
             </div>
-            <div id="end-message" class="text-center text-[10px] font-mono text-muted py-8 hidden">SYSTEM: END OF RECORDS</div>
+            <div id="end-message" class="text-center text-xs text-gray-500 py-6 hidden">End of updates</div>
         </div>
     </div>
 
     <!-- PAGE: SETTINGS -->
-    <div id="page-settings" class="hidden relative z-10">
+    <div id="page-settings" class="hidden">
         <div class="header-glass sticky top-0 z-50 px-6 py-5">
-            <h1 class="text-xl font-bold tracking-tight text-main">System Settings</h1>
+            <h1 class="text-2xl font-bold tracking-tight">Settings</h1>
         </div>
 
-        <div class="px-5 mt-6 space-y-4 pb-32">
-            
-            <!-- Preferences Section -->
-            <div class="section-label">INTERFACE</div>
-            
-            <!-- Dark Mode Card -->
-            <div class="settings-card" onclick="toggleTheme()">
-                <div class="flex items-center">
-                    <!-- Glassy Icon Container -->
-                    <div class="icon-box-glass">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <div class="px-5 mt-6 space-y-4">
+            <!-- Appearance -->
+            <div class="glass-panel p-5">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Preferences</h3>
+                
+                <!-- Light Mode Toggle -->
+                <div class="flex justify-between items-center py-2 cursor-pointer" onclick="toggleTheme()">
+                    <div class="flex items-center gap-3">
+                        <div class="icon-circle bg-blue-500/10 text-blue-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <span class="font-medium">Light Mode</span>
                     </div>
-                    <div class="flex flex-col ml-4">
-                        <span class="setting-label">Appearance</span>
-                        <span class="setting-sublabel">Toggle light/dark theme</span>
+                    <div id="theme-switch" class="w-11 h-6 bg-gray-700 rounded-full relative transition-colors duration-300">
+                        <div id="theme-dot" class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm transition-transform duration-300"></div>
                     </div>
                 </div>
-                <!-- Switch -->
-                <div id="theme-switch" class="toggle-switch">
-                    <div class="toggle-track"></div>
-                    <div class="toggle-knob"></div>
+
+                <div class="h-px bg-white/5 my-2"></div>
+
+                <!-- Notifications Toggle -->
+                <div class="flex justify-between items-center py-2 cursor-pointer" onclick="toggleNotifications()">
+                    <div class="flex items-center gap-3">
+                        <div class="icon-circle bg-green-500/10 text-green-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        </div>
+                        <span class="font-medium">Notifications</span>
+                    </div>
+                    <div id="notif-switch" class="w-11 h-6 bg-gray-700 rounded-full relative transition-colors duration-300">
+                        <div id="notif-dot" class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm transition-transform duration-300"></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Notifications Card -->
-            <div class="settings-card" onclick="toggleNotifications()">
-                <div class="flex items-center">
-                    <div class="icon-box-glass">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    </div>
-                    <div class="flex flex-col ml-4">
-                        <span class="setting-label">Notifications</span>
-                        <span class="setting-sublabel">Real-time announcement alerts</span>
-                    </div>
-                </div>
-                <div id="notif-switch" class="toggle-switch active">
-                    <div class="toggle-track"></div>
-                    <div class="toggle-knob"></div>
-                </div>
-            </div>
-
-            <div class="section-label mt-6">SYSTEM INFO</div>
-
-            <!-- About -->
-            <div class="glass-panel p-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs font-mono text-accent tracking-widest">STATUS: OPERATIONAL</span>
-                </div>
-                <p class="text-sm text-muted leading-relaxed font-medium">
-                    Automated scraping system interfacing with Univ Bejaia e-learning protocols. 
-                    Independent build. Optimized for efficiency and speed.made by a student for students . 
+            <!-- About (TEXT RESTORED AS REQUESTED) -->
+            <div class="glass-panel p-5">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">About</h3>
+                <p class="text-sm opacity-70 leading-relaxed mb-4">
+                    This application scrapes announcements from the Univ Bejaia e-learning platform. It is an independent project made from student to students to improve the mobile experience.
                 </p>
+                <div class="flex items-center gap-2 mt-4">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="text-xs text-green-500 font-mono">System Online</span>
+                </div>
             </div>
             
             <!-- Credits -->
-            <div class="text-center pt-8 opacity-60">
-                <p class="text-[10px] font-mono tracking-widest uppercase">by Adam Mila</p>
-                <p class="text-[10px] font-mono mt-1">BUILD 2026.1.5.0</p>
+            <div class="text-center pt-8 pb-4">
+                <p class="text-xs text-gray-500">Designed & Developed by</p>
+                <p class="text-sm font-bold mt-1">Adam Mila</p>
+                <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage V 1.4.1 (Beta)</p>
             </div>
         </div>
     </div>
 
-    <!-- BOTTOM NAV (Heavy Glass) -->
-    <div class="fixed bottom-6 left-6 right-6 h-16 glass-nav rounded-2xl flex items-center justify-around z-50">
-        <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex items-center justify-center w-full h-full rounded-l-2xl">
-            <div class="nav-icon-container">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            </div>
+    <!-- BOTTOM NAV -->
+    <div class="fixed bottom-5 left-5 right-5 h-16 glass-nav rounded-2xl flex items-center justify-around z-50 shadow-2xl">
+        <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex flex-col items-center justify-center gap-1 w-full h-full rounded-l-2xl text-blue-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span class="text-[10px] font-bold">Home</span>
         </button>
-        
-        <!-- Vertical Divider -->
-        <div class="w-[1px] h-6 bg-white/10"></div>
-
-        <button onclick="switchTab('settings')" id="tab-settings" class="nav-btn flex items-center justify-center w-full h-full rounded-r-2xl">
-            <div class="nav-icon-container">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-            </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <button onclick="switchTab('settings')" id="tab-settings" class="nav-btn text-gray-500 flex flex-col items-center justify-center gap-1 w-full h-full rounded-r-2xl">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="text-[10px] font-bold">Settings</span>
         </button>
     </div>
 
