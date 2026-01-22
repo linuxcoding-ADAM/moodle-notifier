@@ -13,44 +13,37 @@
     <!-- PAGE: HOME -->
     <div id="page-home" class="active">
         
-        <!-- Header (Simplified) -->
-        <div class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-center items-center">
+        <!-- Header -->
+        <div class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center transition-all duration-300" id="main-header">
+            <!-- Left: Spacer for alignment -->
+            <div class="w-8"></div>
+
+            <!-- Center: Title -->
             <div class="flex flex-col items-center">
                 <span class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-0.5">Univ Bejaïa</span>
                 <h1 class="text-lg font-extrabold tracking-tight text-white heading-text">ST Affichage</h1>
             </div>
+
+            <!-- Right: Search Icon -->
+            <button onclick="toggleSearch()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-300 active:scale-95 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </button>
         </div>
 
-        <!-- SEARCH SECTION (The Swap Logic) -->
-        <div class="px-4 mt-3 mb-2 sticky top-[72px] z-40">
-            
-            <!-- State 1: The Trigger Button (Visible by default) -->
-            <div id="search-trigger" onclick="openSearch()" class="w-full bg-[#1E293B] border border-white/10 rounded-xl py-3 px-4 flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-95 transition-transform duration-150">
-                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <span class="text-sm font-semibold text-gray-400">Rechercher...</span>
+        <!-- Hidden Search Bar (Slides down) -->
+        <div id="search-container" class="fixed top-[72px] left-0 right-0 px-4 z-40 transition-all duration-300 transform -translate-y-20 opacity-0 pointer-events-none">
+            <div class="bg-[#1E293B] border border-blue-500/30 p-2 rounded-2xl shadow-2xl flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search..." 
+                       class="w-full bg-transparent text-white text-sm py-2 px-2 focus:outline-none placeholder-gray-500" autocomplete="off">
+                <button onclick="closeSearch()" class="p-2 bg-white/10 rounded-xl text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-
-            <!-- State 2: The Actual Input (Hidden by default) -->
-            <div id="search-input-wrapper" class="hidden">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <!-- Close button on the right -->
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onclick="closeSearch()">
-                        <div class="bg-white/10 rounded-full p-1">
-                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </div>
-                    </div>
-                    <input type="text" id="search-input" placeholder="Search..." 
-                           class="w-full pl-11 pr-10 py-3 bg-[#1E293B] border border-blue-500/50 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-xl">
-                </div>
-            </div>
-
         </div>
 
         <!-- Content -->
-        <div class="px-4 mt-2">
+        <div class="px-4 mt-4">
             <div id="cards-container" class="min-h-[50vh]">
                 <div class="loader"></div>
             </div>
@@ -68,7 +61,6 @@
             <div class="glass-panel p-5">
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Preferences</h3>
                 
-                <!-- Light Mode -->
                 <div class="settings-card" onclick="toggleTheme()">
                     <div class="flex items-center">
                         <div class="icon-box">
@@ -81,11 +73,9 @@
                     </div>
                 </div>
 
-                <!-- Notifications -->
                 <div class="settings-card mt-3" onclick="toggleNotifications()">
                     <div class="flex items-center">
                         <div class="icon-box">
-                            <!-- FIXED NOTIFICATION ICON -->
                             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
                         </div>
                         <span class="setting-label">Notifications</span>
@@ -96,7 +86,6 @@
                 </div>
             </div>
 
-            <!-- About -->
             <div class="glass-panel p-5">
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">About</h3>
                 <p class="text-sm opacity-70 leading-relaxed mb-4 text-center">
@@ -109,7 +98,7 @@
             </div>
             
             <div class="text-center pt-8 pb-4">
-                <div class="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded mb-2">BETA 1.6.0</div>
+                <div class="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded mb-2">BETA 1.7.0</div>
                 <p class="text-xs text-gray-500">Designed & Developed by</p>
                 <p class="text-sm font-bold mt-1 text-white heading-text">Adam Mila</p>
                 <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
@@ -117,8 +106,8 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
-    <div class="fixed bottom-5 left-5 right-5 h-16 glass-nav rounded-2xl flex items-center justify-around z-50 shadow-2xl">
+    <!-- BOTTOM NAV (Added ID) -->
+    <div id="bottom-nav" class="fixed bottom-5 left-5 right-5 h-16 glass-nav rounded-2xl flex items-center justify-around z-50 shadow-2xl transition-transform duration-300">
         <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex flex-col items-center justify-center gap-1 w-full h-full rounded-l-2xl text-blue-500 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             <span class="text-[10px] font-bold">Home</span>

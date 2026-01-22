@@ -149,3 +149,24 @@ body {
 .glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; }
 .loader { width: 32px; height: 32px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.6s linear infinite; margin: 40px auto; } /* Faster Spin */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ... KEEP ALL YOUR EXISTING CSS ... */
+/* Add this at the very bottom of the file */
+
+/* Hide Nav Bar Animation */
+.nav-hidden {
+    transform: translateY(200%); /* Moves it down off screen */
+    opacity: 0;
+}
+
+/* Ensure Search Container is on top */
+#search-container {
+    will-change: transform, opacity;
+}
+
+/* Visible Search State */
+.search-active {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}

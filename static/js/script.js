@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - PERFORMANCE BUILD
-   Build: 2026.1.8 (Fast UI) Fuck Exames
+   ST AFFICHAGE - FINAL UX
+   Build: 2026.1.9 (No Lag Search) Fuck Exames
    ========================================= */
 
    let allAnnouncements = [];
@@ -10,6 +10,7 @@
    let isLoading = false;
    
    document.addEventListener("DOMContentLoaded", () => {
+       // Theme & Notif
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
@@ -29,21 +30,38 @@
        }
    });
    
-   // --- NEW SEARCH LOGIC ---
-   function openSearch() {
-       document.getElementById('search-trigger').classList.add('hidden');
-       document.getElementById('search-input-wrapper').classList.remove('hidden');
-       document.getElementById('search-input').focus();
+   // --- NEW SEARCH UX ---
+   function toggleSearch() {
+       const container = document.getElementById('search-container');
+       const input = document.getElementById('search-input');
+       const bottomNav = document.getElementById('bottom-nav');
+   
+       // Show Search Bar
+       container.classList.add('search-active');
+       
+       // Hide Bottom Nav (Prevents keyboard lag)
+       bottomNav.classList.add('nav-hidden');
+       
+       input.focus();
    }
    
    function closeSearch() {
+       const container = document.getElementById('search-container');
        const input = document.getElementById('search-input');
-       input.value = ''; // Clear text
+       const bottomNav = document.getElementById('bottom-nav');
+   
+       // Hide Search Bar
+       container.classList.remove('search-active');
+       
+       // Show Bottom Nav
+       bottomNav.classList.remove('nav-hidden');
+       
+       input.value = '';
+       input.blur(); // Close keyboard
        handleSearch(''); // Reset list
-       document.getElementById('search-input-wrapper').classList.add('hidden');
-       document.getElementById('search-trigger').classList.remove('hidden');
    }
    
+   // --- DATA ---
    async function initApp() {
        try {
            const timestamp = new Date().getTime();
@@ -94,14 +112,12 @@
    
        const container = document.getElementById('cards-container');
        const nextBatch = activeList.slice(displayedCount, displayedCount + BATCH_SIZE);
-   
-       // Create a DocumentFragment for better performance (One Single Paint)
        const fragment = document.createDocumentFragment();
    
        nextBatch.forEach((item, index) => {
            const card = document.createElement('div');
            card.className = 'glass-card';
-           card.style.animationDelay = `${index * 0.03}s`; // Faster stagger
+           card.style.animationDelay = `${index * 0.03}s`; 
    
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
@@ -139,8 +155,7 @@
            fragment.appendChild(card);
        });
    
-       container.appendChild(fragment); // Batch Insert
-   
+       container.appendChild(fragment);
        displayedCount += nextBatch.length;
        isLoading = false;
    
@@ -150,12 +165,21 @@
    }
    
    function handleScroll() {
+       // 1. Auto-Close Search on Scroll (Performance Feature)
+       if (window.scrollY > 50) {
+           const searchContainer = document.getElementById('search-container');
+           if (searchContainer.classList.contains('search-active')) {
+               closeSearch();
+           }
+       }
+   
+       // 2. Infinite Load
        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
            loadMore();
        }
    }
    
-   // --- SYSTEM FUNCTIONS ---
+   // --- SYSTEM ---
    function switchTab(tab) {
        const home = document.getElementById('page-home');
        const settings = document.getElementById('page-settings');
