@@ -2,7 +2,7 @@
     --bg-color: #0B1121;
     --text-main: #ffffff;
     --text-muted: #cbd5e1;
-    --card-bg: #1E293B; /* Solid opaque color for performance */
+    --card-bg: #1E293B; /* Solid for performance */
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.95);
     --accent-color: #3b82f6;
@@ -26,17 +26,16 @@ body {
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
-    /* Faster Theme Switching */
-    transition: background-color 0.2s ease, color 0.2s ease; 
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-/* Sticky Elements KEEP Blur */
+/* Sticky Elements */
 .header-glass {
     background: var(--nav-bg);
     backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px); /* iOS Fix */
+    -webkit-backdrop-filter: blur(15px);
     border-bottom: 1px solid var(--card-border);
 }
 
@@ -47,19 +46,27 @@ body {
     border: 1px solid var(--card-border);
 }
 
-/* CARDS: REMOVED BLUR FOR PERFORMANCE */
+/* --- ANIMATION CLASSES FOR SCROLL --- */
+.slide-up-hidden {
+    transform: translateY(-100%); /* Moves header UP out of view */
+}
+
+.slide-down-hidden {
+    transform: translateY(200%); /* Moves nav DOWN out of view */
+}
+
+/* CARDS */
 .glass-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Lighter shadow */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
     opacity: 0;
     transform: translateY(10px);
-    animation: fadeInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Snappy animation */
-    /* Hardware Acceleration Hint */
-    will-change: transform, opacity; 
+    animation: fadeInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    will-change: transform, opacity;
 }
 
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
@@ -103,7 +110,7 @@ body {
     gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 12px;
     border-radius: 12px; font-size: 0.85rem; font-weight: 600;
     color: var(--accent-color); margin-top: 1.2rem;
-    transition: background 0.15s ease; /* Faster */
+    transition: background 0.15s ease;
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 .link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
@@ -147,26 +154,5 @@ body {
 
 /* Misc */
 .glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; }
-.loader { width: 32px; height: 32px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.6s linear infinite; margin: 40px auto; } /* Faster Spin */
+.loader { width: 32px; height: 32px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.6s linear infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* ... KEEP ALL YOUR EXISTING CSS ... */
-/* Add this at the very bottom of the file */
-
-/* Hide Nav Bar Animation */
-.nav-hidden {
-    transform: translateY(200%); /* Moves it down off screen */
-    opacity: 0;
-}
-
-/* Ensure Search Container is on top */
-#search-container {
-    will-change: transform, opacity;
-}
-
-/* Visible Search State */
-.search-active {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-}

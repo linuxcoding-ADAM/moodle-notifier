@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - FINAL UX
-   Build: 2026.1.9 (No Lag Search) Fuck Exames
+   ST AFFICHAGE - SMART SCROLL
+   Build: 2026.1.10 Fuck Exames
    ========================================= */
 
    let allAnnouncements = [];
@@ -8,9 +8,9 @@
    let displayedCount = 0;
    const BATCH_SIZE = 15;
    let isLoading = false;
+   let lastScrollTop = 0; // Tracks scroll direction
    
    document.addEventListener("DOMContentLoaded", () => {
-       // Theme & Notif
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
@@ -31,37 +31,38 @@
    });
    
    // --- NEW SEARCH UX ---
-   function toggleSearch() {
-       const container = document.getElementById('search-container');
+   function openSearch() {
+       const overlay = document.getElementById('search-overlay');
        const input = document.getElementById('search-input');
        const bottomNav = document.getElementById('bottom-nav');
    
-       // Show Search Bar
-       container.classList.add('search-active');
+       // 1. Slide down the overlay
+       overlay.classList.remove('-translate-y-full');
        
-       // Hide Bottom Nav (Prevents keyboard lag)
-       bottomNav.classList.add('nav-hidden');
+       // 2. Hide Bottom Nav immediately (to avoid keyboard clash)
+       bottomNav.classList.add('slide-down-hidden');
        
-       input.focus();
+       // 3. Focus input after animation starts
+       setTimeout(() => input.focus(), 100);
    }
    
    function closeSearch() {
-       const container = document.getElementById('search-container');
+       const overlay = document.getElementById('search-overlay');
        const input = document.getElementById('search-input');
        const bottomNav = document.getElementById('bottom-nav');
    
-       // Hide Search Bar
-       container.classList.remove('search-active');
+       // 1. Slide up the overlay
+       overlay.classList.add('-translate-y-full');
        
-       // Show Bottom Nav
-       bottomNav.classList.remove('nav-hidden');
+       // 2. Show Bottom Nav
+       bottomNav.classList.remove('slide-down-hidden');
        
+       // 3. Reset
        input.value = '';
-       input.blur(); // Close keyboard
-       handleSearch(''); // Reset list
+       input.blur();
+       handleSearch('');
    }
    
-   // --- DATA ---
    async function initApp() {
        try {
            const timestamp = new Date().getTime();
@@ -117,7 +118,7 @@
        nextBatch.forEach((item, index) => {
            const card = document.createElement('div');
            card.className = 'glass-card';
-           card.style.animationDelay = `${index * 0.03}s`; 
+           card.style.animationDelay = `${index * 0.03}s`;
    
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
@@ -165,15 +166,30 @@
    }
    
    function handleScroll() {
-       // 1. Auto-Close Search on Scroll (Performance Feature)
-       if (window.scrollY > 50) {
-           const searchContainer = document.getElementById('search-container');
-           if (searchContainer.classList.contains('search-active')) {
-               closeSearch();
-           }
+       const currentScroll = window.scrollY;
+       const header = document.getElementById('main-header');
+       const bottomNav = document.getElementById('bottom-nav');
+       const searchOverlay = document.getElementById('search-overlay');
+   
+       // 1. Close Search on Scroll (if open)
+       if (currentScroll > 10 && !searchOverlay.classList.contains('-translate-y-full')) {
+           closeSearch();
        }
    
-       // 2. Infinite Load
+       // 2. Hide/Show Header & Nav based on direction
+       if (currentScroll > lastScrollTop && currentScroll > 50) {
+           // Scrolling DOWN -> Hide everything
+           header.classList.add('slide-up-hidden');
+           bottomNav.classList.add('slide-down-hidden');
+       } else {
+           // Scrolling UP -> Show everything
+           header.classList.remove('slide-up-hidden');
+           bottomNav.classList.remove('slide-down-hidden');
+       }
+       
+       lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+   
+       // 3. Infinite Load
        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
            loadMore();
        }
