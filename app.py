@@ -54,18 +54,26 @@ def extract_links(tag):
         if href: links.append(href)
     return links
 
-def send_fcm_notification(title):
-    """Sends directly to FCM Topic 'announcements'"""
+def send_fcm_notification(title, body_preview):
+    """Sends to FCM with High Priority and 24h TTL (Fixes Offline Issue)"""
     try:
-        # Create the message
+        # Android specific config to ensure delivery
+        android_config = messaging.AndroidConfig(
+            priority='high',
+            ttl=86400, # 24 Hours time-to-live (keeps message waiting if phone is offline)
+            notification=messaging.AndroidNotification(
+                click_action='FLUTTER_NOTIFICATION_CLICK',
+            )
+        )
+
         message = messaging.Message(
             notification=messaging.Notification(
                 title="Nouvelle Annonce ST",
-                body=title,
+                body=title, # Show the title of the announcement
             ),
-            topic='announcements', # Sending to everyone subscribed to this topic
+            android=android_config,
+            topic='announcements',
         )
-        # Send
         response = messaging.send(message)
         print(f"🚀 FCM Notification Sent: {response}")
     except Exception as e:
@@ -85,9 +93,13 @@ def background_scraper():
             cards = soup.select('li.activity.modtype_label .activity-altcontent')
             
             new_data = []
+            new_ids = set() # To track IDs in the current scrape
+
             for tag in cards:
                 raw_text = tag.get_text()
+                # Create ID based on content
                 unique_id = hashlib.sha256(raw_text.encode()).hexdigest()[:16]
+                
                 body_html = clean_html_text(tag)
                 
                 title = "Information"
@@ -100,25 +112,47 @@ def background_scraper():
                 date_match = re.search(r'Affiché le\s*([0-9/\-\w]+\s*à\s*[\d:Hh]+)', raw_text)
                 if date_match: date = date_match.group(1).strip()
 
-                new_data.append({
+                item = {
                     "id": unique_id,
                     "title": title,
                     "body": body_html,
                     "links": extract_links(tag),
                     "date": date
-                })
+                }
+                new_data.append(item)
+                new_ids.add(unique_id)
             
             if new_data:
-                if not first_run and latest_data and new_data[0]['id'] != latest_data[0]['id']:
-                    print(f"🔔 NEW: {new_data[0]['title']}")
-                    # Send via FCM
-                    send_fcm_notification(new_data[0]['title'])
+                # LOGIC FIX: Check if we have ANY new IDs compared to old data
+                # We check the top 5 items for newness to avoid spamming for old archive edits
                 
+                if not first_run and latest_data:
+                    # Get list of OLD IDs
+                    old_ids = {item['id'] for item in latest_data}
+                    
+                    # Find items in NEW data that are NOT in OLD data
+                    # We check only the first 5 scraped items to ensure it's a recent post
+                    found_new = False
+                    for i in range(min(5, len(new_data))):
+                        item = new_data[i]
+                        if item['id'] not in old_ids:
+                            print(f"🔔 NEW ITEM DETECTED: {item['title']}")
+                            send_fcm_notification(item['title'], item['body'][:50])
+                            found_new = True
+                            # We break after one notification to avoid spamming 5 times at once
+                            # If you want 5 notifications, remove the break
+                            break 
+                    
+                    if not found_new:
+                        print("✅ No new items found (Data matched).")
+
+                else:
+                    print(f"ℹ️ First run or restart. Loaded {len(new_data)} items. No notification.")
+
                 latest_data = new_data
                 first_run = False
-                print(f"✅ Updated {len(new_data)} items.")
             else:
-                print("⚠️ No items found.")
+                print("⚠️ No items found in HTML.")
 
         except Exception as e:
             print(f"❌ Scraper Error: {e}")
@@ -139,8 +173,7 @@ threading.Thread(target=background_scraper, daemon=True).start()
 @app.route('/test-notification-railway')
 def manual_test():
     try:
-        #  calls the function that talks to Google
-        send_fcm_notification("hey we are sorry this is just a test.")
+        send_fcm_notification("Test Message", "System operational.")
         return "<h1>Notification Sent to all users!</h1><p>Check your phone now.</p>"
     except Exception as e:
         return f"<h1>Error</h1><p>{str(e)}</p>"
