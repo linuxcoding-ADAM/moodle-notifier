@@ -101,15 +101,12 @@ def background_scraper():
                     body_html = body_html.replace(title_match.group(0), "", 1)
 
                 # 2. Date Extraction (IMPROVED REGEX)
-                # Captures "Affiché le" followed by anything until the end of that text block
-                date_text = "Général" # Default if no date found
+                date_text = "Général"
                 date_match = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:]+)', raw_text, re.IGNORECASE)
                 if date_match: 
-                    # Cleanup the captured date string
                     date_text = date_match.group(1).strip()
 
-                # 3. Source Link Extraction (NEW)
-                # Finds the parent <li> to get the specific #module-ID
+                # 3. Source Link Extraction (THE BRUTAL FEATURE)
                 parent_li = tag.find_parent('li', class_='activity')
                 source_link = AFFICHAGE_URL
                 if parent_li and parent_li.get('id'):
@@ -126,9 +123,9 @@ def background_scraper():
                 new_data.append(item)
             
             if new_data:
-                # Check for new items in the top 5
                 if not first_run and latest_data:
                     old_ids = {item['id'] for item in latest_data}
+                    # Check top 5 for new items (fixes Pinned Post issue)
                     for i in range(min(5, len(new_data))):
                         item = new_data[i]
                         if item['id'] not in old_ids:
@@ -147,6 +144,7 @@ def background_scraper():
         
         time.sleep(600)
 
+# --- ROUTES ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -160,6 +158,17 @@ def api_data():
 def install_page():
     return render_template('download.html')
 
+# --- MANUAL TEST ROUTE (RESTORED) ---
+@app.route('/test-notification-railway')
+def manual_test():
+    try:
+        # Calls the function that talks to Google
+        send_fcm_notification("Test Manual", "System is working perfectly.")
+        return "<h1>Notification Sent!</h1><p>Check your phone now.</p>"
+    except Exception as e:
+        return f"<h1>Error</h1><p>{str(e)}</p>"
+
+# --- MAIN ---
 threading.Thread(target=background_scraper, daemon=True).start()
 
 if __name__ == '__main__':
