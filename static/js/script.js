@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - SYSTEM CORE
-   Build: 2026.1.7 (Search Interaction) Fuck Exames 
+   ST AFFICHAGE - PERFORMANCE BUILD
+   Build: 2026.1.8 (Fast UI) Fuck Exames
    ========================================= */
 
    let allAnnouncements = [];
@@ -10,7 +10,6 @@
    let isLoading = false;
    
    document.addEventListener("DOMContentLoaded", () => {
-       // Theme & Notif
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
@@ -22,7 +21,6 @@
    
        initApp();
    
-       // Search Listener
        const searchInput = document.getElementById('search-input');
        if (searchInput) {
            searchInput.addEventListener('input', (e) => {
@@ -31,21 +29,19 @@
        }
    });
    
-   // --- SEARCH INTERACTION ---
-   function toggleSearchBar() {
-       const wrapper = document.getElementById('search-wrapper');
+   // --- NEW SEARCH LOGIC ---
+   function openSearch() {
+       document.getElementById('search-trigger').classList.add('hidden');
+       document.getElementById('search-input-wrapper').classList.remove('hidden');
+       document.getElementById('search-input').focus();
+   }
+   
+   function closeSearch() {
        const input = document.getElementById('search-input');
-       
-       if (wrapper.classList.contains('max-h-0')) {
-           // OPEN
-           wrapper.classList.remove('max-h-0', 'opacity-0');
-           wrapper.classList.add('max-h-20', 'opacity-100');
-           input.focus();
-       } else {
-           // CLOSE
-           wrapper.classList.add('max-h-0', 'opacity-0');
-           wrapper.classList.remove('max-h-20', 'opacity-100');
-       }
+       input.value = ''; // Clear text
+       handleSearch(''); // Reset list
+       document.getElementById('search-input-wrapper').classList.add('hidden');
+       document.getElementById('search-trigger').classList.remove('hidden');
    }
    
    async function initApp() {
@@ -59,7 +55,7 @@
            container.innerHTML = ''; 
            
            if (!allAnnouncements || allAnnouncements.length === 0) {
-               container.innerHTML = '<div class="text-center text-[10px] font-mono text-muted mt-20 tracking-widest">SYSTEM: NO DATA RECEIVED</div>';
+               container.innerHTML = '<div class="text-center text-[10px] font-mono text-muted mt-20 tracking-widest">SYSTEM: NO DATA</div>';
                return;
            }
    
@@ -67,9 +63,8 @@
            window.addEventListener('scroll', handleScroll);
    
        } catch (error) {
-           console.error("System Error:", error);
            document.getElementById('cards-container').innerHTML = 
-               '<div class="text-center text-red-400 font-mono text-xs mt-10">CONNECTION FAILURE<br>Pull to refresh</div>';
+               '<div class="text-center text-red-400 font-mono text-xs mt-10">CONNECTION ERROR</div>';
        }
    }
    
@@ -87,7 +82,7 @@
        document.getElementById('end-message').classList.add('hidden');
        
        if (activeList.length === 0) {
-           document.getElementById('cards-container').innerHTML = '<div class="text-center text-gray-500 mt-10 text-sm">No results found.</div>';
+           document.getElementById('cards-container').innerHTML = '<div class="text-center text-gray-500 mt-10 text-sm">No results.</div>';
        } else {
            loadMore();
        }
@@ -100,10 +95,13 @@
        const container = document.getElementById('cards-container');
        const nextBatch = activeList.slice(displayedCount, displayedCount + BATCH_SIZE);
    
+       // Create a DocumentFragment for better performance (One Single Paint)
+       const fragment = document.createDocumentFragment();
+   
        nextBatch.forEach((item, index) => {
            const card = document.createElement('div');
            card.className = 'glass-card';
-           card.style.animationDelay = `${index * 0.05}s`;
+           card.style.animationDelay = `${index * 0.03}s`; // Faster stagger
    
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
@@ -138,8 +136,10 @@
                ${linksHtml}
                ${sourceBtn}
            `;
-           container.appendChild(card);
+           fragment.appendChild(card);
        });
+   
+       container.appendChild(fragment); // Batch Insert
    
        displayedCount += nextBatch.length;
        isLoading = false;
@@ -150,20 +150,12 @@
    }
    
    function handleScroll() {
-       // 1. Infinite Load
-       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
            loadMore();
-       }
-   
-       // 2. Auto-Collapse Search Bar
-       const searchWrapper = document.getElementById('search-wrapper');
-       if (window.scrollY > 100 && !searchWrapper.classList.contains('max-h-0')) {
-           // If user scrolls down and search is open, close it
-           toggleSearchBar();
        }
    }
    
-   // --- NAVIGATION & SETTINGS ---
+   // --- SYSTEM FUNCTIONS ---
    function switchTab(tab) {
        const home = document.getElementById('page-home');
        const settings = document.getElementById('page-settings');

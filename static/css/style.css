@@ -1,9 +1,8 @@
 :root {
-    /* Dark Theme */
     --bg-color: #0B1121;
     --text-main: #ffffff;
-    --text-muted: #cbd5e1; /* Clearer text */
-    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-muted: #cbd5e1;
+    --card-bg: #1E293B; /* Solid opaque color for performance */
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.95);
     --accent-color: #3b82f6;
@@ -11,7 +10,6 @@
 }
 
 .light-mode {
-    /* Light Theme */
     --bg-color: #F1F5F9;
     --text-main: #0F172A;
     --text-muted: #475569;
@@ -25,55 +23,48 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
-    font-family: 'Inter', sans-serif; /* Professional readable font */
+    font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Faster Theme Switching */
+    transition: background-color 0.2s ease, color 0.2s ease; 
 }
 
-/* Headings use the Display Font */
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-/* Glass Utilities */
+/* Sticky Elements KEEP Blur */
 .header-glass {
     background: var(--nav-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px); /* iOS Fix */
     border-bottom: 1px solid var(--card-border);
-    transition: background 0.3s ease;
 }
 
 .glass-nav {
     background: var(--nav-bg);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid var(--card-border);
 }
 
-.glass-panel {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-
-/* --- HOME PAGE CARDS --- */
+/* CARDS: REMOVED BLUR FOR PERFORMANCE */
 .glass-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 1.5rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Lighter shadow */
+    margin-bottom: 1rem;
     opacity: 0;
     transform: translateY(10px);
-    animation: fadeInUp 0.4s ease forwards;
-    transition: background 0.3s ease;
+    animation: fadeInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; /* Snappy animation */
+    /* Hardware Acceleration Hint */
+    will-change: transform, opacity; 
 }
 
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
 /* Typography */
-h1, h2, h3 { color: var(--text-main); }
-
 .announcement-title {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.1rem;
@@ -82,7 +73,6 @@ h1, h2, h3 { color: var(--text-main); }
     text-align: center;
     line-height: 1.4;
     margin-bottom: 0.75rem;
-    letter-spacing: -0.01em;
 }
 
 .announcement-date {
@@ -99,104 +89,63 @@ h1, h2, h3 { color: var(--text-main); }
 .announcement-body {
     color: var(--text-muted);
     font-size: 0.95rem;
-    line-height: 1.65;
-    text-align: center; /* CENTER ALIGNED TEXT */
+    line-height: 1.6;
+    text-align: center;
     font-weight: 500;
     white-space: pre-line;
 }
 
-.announcement-body b, .announcement-body strong {
-    color: var(--text-main);
-    font-weight: 700;
-}
+.announcement-body b { color: var(--text-main); font-weight: 700; }
 
-/* Link Buttons */
+/* Buttons */
 .link-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    gap: 0.5rem;
-    background: rgba(59, 130, 246, 0.1);
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--accent-color);
-    margin-top: 1.2rem;
-    transition: background 0.2s;
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 12px;
+    border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+    color: var(--accent-color); margin-top: 1.2rem;
+    transition: background 0.15s ease; /* Faster */
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 .link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
 
-.source-link-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 1rem;
-    width: 100%;
-}
+.source-link-container { display: flex; justify-content: center; margin-top: 1rem; width: 100%; }
 
-/* --- SETTINGS PAGE STYLES --- */
+/* Settings */
 .settings-card {
-    background-color: #1E293B;
-    border-radius: 16px;
-    padding: 0 16px;
+    background-color: var(--card-bg);
+    border-radius: 16px; padding: 0 16px;
     border: 1px solid var(--card-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 72px;
-    cursor: pointer;
-    transition: background 0.2s;
+    display: flex; justify-content: space-between; align-items: center;
+    height: 72px; cursor: pointer;
+    transition: background 0.15s ease;
 }
 .settings-card:active { background-color: rgba(255,255,255,0.05); }
 
-/* Light Mode Overrides */
-.light-mode .settings-card { background-color: #FFFFFF; border-color: rgba(0,0,0,0.1); }
-.light-mode .heading-text { color: #0F172A; }
-
 .icon-box {
-    width: 40px; height: 40px;
-    background-color: #334155;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    margin-right: 16px;
-    color: white;
+    width: 40px; height: 40px; background-color: #334155; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; margin-right: 16px; color: white;
 }
-
 .setting-label { font-size: 1rem; font-weight: 600; color: var(--text-main); }
 
-/* Toggle Switch */
+/* Switch */
 .toggle-switch {
-    width: 50px; height: 28px;
-    background-color: #334155;
-    border-radius: 99px;
-    position: relative;
-    transition: background-color 0.3s ease;
+    width: 50px; height: 28px; background-color: #334155; border-radius: 99px;
+    position: relative; transition: background-color 0.2s ease;
 }
 .toggle-switch.active { background-color: var(--accent-color); }
-
 .toggle-dot {
-    width: 24px; height: 24px;
-    background-color: white;
-    border-radius: 50%;
-    position: absolute;
-    top: 2px; left: 2px;
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    width: 24px; height: 24px; background-color: white; border-radius: 50%;
+    position: absolute; top: 2px; left: 2px;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .toggle-switch.active .toggle-dot { transform: translateX(22px); }
 
-/* Loader */
-.loader {
-    width: 32px; height: 32px;
-    border: 3px solid var(--card-border);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 40px auto;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
+/* Nav */
 .nav-btn.active { color: var(--accent-color); }
 .nav-btn.active svg { stroke-width: 2.5px; }
+
+/* Misc */
+.glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; }
+.loader { width: 32px; height: 32px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.6s linear infinite; margin: 40px auto; } /* Faster Spin */
+@keyframes spin { to { transform: rotate(360deg); } }
