@@ -55,27 +55,20 @@ def extract_links(tag):
     return links
 
 def send_fcm_notification(title, body_preview):
-    """Sends to FCM with High Priority and 24h TTL (Fixes Offline Issue)"""
+    """Sends to FCM with High Priority and 24h TTL"""
     try:
-        # Android specific config to ensure delivery
         android_config = messaging.AndroidConfig(
             priority='high',
-            ttl=86400, # 24 Hours time-to-live (keeps message waiting if phone is offline)
-            notification=messaging.AndroidNotification(
-                click_action='FLUTTER_NOTIFICATION_CLICK',
-            )
+            ttl=86400,
+            notification=messaging.AndroidNotification(click_action='FLUTTER_NOTIFICATION_CLICK')
         )
-
         message = messaging.Message(
-            notification=messaging.Notification(
-                title="Nouvelle Annonce ST",
-                body=title, # Show the title of the announcement
-            ),
+            notification=messaging.Notification(title="Nouvelle Annonce ST", body=title),
             android=android_config,
             topic='announcements',
         )
-        response = messaging.send(message)
-        print(f"🚀 FCM Notification Sent: {response}")
+        messaging.send(message)
+        print(f"🚀 FCM Notification Sent")
     except Exception as e:
         print(f"❌ FCM Error: {e}")
 
@@ -90,69 +83,64 @@ def background_scraper():
             session.headers.update(HEADERS)
             response = session.get(AFFICHAGE_URL, timeout=30)
             soup = BeautifulSoup(response.text, 'html.parser')
+            # Select the content DIV
             cards = soup.select('li.activity.modtype_label .activity-altcontent')
             
             new_data = []
-            new_ids = set() # To track IDs in the current scrape
-
+            
             for tag in cards:
-                raw_text = tag.get_text()
-                # Create ID based on content
+                raw_text = tag.get_text(" ", strip=True)
                 unique_id = hashlib.sha256(raw_text.encode()).hexdigest()[:16]
-                
                 body_html = clean_html_text(tag)
                 
+                # 1. Title Extraction
                 title = "Information"
                 title_match = re.search(r'<b>(.*?)</b>', body_html)
                 if title_match:
                     title = title_match.group(1).strip().replace(":", "")
                     body_html = body_html.replace(title_match.group(0), "", 1)
 
-                date = "Recently"
-                date_match = re.search(r'Affiché le\s*([0-9/\-\w]+\s*à\s*[\d:Hh]+)', raw_text)
-                if date_match: date = date_match.group(1).strip()
+                # 2. Date Extraction (IMPROVED REGEX)
+                # Captures "Affiché le" followed by anything until the end of that text block
+                date_text = "Général" # Default if no date found
+                date_match = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:]+)', raw_text, re.IGNORECASE)
+                if date_match: 
+                    # Cleanup the captured date string
+                    date_text = date_match.group(1).strip()
+
+                # 3. Source Link Extraction (NEW)
+                # Finds the parent <li> to get the specific #module-ID
+                parent_li = tag.find_parent('li', class_='activity')
+                source_link = AFFICHAGE_URL
+                if parent_li and parent_li.get('id'):
+                    source_link = f"{AFFICHAGE_URL}#{parent_li.get('id')}"
 
                 item = {
                     "id": unique_id,
                     "title": title,
                     "body": body_html,
                     "links": extract_links(tag),
-                    "date": date
+                    "date": date_text,
+                    "source": source_link
                 }
                 new_data.append(item)
-                new_ids.add(unique_id)
             
             if new_data:
-                # LOGIC FIX: Check if we have ANY new IDs compared to old data
-                # We check the top 5 items for newness to avoid spamming for old archive edits
-                
+                # Check for new items in the top 5
                 if not first_run and latest_data:
-                    # Get list of OLD IDs
                     old_ids = {item['id'] for item in latest_data}
-                    
-                    # Find items in NEW data that are NOT in OLD data
-                    # We check only the first 5 scraped items to ensure it's a recent post
-                    found_new = False
                     for i in range(min(5, len(new_data))):
                         item = new_data[i]
                         if item['id'] not in old_ids:
-                            print(f"🔔 NEW ITEM DETECTED: {item['title']}")
+                            print(f"🔔 NEW: {item['title']}")
                             send_fcm_notification(item['title'], item['body'][:50])
-                            found_new = True
-                            # We break after one notification to avoid spamming 5 times at once
-                            # If you want 5 notifications, remove the break
                             break 
-                    
-                    if not found_new:
-                        print("✅ No new items found (Data matched).")
-
-                else:
-                    print(f"ℹ️ First run or restart. Loaded {len(new_data)} items. No notification.")
-
+                
                 latest_data = new_data
                 first_run = False
+                print(f"✅ Updated {len(new_data)} items.")
             else:
-                print("⚠️ No items found in HTML.")
+                print("⚠️ No items found.")
 
         except Exception as e:
             print(f"❌ Scraper Error: {e}")
@@ -167,22 +155,13 @@ def index():
 def api_data():
     return jsonify(latest_data)
 
-threading.Thread(target=background_scraper, daemon=True).start()
-
-# --- MANUAL TEST ROUTE ---
-@app.route('/test-notification-railway')
-def manual_test():
-    try:
-        send_fcm_notification("Test Message", "System operational.")
-        return "<h1>Notification Sent to all users!</h1><p>Check your phone now.</p>"
-    except Exception as e:
-        return f"<h1>Error</h1><p>{str(e)}</p>"
-
 # --- DOWNLOAD PAGE ---
 @app.route('/install')
 def install_page():
     return render_template('download.html')
-    
+
+threading.Thread(target=background_scraper, daemon=True).start()
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
