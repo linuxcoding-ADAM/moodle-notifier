@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - ZERO LAG CORE
-   Build: 2026.1.11 Fuck Exames
+   ST AFFICHAGE - FIXED NAV
+   Build: 2026.1.12 FUCK EXAMES
    ========================================= */
 
    let allAnnouncements = [];
@@ -9,10 +9,9 @@
    const BATCH_SIZE = 15;
    let isLoading = false;
    let lastScrollTop = 0;
-   let ticking = false; // For Scroll Performance
+   let ticking = false; 
    
    document.addEventListener("DOMContentLoaded", () => {
-       // Theme & Notif
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
@@ -32,24 +31,30 @@
        }
    });
    
-   // --- SEARCH UX (Logic Split) ---
+   // --- SEARCH UX ---
    function toggleSearch() {
        const bar = document.getElementById('search-bar-container');
        const input = document.getElementById('search-input');
+       const bottomNav = document.getElementById('bottom-nav'); // Get Nav
        
-       // Show Bar
+       // Show Search
        bar.classList.add('search-visible');
+       
+       // HIDE Nav (Only when searching to fix keyboard)
+       bottomNav.classList.add('slide-down-hidden');
+       
        input.focus();
    }
    
    function hideSearchBarUI() {
-       // Just hides the UI, keeps results
        document.getElementById('search-bar-container').classList.remove('search-visible');
        document.getElementById('search-input').blur();
+       
+       // RESTORE Nav
+       document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
    }
    
    function cancelSearch() {
-       // Hides UI AND Resets Data
        hideSearchBarUI();
        document.getElementById('search-input').value = '';
        handleSearch('');
@@ -72,7 +77,6 @@
            }
    
            loadMore();
-           // HIGH PERFORMANCE SCROLL LISTENER
            window.addEventListener('scroll', onScroll, { passive: true });
    
        } catch (error) {
@@ -111,7 +115,7 @@
    
        nextBatch.forEach((item, index) => {
            const card = document.createElement('div');
-           card.className = 'glass-card'; // Static Class (No JS animation to slow it down)
+           card.className = 'glass-card';
    
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
@@ -172,7 +176,6 @@
    function performScrollLogic() {
        const currentScroll = window.scrollY;
        const header = document.getElementById('main-header');
-       const bottomNav = document.getElementById('bottom-nav');
        const searchBar = document.getElementById('search-bar-container');
    
        // 1. Hide Search Bar UI on Scroll (But keep results)
@@ -180,13 +183,11 @@
            hideSearchBarUI();
        }
    
-       // 2. Hide/Show Header & Nav
+       // 2. Hide/Show Header ONLY (Bottom Nav stays fixed)
        if (currentScroll > lastScrollTop && currentScroll > 50) {
            header.classList.add('slide-up-hidden');
-           bottomNav.classList.add('slide-down-hidden');
        } else {
            header.classList.remove('slide-up-hidden');
-           bottomNav.classList.remove('slide-down-hidden');
        }
        
        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
