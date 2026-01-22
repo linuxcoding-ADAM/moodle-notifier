@@ -5,26 +5,26 @@ let isLoading = false;
 
 // --- INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Check Theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
         updateThemeUI(true);
     }
     
-    // 2. Check Notifications
+    const notifState = localStorage.getItem('notifications');
     if (localStorage.getItem('notifications') === 'true') {
         updateNotifUI(true);
     }
 
-    // 3. Load App
     initApp();
 });
 
 // --- CORE LOGIC ---
 async function initApp() {
     try {
-        const response = await fetch('/api/announcements');
+        // FIX: Added timestamp to prevent caching old data
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/announcements?t=${timestamp}`);
         allAnnouncements = await response.json();
         
         const container = document.getElementById('cards-container');
@@ -40,6 +40,9 @@ async function initApp() {
 
     } catch (error) {
         console.error("Error:", error);
+        // Better error message
+        document.getElementById('cards-container').innerHTML = 
+            '<div class="text-center text-red-400 mt-20 text-sm">Connection Error.<br>Pull down to refresh.</div>';
     }
 }
 
@@ -66,7 +69,6 @@ function loadMore() {
             });
         }
 
-        // Updated Layout: Centered Title, Green Date, Justified Text
         card.innerHTML = `
             <div class="flex flex-col items-center mb-4">
                 <span class="announcement-date">📅 ${item.date}</span>
@@ -124,8 +126,6 @@ function switchTab(tab) {
 }
 
 // --- SETTINGS LOGIC ---
-
-// 1. Dark Mode Toggle
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-mode');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
@@ -147,7 +147,6 @@ function updateThemeUI(isLight) {
     }
 }
 
-// 2. Notifications Toggle
 function toggleNotifications() {
     const current = localStorage.getItem('notifications') === 'true';
     const newState = !current;
