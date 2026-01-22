@@ -2,10 +2,10 @@
     /* Dark Theme (Default) */
     --bg-color: #0B1121;
     --text-main: #ffffff;
-    --text-muted: #e2e8f0; /* Changed from #94a3b8 to lighter Slate-200 for better visibility */
+    --text-muted: #e2e8f0; /* Light Slate for better visibility */
     --card-bg: rgba(30, 41, 59, 0.7);
     --card-border: rgba(255, 255, 255, 0.08);
-    --nav-bg: rgba(15, 23, 42, 0.9);
+    --nav-bg: rgba(15, 23, 42, 0.95);
     --accent-color: #3b82f6;
     --date-color: #34d399;
 }
@@ -14,10 +14,10 @@
     /* Light Theme Variables */
     --bg-color: #F1F5F9;
     --text-main: #0F172A;
-    --text-muted: #334155; /* Darker Slate for readability on white */
+    --text-muted: #334155;
     --card-bg: #FFFFFF;
     --card-border: rgba(0, 0, 0, 0.05);
-    --nav-bg: rgba(255, 255, 255, 0.9);
+    --nav-bg: rgba(255, 255, 255, 0.95);
     --accent-color: #2563eb;
     --date-color: #059669;
 }
@@ -54,13 +54,13 @@ body {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* Cards */
+/* --- HOME PAGE CARDS --- */
 .glass-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 1.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
     margin-bottom: 1.25rem;
     opacity: 0;
     transform: translateY(10px);
@@ -70,7 +70,7 @@ body {
 
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-/* Typography Overrides */
+/* Typography */
 h1, h2, h3 { color: var(--text-main); }
 
 .announcement-title {
@@ -80,6 +80,7 @@ h1, h2, h3 { color: var(--text-main); }
     text-align: center;
     line-height: 1.4;
     margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
 }
 
 .announcement-date {
@@ -97,33 +98,107 @@ h1, h2, h3 { color: var(--text-main); }
     color: var(--text-muted);
     font-size: 0.95rem;
     line-height: 1.7;
-    text-align: justify; /* Kept Justified alignment */
+    text-align: justify;
     font-weight: 500;
-    white-space: pre-line; /* Ensures line breaks show up correctly */
+    white-space: pre-line;
 }
 
-/* Bold text inside body */
 .announcement-body b, .announcement-body strong {
     color: var(--text-main);
     font-weight: 700;
 }
 
-/* Link Buttons */
+/* Link Buttons (Centered) */
 .link-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* Centered */
+    width: 100%;             /* Full width */
     gap: 0.5rem;
     background: rgba(59, 130, 246, 0.1);
-    padding: 10px;
+    padding: 12px;
     border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--accent-color);
+    margin-top: 1.2rem;
+    transition: background 0.2s;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
+
+/* Source Link (Centered) */
+.source-link-container {
+    display: flex;
+    justify-content: center;
     margin-top: 1rem;
+    width: 100%;
+}
+
+/* --- SETTINGS PAGE STYLES --- */
+.settings-card {
+    background-color: #1E293B; /* Slate 800 specific for settings */
+    border-radius: 16px;
+    padding: 0 16px;
+    border: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 72px;
+    cursor: pointer;
     transition: background 0.2s;
 }
-.link-btn:active { background: rgba(59, 130, 246, 0.2); }
+.settings-card:active { background-color: rgba(255,255,255,0.05); }
+
+/* Light Mode Override for Settings Cards */
+.light-mode .settings-card {
+    background-color: #FFFFFF;
+    border-color: rgba(0,0,0,0.1);
+}
+
+.icon-box {
+    width: 40px;
+    height: 40px;
+    background-color: #334155;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    color: white;
+}
+
+.setting-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    width: 50px;
+    height: 28px;
+    background-color: #334155;
+    border-radius: 99px;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-switch.active { background-color: var(--accent-color); }
+
+.toggle-dot {
+    width: 24px;
+    height: 24px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.active .toggle-dot { transform: translateX(22px); }
 
 /* Loader */
 .loader {
@@ -135,3 +210,7 @@ h1, h2, h3 { color: var(--text-main); }
     margin: 40px auto;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Nav Buttons */
+.nav-btn.active { color: var(--accent-color); }
+.nav-btn.active svg { stroke-width: 2.5px; }

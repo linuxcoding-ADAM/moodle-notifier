@@ -4,28 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Fonts: Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="pb-24">
 
     <!-- PAGE: HOME -->
     <div id="page-home" class="active">
+        
         <!-- Header -->
-        <div class="header-glass sticky top-0 z-50 px-6 py-5">
+        <div class="header-glass sticky top-0 z-50 px-6 py-4">
             <div class="flex flex-col items-center">
                 <span class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1">Univ Bejaïa</span>
                 <h1 class="text-xl font-extrabold tracking-tight">ST Affichage</h1>
             </div>
         </div>
 
+        <!-- Search Bar -->
+        <div class="px-4 mt-4 mb-2 sticky top-[75px] z-40">
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" id="search-input" placeholder="Search announcements..." 
+                       class="w-full pl-11 pr-4 py-3 bg-[#1E293B]/90 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all backdrop-blur-md shadow-lg">
+            </div>
+        </div>
+
         <!-- Content -->
-        <div class="px-4 mt-6">
+        <div class="px-4 mt-2">
             <div id="cards-container" class="min-h-[50vh]">
+                <!-- Cards injected by JS -->
                 <div class="loader"></div>
             </div>
-            <div id="end-message" class="text-center text-xs text-gray-500 py-6 hidden">End of updates</div>
+            <div id="end-message" class="text-center text-xs text-gray-500 py-8 hidden font-mono tracking-widest opacity-60">END OF STREAM</div>
         </div>
     </div>
 
@@ -41,35 +56,35 @@
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Preferences</h3>
                 
                 <!-- Light Mode Toggle -->
-                <div class="flex justify-between items-center py-2 cursor-pointer" onclick="toggleTheme()">
-                    <div class="flex items-center gap-3">
-                        <div class="icon-circle bg-blue-500/10 text-blue-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <div class="settings-card" onclick="toggleTheme()">
+                    <div class="flex items-center">
+                        <div class="icon-box">
+                            <!-- Solid Moon Icon -->
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                         </div>
-                        <span class="font-medium">Light Mode</span>
+                        <span class="setting-label">Dark Mode</span>
                     </div>
-                    <div id="theme-switch" class="w-11 h-6 bg-gray-700 rounded-full relative transition-colors duration-300">
-                        <div id="theme-dot" class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm transition-transform duration-300"></div>
+                    <div id="theme-switch" class="toggle-switch">
+                        <div class="toggle-dot"></div>
                     </div>
                 </div>
 
-                <div class="h-px bg-white/5 my-2"></div>
-
                 <!-- Notifications Toggle -->
-                <div class="flex justify-between items-center py-2 cursor-pointer" onclick="toggleNotifications()">
-                    <div class="flex items-center gap-3">
-                        <div class="icon-circle bg-green-500/10 text-green-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <div class="settings-card mt-3" onclick="toggleNotifications()">
+                    <div class="flex items-center">
+                        <div class="icon-box">
+                            <!-- Solid Bell Icon -->
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.02 2.909c-.373-1.708-2.652-1.727-2.98.053l-.936 6.315c-.297 1.636-1.936 3.737-3.155 3.737 2.145 3.321 8.528 3.332 10.655-.027-1.127-.197-2.67-2.128-2.887-3.71l-.7-6.368h.003zm-4.708 14.091c1.556 1.34 3.792 1.34 5.348 0"/></svg>
                         </div>
-                        <span class="font-medium">Notifications</span>
+                        <span class="setting-label">Notifications</span>
                     </div>
-                    <div id="notif-switch" class="w-11 h-6 bg-gray-700 rounded-full relative transition-colors duration-300">
-                        <div id="notif-dot" class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 shadow-sm transition-transform duration-300"></div>
+                    <div id="notif-switch" class="toggle-switch active">
+                        <div class="toggle-dot"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- About (TEXT RESTORED AS REQUESTED) -->
+            <!-- About -->
             <div class="glass-panel p-5">
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">About</h3>
                 <p class="text-sm opacity-70 leading-relaxed mb-4">
@@ -83,21 +98,22 @@
             
             <!-- Credits -->
             <div class="text-center pt-8 pb-4">
+                <div class="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded mb-2">BETA 1.4.2</div>
                 <p class="text-xs text-gray-500">Designed & Developed by</p>
-                <p class="text-sm font-bold mt-1">Adam Mila</p>
-                <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage V 1.5.2 (Beta)</p>
+                <p class="text-sm font-bold mt-1 text-white">Adam Mila</p>
+                <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
             </div>
         </div>
     </div>
 
     <!-- BOTTOM NAV -->
     <div class="fixed bottom-5 left-5 right-5 h-16 glass-nav rounded-2xl flex items-center justify-around z-50 shadow-2xl">
-        <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex flex-col items-center justify-center gap-1 w-full h-full rounded-l-2xl text-blue-500">
+        <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex flex-col items-center justify-center gap-1 w-full h-full rounded-l-2xl text-blue-500 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             <span class="text-[10px] font-bold">Home</span>
         </button>
         <div class="w-px h-8 bg-white/10"></div>
-        <button onclick="switchTab('settings')" id="tab-settings" class="nav-btn text-gray-500 flex flex-col items-center justify-center gap-1 w-full h-full rounded-r-2xl">
+        <button onclick="switchTab('settings')" id="tab-settings" class="nav-btn text-gray-500 flex flex-col items-center justify-center gap-1 w-full h-full rounded-r-2xl transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             <span class="text-[10px] font-bold">Settings</span>
         </button>
