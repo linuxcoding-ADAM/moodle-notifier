@@ -1,8 +1,8 @@
 :root {
-    /* Dark Theme (Default) */
+    /* Dark Theme */
     --bg-color: #0B1121;
     --text-main: #ffffff;
-    --text-muted: #e2e8f0; /* Light Slate for better visibility */
+    --text-muted: #cbd5e1; /* Clearer text */
     --card-bg: rgba(30, 41, 59, 0.7);
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.95);
@@ -11,10 +11,10 @@
 }
 
 .light-mode {
-    /* Light Theme Variables */
+    /* Light Theme */
     --bg-color: #F1F5F9;
     --text-main: #0F172A;
-    --text-muted: #334155;
+    --text-muted: #475569;
     --card-bg: #FFFFFF;
     --card-border: rgba(0, 0, 0, 0.05);
     --nav-bg: rgba(255, 255, 255, 0.95);
@@ -25,17 +25,19 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif; /* Professional readable font */
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Headings use the Display Font */
+.heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
+
 /* Glass Utilities */
 .header-glass {
     background: var(--nav-bg);
     backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--card-border);
     transition: background 0.3s ease;
 }
@@ -43,7 +45,6 @@ body {
 .glass-nav {
     background: var(--nav-bg);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--card-border);
 }
 
@@ -74,8 +75,9 @@ body {
 h1, h2, h3 { color: var(--text-main); }
 
 .announcement-title {
-    font-size: 1.15rem;
-    font-weight: 800; /* Extra Bold */
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
     color: var(--text-main);
     text-align: center;
     line-height: 1.4;
@@ -86,7 +88,7 @@ h1, h2, h3 { color: var(--text-main); }
 .announcement-date {
     color: var(--date-color);
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     text-align: center;
@@ -97,8 +99,8 @@ h1, h2, h3 { color: var(--text-main); }
 .announcement-body {
     color: var(--text-muted);
     font-size: 0.95rem;
-    line-height: 1.7;
-    text-align: justify;
+    line-height: 1.65;
+    text-align: center; /* CENTER ALIGNED TEXT */
     font-weight: 500;
     white-space: pre-line;
 }
@@ -108,12 +110,12 @@ h1, h2, h3 { color: var(--text-main); }
     font-weight: 700;
 }
 
-/* Link Buttons (Centered) */
+/* Link Buttons */
 .link-btn {
     display: flex;
     align-items: center;
-    justify-content: center; /* Centered */
-    width: 100%;             /* Full width */
+    justify-content: center;
+    width: 100%;
     gap: 0.5rem;
     background: rgba(59, 130, 246, 0.1);
     padding: 12px;
@@ -127,7 +129,6 @@ h1, h2, h3 { color: var(--text-main); }
 }
 .link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
 
-/* Source Link (Centered) */
 .source-link-container {
     display: flex;
     justify-content: center;
@@ -137,7 +138,7 @@ h1, h2, h3 { color: var(--text-main); }
 
 /* --- SETTINGS PAGE STYLES --- */
 .settings-card {
-    background-color: #1E293B; /* Slate 800 specific for settings */
+    background-color: #1E293B;
     border-radius: 16px;
     padding: 0 16px;
     border: 1px solid var(--card-border);
@@ -150,54 +151,40 @@ h1, h2, h3 { color: var(--text-main); }
 }
 .settings-card:active { background-color: rgba(255,255,255,0.05); }
 
-/* Light Mode Override for Settings Cards */
-.light-mode .settings-card {
-    background-color: #FFFFFF;
-    border-color: rgba(0,0,0,0.1);
-}
+/* Light Mode Overrides */
+.light-mode .settings-card { background-color: #FFFFFF; border-color: rgba(0,0,0,0.1); }
+.light-mode .heading-text { color: #0F172A; }
 
 .icon-box {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     background-color: #334155;
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     margin-right: 16px;
     color: white;
 }
 
-.setting-label {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-main);
-}
+.setting-label { font-size: 1rem; font-weight: 600; color: var(--text-main); }
 
 /* Toggle Switch */
 .toggle-switch {
-    width: 50px;
-    height: 28px;
+    width: 50px; height: 28px;
     background-color: #334155;
     border-radius: 99px;
     position: relative;
     transition: background-color 0.3s ease;
 }
-
 .toggle-switch.active { background-color: var(--accent-color); }
 
 .toggle-dot {
-    width: 24px;
-    height: 24px;
+    width: 24px; height: 24px;
     background-color: white;
     border-radius: 50%;
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 2px; left: 2px;
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-
 .toggle-switch.active .toggle-dot { transform: translateX(22px); }
 
 /* Loader */
@@ -211,6 +198,5 @@ h1, h2, h3 { color: var(--text-main); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Nav Buttons */
 .nav-btn.active { color: var(--accent-color); }
 .nav-btn.active svg { stroke-width: 2.5px; }
