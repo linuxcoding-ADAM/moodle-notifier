@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - SMART SCROLL
-   Build: 2026.1.10 Fuck Exames
+   ST AFFICHAGE - ZERO LAG CORE
+   Build: 2026.1.11 Fuck Exames
    ========================================= */
 
    let allAnnouncements = [];
@@ -8,9 +8,11 @@
    let displayedCount = 0;
    const BATCH_SIZE = 15;
    let isLoading = false;
-   let lastScrollTop = 0; // Tracks scroll direction
+   let lastScrollTop = 0;
+   let ticking = false; // For Scroll Performance
    
    document.addEventListener("DOMContentLoaded", () => {
+       // Theme & Notif
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
@@ -30,39 +32,30 @@
        }
    });
    
-   // --- NEW SEARCH UX ---
-   function openSearch() {
-       const overlay = document.getElementById('search-overlay');
+   // --- SEARCH UX (Logic Split) ---
+   function toggleSearch() {
+       const bar = document.getElementById('search-bar-container');
        const input = document.getElementById('search-input');
-       const bottomNav = document.getElementById('bottom-nav');
-   
-       // 1. Slide down the overlay
-       overlay.classList.remove('-translate-y-full');
        
-       // 2. Hide Bottom Nav immediately (to avoid keyboard clash)
-       bottomNav.classList.add('slide-down-hidden');
-       
-       // 3. Focus input after animation starts
-       setTimeout(() => input.focus(), 100);
+       // Show Bar
+       bar.classList.add('search-visible');
+       input.focus();
    }
    
-   function closeSearch() {
-       const overlay = document.getElementById('search-overlay');
-       const input = document.getElementById('search-input');
-       const bottomNav = document.getElementById('bottom-nav');
+   function hideSearchBarUI() {
+       // Just hides the UI, keeps results
+       document.getElementById('search-bar-container').classList.remove('search-visible');
+       document.getElementById('search-input').blur();
+   }
    
-       // 1. Slide up the overlay
-       overlay.classList.add('-translate-y-full');
-       
-       // 2. Show Bottom Nav
-       bottomNav.classList.remove('slide-down-hidden');
-       
-       // 3. Reset
-       input.value = '';
-       input.blur();
+   function cancelSearch() {
+       // Hides UI AND Resets Data
+       hideSearchBarUI();
+       document.getElementById('search-input').value = '';
        handleSearch('');
    }
    
+   // --- DATA ---
    async function initApp() {
        try {
            const timestamp = new Date().getTime();
@@ -79,7 +72,8 @@
            }
    
            loadMore();
-           window.addEventListener('scroll', handleScroll);
+           // HIGH PERFORMANCE SCROLL LISTENER
+           window.addEventListener('scroll', onScroll, { passive: true });
    
        } catch (error) {
            document.getElementById('cards-container').innerHTML = 
@@ -117,8 +111,7 @@
    
        nextBatch.forEach((item, index) => {
            const card = document.createElement('div');
-           card.className = 'glass-card';
-           card.style.animationDelay = `${index * 0.03}s`;
+           card.className = 'glass-card'; // Static Class (No JS animation to slow it down)
    
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
@@ -165,24 +158,33 @@
        }
    }
    
-   function handleScroll() {
+   // --- OPTIMIZED SCROLL HANDLER ---
+   function onScroll() {
+       if (!ticking) {
+           window.requestAnimationFrame(() => {
+               performScrollLogic();
+               ticking = false;
+           });
+           ticking = true;
+       }
+   }
+   
+   function performScrollLogic() {
        const currentScroll = window.scrollY;
        const header = document.getElementById('main-header');
        const bottomNav = document.getElementById('bottom-nav');
-       const searchOverlay = document.getElementById('search-overlay');
+       const searchBar = document.getElementById('search-bar-container');
    
-       // 1. Close Search on Scroll (if open)
-       if (currentScroll > 10 && !searchOverlay.classList.contains('-translate-y-full')) {
-           closeSearch();
+       // 1. Hide Search Bar UI on Scroll (But keep results)
+       if (currentScroll > 10 && searchBar.classList.contains('search-visible')) {
+           hideSearchBarUI();
        }
    
-       // 2. Hide/Show Header & Nav based on direction
+       // 2. Hide/Show Header & Nav
        if (currentScroll > lastScrollTop && currentScroll > 50) {
-           // Scrolling DOWN -> Hide everything
            header.classList.add('slide-up-hidden');
            bottomNav.classList.add('slide-down-hidden');
        } else {
-           // Scrolling UP -> Show everything
            header.classList.remove('slide-up-hidden');
            bottomNav.classList.remove('slide-down-hidden');
        }

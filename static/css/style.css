@@ -2,7 +2,7 @@
     --bg-color: #0B1121;
     --text-main: #ffffff;
     --text-muted: #cbd5e1;
-    --card-bg: #1E293B; /* Solid for performance */
+    --card-bg: #1E293B;
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.95);
     --accent-color: #3b82f6;
@@ -26,7 +26,8 @@ body {
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    /* Hardware acceleration for scroll */
+    transform: translate3d(0,0,0);
 }
 
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -46,16 +47,18 @@ body {
     border: 1px solid var(--card-border);
 }
 
-/* --- ANIMATION CLASSES FOR SCROLL --- */
-.slide-up-hidden {
-    transform: translateY(-100%); /* Moves header UP out of view */
+/* SEARCH VISIBILITY */
+.search-visible {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
-.slide-down-hidden {
-    transform: translateY(200%); /* Moves nav DOWN out of view */
-}
+/* SCROLL HIDDEN STATES */
+.slide-up-hidden { transform: translateY(-100%); }
+.slide-down-hidden { transform: translateY(150%); }
 
-/* CARDS */
+/* CARDS - Optimized */
 .glass-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -63,13 +66,8 @@ body {
     padding: 1.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    will-change: transform, opacity;
+    /* Static cards are faster to scroll than animated blurred ones */
 }
-
-@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
 /* Typography */
 .announcement-title {
@@ -110,7 +108,6 @@ body {
     gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 12px;
     border-radius: 12px; font-size: 0.85rem; font-weight: 600;
     color: var(--accent-color); margin-top: 1.2rem;
-    transition: background 0.15s ease;
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 .link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
@@ -124,7 +121,6 @@ body {
     border: 1px solid var(--card-border);
     display: flex; justify-content: space-between; align-items: center;
     height: 72px; cursor: pointer;
-    transition: background 0.15s ease;
 }
 .settings-card:active { background-color: rgba(255,255,255,0.05); }
 
@@ -144,7 +140,6 @@ body {
     width: 24px; height: 24px; background-color: white; border-radius: 50%;
     position: absolute; top: 2px; left: 2px;
     transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .toggle-switch.active .toggle-dot { transform: translateX(22px); }
 

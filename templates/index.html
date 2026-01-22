@@ -10,29 +10,13 @@
 </head>
 <body class="pb-28 bg-[#0B1121] overscroll-none">
 
-    <!-- SEARCH OVERLAY (Hidden by default) -->
-    <div id="search-overlay" class="fixed top-0 left-0 right-0 z-[60] bg-[#0B1121]/95 backdrop-blur-xl border-b border-white/10 px-4 py-3 transform -translate-y-full transition-transform duration-300 ease-out shadow-2xl">
-        <div class="flex items-center gap-3">
-            <div class="relative flex-1">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-                <input type="text" id="search-input" placeholder="Search..." 
-                       class="w-full pl-10 pr-4 py-3 bg-[#1E293B] border border-blue-500/30 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            </div>
-            <button onclick="closeSearch()" class="text-sm font-semibold text-gray-400 active:text-white p-2">
-                Cancel
-            </button>
-        </div>
-    </div>
-
     <!-- PAGE: HOME -->
     <div id="page-home" class="active">
         
-        <!-- Header (Slides away on scroll) -->
-        <div id="main-header" class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center transition-transform duration-300 will-change-transform">
-            <!-- Search Trigger Icon -->
-            <button onclick="openSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-gray-300 active:bg-blue-500/20 active:text-blue-400 transition-all">
+        <!-- HEADER (Always Sticky) -->
+        <div id="main-header" class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center transition-transform duration-300">
+            <!-- Search Trigger -->
+            <button onclick="toggleSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-gray-300 active:bg-blue-500/20 active:text-blue-400 transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </button>
 
@@ -45,8 +29,21 @@
             <div class="w-10"></div> <!-- Spacer -->
         </div>
 
+        <!-- SEARCH BAR (Slides down BELOW header) -->
+        <div id="search-bar-container" class="fixed top-[74px] left-0 right-0 z-40 px-4 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
+            <div class="bg-[#1E293B] border border-blue-500/30 p-2 rounded-2xl shadow-2xl flex items-center gap-2 backdrop-blur-xl">
+                <input type="text" id="search-input" placeholder="Search announcements..." 
+                       class="w-full bg-transparent text-white text-sm py-2 px-3 focus:outline-none placeholder-gray-500 font-medium">
+                
+                <!-- Cancel Button -->
+                <button onclick="cancelSearch()" class="p-2 bg-white/5 rounded-xl text-gray-400 font-bold text-xs tracking-wide">
+                    CANCEL
+                </button>
+            </div>
+        </div>
+
         <!-- Content -->
-        <div class="px-4 mt-4">
+        <div class="px-4 mt-4 transition-all duration-300" id="content-area">
             <div id="cards-container" class="min-h-[100vh]">
                 <div class="loader"></div>
             </div>
@@ -92,16 +89,12 @@
             <div class="glass-panel p-5">
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">About</h3>
                 <p class="text-sm opacity-70 leading-relaxed mb-4 text-center">
-                    This application scrapes announcements from the Univ Bejaia e-learning platform. It is an independent project made from student to students.
+                    This application scrapes announcements from the Univ Bejaia e-learning platform.
                 </p>
-                <div class="flex items-center justify-center gap-2 mt-4">
-                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span class="text-xs text-green-500 font-mono">System Online</span>
-                </div>
             </div>
             
             <div class="text-center pt-8 pb-4">
-                <div class="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded mb-2">BETA 1.8.0</div>
+                <div class="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded mb-2">BETA 1.9.0</div>
                 <p class="text-xs text-gray-500">Designed & Developed by</p>
                 <p class="text-sm font-bold mt-1 text-white heading-text">Adam Mila</p>
                 <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
