@@ -12,9 +12,9 @@
 
 .light-mode {
     /* Light Theme - Adjusted for High Contrast */
-    --bg-color: #F8FAFC; /* Cleaner White-Blue */
-    --text-main: #0F172A; /* Deep Navy Text */
-    --text-muted: #334155; /* Slate 700 */
+    --bg-color: #F8FAFC; 
+    --text-main: #0F172A; 
+    --text-muted: #334155; 
     --card-bg: #FFFFFF;
     --card-border: rgba(0, 0, 0, 0.08);
     --nav-bg: rgba(255, 255, 255, 0.95);
@@ -87,7 +87,7 @@ body {
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--text-main);
-    text-align: center; /* Title stays centered */
+    text-align: center; 
     line-height: 1.4;
     margin-bottom: 1rem;
 }
@@ -107,11 +107,13 @@ body {
     color: var(--text-muted);
     font-size: 0.95rem;
     line-height: 1.6;
-    /* FIX: Left Align for better reading of lists */
-    text-align: left; 
+    
+    /* UPDATED: Center text and remove weird extra gaps */
+    text-align: center; 
+    white-space: pre-line; /* Collapses multiple spaces, keeps newlines */
+
     font-weight: 500;
-    white-space: pre-wrap; /* Better spacing than pre-line */
-    padding: 0 4px; /* Slight padding */
+    padding: 0 4px; 
 }
 
 .announcement-body b, .announcement-body strong {

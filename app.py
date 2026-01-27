@@ -6,7 +6,7 @@ import hashlib
 import os
 import json
 import bleach
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request  # <--- Added 'request' here
 from bs4 import BeautifulSoup, NavigableString, Tag
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -61,24 +61,13 @@ def clean_html_text(tag):
             if child.name in ['b', 'strong']: text_parts.append(f"<b>{child_text}</b>")
             elif child.name in ['i', 'em']: text_parts.append(f"<i>{child_text}</i>")
             elif child.name == 'a': text_parts.append(child_text)
-            elif child.name in ['p', 'div', 'li']: text_parts.append(f"\n{child_text}\n") # Using \n instead of <br> for cleaner spacing
+            elif child.name in ['p', 'div', 'li']: text_parts.append(f"\n{child_text}\n")
             elif child.name == 'br': text_parts.append("\n")
             else: text_parts.append(child_text)
     
-    # JOIN AND CLEAN UP SPACES
     full_text = "".join(text_parts)
-    
-    # 1. Remove excessive newlines (max 2)
     full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
-    
-    # 2. Sanitize
     return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
-
-# ... Rest of app.py stays the same ...
-    
-    # Sanitize final string
-    raw = "".join(text_parts)
-    return bleach.clean(raw, tags=['b', 'strong', 'i', 'em', 'br'], strip=True)
 
 def extract_links(tag):
     links = []
@@ -97,9 +86,7 @@ def send_fcm_notification(title, body_preview):
             ttl=86400,
             notification=messaging.AndroidNotification(click_action='FLUTTER_NOTIFICATION_CLICK')
         )
-        # Sanitize title
         safe_title = bleach.clean(title, tags=[], strip=True)
-        
         message = messaging.Message(
             notification=messaging.Notification(title="Nouvelle Annonce ST", body=safe_title),
             android=android_config,
@@ -127,19 +114,16 @@ def scrape_task():
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
             body_html = clean_html_text(tag)
             
-            # Title
             title = "Information"
             title_match = re.search(r'<b>(.*?)</b>', body_html)
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
                 body_html = body_html.replace(title_match.group(0), "", 1)
 
-            # Date
             date_text = "Général"
             date_match = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:]+)', raw_text, re.IGNORECASE)
             if date_match: date_text = date_match.group(1).strip()
 
-            # Source
             parent_li = tag.find_parent('li', class_='activity')
             source_link = AFFICHAGE_URL
             if parent_li and parent_li.get('id'):
@@ -155,7 +139,6 @@ def scrape_task():
                 "source": source_link
             }
             new_data.append(item)
-        
         return new_data
 
     except Exception as e:
@@ -168,24 +151,19 @@ def background_loop():
     print("--- Background Loop Started ---")
     while True:
         scraped_items = scrape_task()
-        
         if scraped_items:
-            # Check for new items
             if not first_run and latest_data:
                 old_ids = {item['id'] for item in latest_data}
-                # Check top 5 items
                 for i in range(min(5, len(scraped_items))):
                     item = scraped_items[i]
                     if item['id'] not in old_ids:
                         print(f"🔔 NEW: {item['title']}")
                         send_fcm_notification(item['title'], "New announcement")
                         break 
-            
             latest_data = scraped_items
             first_run = False
             print(f"✅ Loaded {len(latest_data)} items.")
-        
-        time.sleep(600) # 10 Minutes
+        time.sleep(600)
 
 # --- ROUTES ---
 @app.route('/')
@@ -200,14 +178,57 @@ def api_data():
 def install_page():
     return render_template('download.html')
 
-@app.route('/test-notification-railway')
-@limiter.limit("2 per minute") 
+@app.route('/test-notification-railway', methods=['GET', 'POST'])
+@limiter.limit("5 per minute") 
 def manual_test():
-    try:
-        send_fcm_notification("Security Test", "Secure System Operational.")
-        return "<h1>Secure Notification Sent!</h1>"
-    except Exception as e:
-        return f"<h1>Error</h1><p>{str(e)}</p>"
+    # 1. If User submits the password (POST request)
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == "34362053":
+            try:
+                send_fcm_notification("Security Test", "Secure System Operational.")
+                return """
+                <div style="font-family: sans-serif; text-align: center; margin-top: 50px; color: green;">
+                    <h1>✅ Success</h1>
+                    <p>Secure Notification Sent!</p>
+                    <a href="/test-notification-railway">Back</a>
+                </div>
+                """
+            except Exception as e:
+                return f"<h1>Error</h1><p>{str(e)}</p>"
+        else:
+            return """
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px; color: red;">
+                <h1>❌ Access Denied</h1>
+                <p>Incorrect Password.</p>
+                <a href="/test-notification-railway">Try Again</a>
+            </div>
+            """
+
+    # 2. If User opens the page (GET request), show the form
+    return """
+    <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body { background: #0B1121; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                form { background: #1E293B; padding: 30px; border-radius: 12px; border: 1px solid #334155; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+                input { padding: 10px; border-radius: 6px; border: none; width: 200px; margin-bottom: 10px; text-align: center; }
+                button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+                button:hover { background: #2563eb; }
+                h2 { margin-top: 0; }
+            </style>
+        </head>
+        <body>
+            <form method="POST">
+                <h2>Admin Access</h2>
+                <input type="password" name="password" placeholder="Enter Password" required autofocus>
+                <br>
+                <button type="submit">SEND NOTIFICATION</button>
+            </form>
+        </body>
+    </html>
+    """
 
 # --- ENTRY POINT ---
 threading.Thread(target=background_loop, daemon=True).start()
