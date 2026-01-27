@@ -2,8 +2,8 @@
     /* Dark Theme (Default) */
     --bg-color: #0B1121;
     --text-main: #ffffff;
-    --text-muted: #cbd5e1;
-    --card-bg: #1E293B; /* Solid for performance */
+    --text-muted: #e2e8f0;
+    --card-bg: rgba(30, 41, 59, 0.7);
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.95);
     --accent-color: #3b82f6;
@@ -11,10 +11,10 @@
 }
 
 .light-mode {
-    /* Light Theme */
-    --bg-color: #F1F5F9;
-    --text-main: #0F172A;
-    --text-muted: #475569;
+    /* Light Theme - Adjusted for High Contrast */
+    --bg-color: #F8FAFC; /* Cleaner White-Blue */
+    --text-main: #0F172A; /* Deep Navy Text */
+    --text-muted: #334155; /* Slate 700 */
     --card-bg: #FFFFFF;
     --card-border: rgba(0, 0, 0, 0.08);
     --nav-bg: rgba(255, 255, 255, 0.95);
@@ -22,10 +22,11 @@
     --date-color: #059669;
 }
 
-/* Light Mode Overrides */
-.light-mode .heading-text { color: #0F172A; }
-.light-mode .glass-nav { border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
-.light-mode .glass-card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+/* FIX: Apply background to HTML to stop black borders */
+html {
+    background-color: var(--bg-color);
+    transition: background-color 0.2s ease;
+}
 
 body {
     background-color: var(--bg-color);
@@ -86,9 +87,9 @@ body {
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--text-main);
-    text-align: center;
+    text-align: center; /* Title stays centered */
     line-height: 1.4;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .announcement-date {
@@ -106,19 +107,24 @@ body {
     color: var(--text-muted);
     font-size: 0.95rem;
     line-height: 1.6;
-    text-align: center; /* FIXED: CENTER ALIGNED */
+    /* FIX: Left Align for better reading of lists */
+    text-align: left; 
     font-weight: 500;
-    white-space: pre-line;
+    white-space: pre-wrap; /* Better spacing than pre-line */
+    padding: 0 4px; /* Slight padding */
 }
 
-.announcement-body b { color: var(--text-main); font-weight: 700; }
+.announcement-body b, .announcement-body strong {
+    color: var(--text-main);
+    font-weight: 700;
+}
 
 /* Buttons */
 .link-btn {
     display: flex; align-items: center; justify-content: center; width: 100%;
     gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 12px;
     border-radius: 12px; font-size: 0.85rem; font-weight: 600;
-    color: var(--accent-color); margin-top: 1.2rem;
+    color: var(--accent-color); margin-top: 1.5rem;
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 .link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
@@ -136,8 +142,12 @@ body {
 }
 .settings-card:active { background-color: rgba(255,255,255,0.05); }
 
-/* Light Mode Override for Settings */
-.light-mode .settings-card { background-color: #FFFFFF; border-color: rgba(0,0,0,0.1); }
+/* Settings Card Light Mode Fix */
+.light-mode .settings-card { 
+    background-color: #FFFFFF; 
+    border-color: rgba(0,0,0,0.08); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
 
 .icon-box {
     width: 40px; height: 40px; background-color: #334155; border-radius: 12px;

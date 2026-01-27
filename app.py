@@ -55,14 +55,26 @@ def clean_html_text(tag):
     text_parts = []
     for child in tag.children:
         if isinstance(child, NavigableString): 
-            text_parts.append(str(child))
+            text_parts.append(child.string)
         elif isinstance(child, Tag):
             child_text = clean_html_text(child)
             if child.name in ['b', 'strong']: text_parts.append(f"<b>{child_text}</b>")
             elif child.name in ['i', 'em']: text_parts.append(f"<i>{child_text}</i>")
             elif child.name == 'a': text_parts.append(child_text)
-            elif child.name in ['p', 'div', 'li', 'br']: text_parts.append(f"<br>{child_text}<br>")
+            elif child.name in ['p', 'div', 'li']: text_parts.append(f"\n{child_text}\n") # Using \n instead of <br> for cleaner spacing
+            elif child.name == 'br': text_parts.append("\n")
             else: text_parts.append(child_text)
+    
+    # JOIN AND CLEAN UP SPACES
+    full_text = "".join(text_parts)
+    
+    # 1. Remove excessive newlines (max 2)
+    full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
+    
+    # 2. Sanitize
+    return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
+
+# ... Rest of app.py stays the same ...
     
     # Sanitize final string
     raw = "".join(text_parts)
