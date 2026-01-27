@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - SECURE CORE
-   Build: 2026.1.13 (OWASP Compliant)
+   ST AFFICHAGE - 
+   Build: 2026.1.13 
    ========================================= */
 
    let allAnnouncements = [];
@@ -45,7 +45,7 @@
        bar.classList.add('search-visible');
        bottomNav.classList.add('slide-down-hidden');
 
-       // NEW: Show the Cancel Button in the Header
+       // Show the Cancel Button in the Header
        const cancelBtn = document.getElementById('header-cancel-btn');
        if(cancelBtn) {
            cancelBtn.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
@@ -54,12 +54,13 @@
        input.focus();
    }
    
+   // This function completely resets the search mode (Hides bar AND button)
    function hideSearchBarUI() {
        document.getElementById('search-bar-container').classList.remove('search-visible');
        document.getElementById('search-input').blur();
        document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
 
-       // NEW: Hide the Cancel Button in the Header
+       // Hide the Cancel Button in the Header
        const cancelBtn = document.getElementById('header-cancel-btn');
        if(cancelBtn) {
            cancelBtn.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
@@ -193,10 +194,17 @@
        const header = document.getElementById('main-header');
        const searchBar = document.getElementById('search-bar-container');
    
+       // --- FIXED LOGIC HERE ---
+       // If scrolling down, hide the INPUT BAR, but DO NOT call hideSearchBarUI().
+       // We want the Cancel Button to remain in the header if it was already there.
        if (currentScroll > 10 && searchBar.classList.contains('search-visible')) {
-           hideSearchBarUI();
+           searchBar.classList.remove('search-visible');
+           document.getElementById('search-input').blur();
+           document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
+           // Note: We deliberately do NOT hide the #header-cancel-btn here.
        }
    
+       // Header Slide Up/Down logic
        if (currentScroll > lastScrollTop && currentScroll > 50) {
            header.classList.add('slide-up-hidden');
        } else {
@@ -205,6 +213,7 @@
        
        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
    
+       // Infinite Scroll
        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
            loadMore();
        }
