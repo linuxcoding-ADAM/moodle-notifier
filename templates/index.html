@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<!-- UPDATED BODY TAG: Removed bg-[#0B1121] -->
 <body class="pb-28 overscroll-none">
 
     <!-- PAGE: HOME -->
@@ -16,16 +15,26 @@
         
         <!-- HEADER -->
         <div id="main-header" class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center transition-transform duration-300">
+            <!-- Left: Open Search Button -->
             <button onclick="toggleSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-gray-300 active:bg-blue-500/20 active:text-blue-400 transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </button>
 
+            <!-- Center: Logo -->
             <div class="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
                 <span class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-0.5">Univ Bejaïa</span>
                 <h1 class="text-lg font-extrabold tracking-tight text-white heading-text" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
-            <div class="w-10"></div>
+            <!-- Right: NEW Cancel Search Button (Hidden by default) -->
+            <button id="header-cancel-btn" onclick="cancelSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-400 transition-all duration-300 opacity-0 pointer-events-none transform scale-90">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <!-- The Search Icon -->
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    <!-- The Bar (Strike through) -->
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4l16 16" stroke="currentColor" stroke-width="2.5" opacity="0.8"></path>
+                </svg>
+            </button>
         </div>
 
         <!-- SEARCH BAR -->
@@ -33,7 +42,7 @@
             <div class="bg-[#1E293B] border border-blue-500/30 p-2 rounded-2xl shadow-2xl flex items-center gap-2 backdrop-blur-xl">
                 <input type="text" id="search-input" placeholder="Search announcements..." 
                        class="w-full bg-transparent text-white text-sm py-2 px-3 focus:outline-none placeholder-gray-500 font-medium">
-                <button onclick="cancelSearch()" class="p-2 bg-white/5 rounded-xl text-gray-400 font-bold text-xs tracking-wide">CANCEL</button>
+                <!-- Kept this simple "Close" text just in case, but the top button is now the main way -->
             </div>
         </div>
 

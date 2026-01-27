@@ -41,8 +41,16 @@
        const input = document.getElementById('search-input');
        const bottomNav = document.getElementById('bottom-nav'); 
        
+       // Show Search Bar
        bar.classList.add('search-visible');
        bottomNav.classList.add('slide-down-hidden');
+
+       // NEW: Show the Cancel Button in the Header
+       const cancelBtn = document.getElementById('header-cancel-btn');
+       if(cancelBtn) {
+           cancelBtn.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
+       }
+       
        input.focus();
    }
    
@@ -50,6 +58,12 @@
        document.getElementById('search-bar-container').classList.remove('search-visible');
        document.getElementById('search-input').blur();
        document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
+
+       // NEW: Hide the Cancel Button in the Header
+       const cancelBtn = document.getElementById('header-cancel-btn');
+       if(cancelBtn) {
+           cancelBtn.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
+       }
    }
    
    function cancelSearch() {
@@ -121,7 +135,6 @@
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
                item.links.forEach(link => {
-                   // SECURITY: Added rel="noopener noreferrer"
                    linksHtml += `
                        <a href="${link}" target="_blank" rel="noopener noreferrer" class="link-btn">
                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
@@ -132,7 +145,6 @@
    
            let sourceBtn = '';
            if (item.source) {
-               // SECURITY: Added rel="noopener noreferrer"
                sourceBtn = `
                    <div class="source-link-container">
                        <a href="${item.source}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono text-gray-500 hover:text-blue-400 flex items-center transition-colors gap-1">
@@ -143,7 +155,6 @@
                `;
            }
    
-           // Note: item.body is already sanitized by Bleach on the backend
            card.innerHTML = `
                <div class="flex flex-col items-center mb-4">
                    <span class="announcement-date">📅 ${item.date}</span>
