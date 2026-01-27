@@ -186,7 +186,7 @@ def manual_test():
         password = request.form.get('password')
         if password == "34362053":
             try:
-                send_fcm_notification("Security Test", "Secure System Operational.")
+                send_fcm_notification("Just A test", "This Is Just A Test.")
                 return """
                 <div style="font-family: sans-serif; text-align: center; margin-top: 50px; color: green;">
                     <h1>✅ Success</h1>
