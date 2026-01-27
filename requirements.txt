@@ -3,3 +3,5 @@ gunicorn
 requests
 beautifulsoup4
 firebase-admin
+flask-limiter
+bleach

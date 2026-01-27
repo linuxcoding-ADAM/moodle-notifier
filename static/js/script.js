@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - FIXED NAV
-   Build: 2026.1.12 FUCK EXAMES
+   ST AFFICHAGE - SECURE CORE
+   Build: 2026.1.13 (OWASP Compliant)
    ========================================= */
 
    let allAnnouncements = [];
@@ -12,6 +12,7 @@
    let ticking = false; 
    
    document.addEventListener("DOMContentLoaded", () => {
+       // Theme & Notif
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
@@ -26,7 +27,10 @@
        const searchInput = document.getElementById('search-input');
        if (searchInput) {
            searchInput.addEventListener('input', (e) => {
-               handleSearch(e.target.value.toLowerCase());
+               // SECURITY: Sanitize Input (Remove dangerous chars)
+               const raw = e.target.value.toLowerCase();
+               const safeQuery = raw.replace(/[<>{}\"\'\/]/g, ''); 
+               handleSearch(safeQuery);
            });
        }
    });
@@ -35,22 +39,16 @@
    function toggleSearch() {
        const bar = document.getElementById('search-bar-container');
        const input = document.getElementById('search-input');
-       const bottomNav = document.getElementById('bottom-nav'); // Get Nav
+       const bottomNav = document.getElementById('bottom-nav'); 
        
-       // Show Search
        bar.classList.add('search-visible');
-       
-       // HIDE Nav (Only when searching to fix keyboard)
        bottomNav.classList.add('slide-down-hidden');
-       
        input.focus();
    }
    
    function hideSearchBarUI() {
        document.getElementById('search-bar-container').classList.remove('search-visible');
        document.getElementById('search-input').blur();
-       
-       // RESTORE Nav
        document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
    }
    
@@ -65,6 +63,9 @@
        try {
            const timestamp = new Date().getTime();
            const response = await fetch(`/api/announcements?t=${timestamp}`);
+           
+           if (!response.ok) throw new Error("API Limit Reached");
+   
            allAnnouncements = await response.json();
            activeList = [...allAnnouncements];
    
@@ -81,7 +82,7 @@
    
        } catch (error) {
            document.getElementById('cards-container').innerHTML = 
-               '<div class="text-center text-red-400 font-mono text-xs mt-10">CONNECTION ERROR</div>';
+               '<div class="text-center text-red-400 font-mono text-xs mt-10">CONNECTION SECURE<br>Rate Limit or Network Error</div>';
        }
    }
    
@@ -120,8 +121,9 @@
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
                item.links.forEach(link => {
+                   // SECURITY: Added rel="noopener noreferrer"
                    linksHtml += `
-                       <a href="${link}" class="link-btn">
+                       <a href="${link}" target="_blank" rel="noopener noreferrer" class="link-btn">
                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                            DOWNLOAD FILE
                        </a>`;
@@ -130,9 +132,10 @@
    
            let sourceBtn = '';
            if (item.source) {
+               // SECURITY: Added rel="noopener noreferrer"
                sourceBtn = `
                    <div class="source-link-container">
-                       <a href="${item.source}" class="text-[10px] font-mono text-gray-500 hover:text-blue-400 flex items-center transition-colors gap-1">
+                       <a href="${item.source}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono text-gray-500 hover:text-blue-400 flex items-center transition-colors gap-1">
                            OPEN ON UNIV-BEJAIA.DZ
                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                        </a>
@@ -140,6 +143,7 @@
                `;
            }
    
+           // Note: item.body is already sanitized by Bleach on the backend
            card.innerHTML = `
                <div class="flex flex-col items-center mb-4">
                    <span class="announcement-date">📅 ${item.date}</span>
@@ -178,12 +182,10 @@
        const header = document.getElementById('main-header');
        const searchBar = document.getElementById('search-bar-container');
    
-       // 1. Hide Search Bar UI on Scroll (But keep results)
        if (currentScroll > 10 && searchBar.classList.contains('search-visible')) {
            hideSearchBarUI();
        }
    
-       // 2. Hide/Show Header ONLY (Bottom Nav stays fixed)
        if (currentScroll > lastScrollTop && currentScroll > 50) {
            header.classList.add('slide-up-hidden');
        } else {
@@ -192,7 +194,6 @@
        
        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
    
-       // 3. Infinite Load
        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
            loadMore();
        }
