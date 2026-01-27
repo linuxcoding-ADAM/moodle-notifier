@@ -1,8 +1,9 @@
 :root {
+    /* Dark Theme (Default) */
     --bg-color: #0B1121;
     --text-main: #ffffff;
     --text-muted: #cbd5e1;
-    --card-bg: #1E293B;
+    --card-bg: #1E293B; /* Solid for performance */
     --card-border: rgba(255, 255, 255, 0.08);
     --nav-bg: rgba(15, 23, 42, 0.95);
     --accent-color: #3b82f6;
@@ -10,15 +11,21 @@
 }
 
 .light-mode {
+    /* Light Theme */
     --bg-color: #F1F5F9;
     --text-main: #0F172A;
     --text-muted: #475569;
     --card-bg: #FFFFFF;
-    --card-border: rgba(0, 0, 0, 0.05);
+    --card-border: rgba(0, 0, 0, 0.08);
     --nav-bg: rgba(255, 255, 255, 0.95);
     --accent-color: #2563eb;
     --date-color: #059669;
 }
+
+/* Light Mode Overrides */
+.light-mode .heading-text { color: #0F172A; }
+.light-mode .glass-nav { border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+.light-mode .glass-card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
 
 body {
     background-color: var(--bg-color);
@@ -26,7 +33,6 @@ body {
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
-    /* REMOVED TRANSFORM TO FIX BOTTOM NAV DISAPPEARING */
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -56,7 +62,6 @@ body {
 
 /* SCROLL HIDDEN STATES */
 .slide-up-hidden { transform: translateY(-100%); }
-/* Used only for Search logic now, not scrolling */
 .slide-down-hidden { transform: translateY(150%); }
 
 /* CARDS */
@@ -101,7 +106,7 @@ body {
     color: var(--text-muted);
     font-size: 0.95rem;
     line-height: 1.6;
-    text-align: center;
+    text-align: center; /* FIXED: CENTER ALIGNED */
     font-weight: 500;
     white-space: pre-line;
 }
@@ -127,8 +132,12 @@ body {
     border: 1px solid var(--card-border);
     display: flex; justify-content: space-between; align-items: center;
     height: 72px; cursor: pointer;
+    transition: background 0.15s ease;
 }
 .settings-card:active { background-color: rgba(255,255,255,0.05); }
+
+/* Light Mode Override for Settings */
+.light-mode .settings-card { background-color: #FFFFFF; border-color: rgba(0,0,0,0.1); }
 
 .icon-box {
     width: 40px; height: 40px; background-color: #334155; border-radius: 12px;
@@ -146,6 +155,7 @@ body {
     width: 24px; height: 24px; background-color: white; border-radius: 50%;
     position: absolute; top: 2px; left: 2px;
     transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .toggle-switch.active .toggle-dot { transform: translateX(22px); }
 
