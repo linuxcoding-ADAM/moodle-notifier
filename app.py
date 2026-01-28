@@ -32,7 +32,7 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
-# Get Admin Password from Railway Variables (Fallback to old one if missing)
+# Get Admin Password from Railway Variables (Fallback to default if missing)
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
 
 latest_data = []
@@ -55,11 +55,11 @@ def add_security_headers(response):
     # 2. Prevent MIME type sniffing
     response.headers['X-Content-Type-Options'] = 'nosniff'
     
-    # 3. Content Security Policy (CSP) - Controls where resources can load from
-    # Allowing: Self, Tailwind CDN, Google Fonts, and inline styles/scripts (needed for this setup)
+    # 3. Content Security Policy (CSP)
+    # UPDATED: Added 'https://www.googletagmanager.com' to allow Google Analytics
     csp_policy = (
         "default-src 'self' https:; "
-        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; "
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.googletagmanager.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; "
         "font-src 'self' https://fonts.gstatic.com;"
     )
@@ -202,13 +202,17 @@ def index():
 def api_data():
     response = jsonify(latest_data)
     # Cache Control: Tell the browser/phone to keep this data for 60 seconds
-    # This reduces load on your server
     response.headers['Cache-Control'] = 'public, max-age=60'
     return response
 
 @app.route('/install')
 def install_page():
     return render_template('download.html')
+
+@app.route('/robots.txt')
+def robots():
+    # Helper to prevent Google from indexing admin pages
+    return "User-agent: *\nDisallow: /api/\nDisallow: /test-notification-railway"
 
 @app.route('/test-notification-railway', methods=['GET', 'POST'])
 @limiter.limit("5 per minute") 
