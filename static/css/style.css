@@ -1,5 +1,5 @@
 :root {
-    /* Dark Theme (Default) */
+    /* Dark Theme (Default - UNTOUCHED) */
     --bg-color: #0B1121;
     --text-main: #ffffff;
     --text-muted: #e2e8f0;
@@ -11,15 +11,31 @@
 }
 
 .light-mode {
-    /* Light Theme - Adjusted for High Contrast */
-    --bg-color: #F8FAFC; 
-    --text-main: #0F172A; 
-    --text-muted: #334155; 
+    /* NEW: Based on your Images */
+    
+    /* "Cultured" - The soft grey/white from Image 1 */
+    --bg-color: #F0F1F2; 
+    
+    /* Dark Grey-Blue for main text (Readable against Cultured) */
+    --text-main: #2D3142; 
+    
+    /* Softer Grey for body text */
+    --text-muted: #5C5E70; 
+    
+    /* Pure White cards to pop against the #F0F1F2 background */
     --card-bg: #FFFFFF;
-    --card-border: rgba(0, 0, 0, 0.08);
-    --nav-bg: rgba(255, 255, 255, 0.95);
-    --accent-color: #2563eb;
-    --date-color: #059669;
+    
+    /* Subtle border with a tiny hint of Lavender */
+    --card-border: rgba(132, 135, 191, 0.15); 
+    
+    /* Glass Nav matching the new background */
+    --nav-bg: rgba(240, 241, 242, 0.95);
+    
+    /* "Lavender Blue" - The Star from Image 1 (#8487BF) */
+    --accent-color: #8487BF;
+    
+    /* I changed Date Color to match the Lavender vibe instead of Green */
+    --date-color: #6A6D9E; 
 }
 
 /* FIX: Apply background to HTML to stop black borders */
@@ -79,6 +95,11 @@ body {
     will-change: transform, opacity;
 }
 
+/* New Light Mode Card Shadow to match the "Airy" look */
+.light-mode .glass-card {
+    box-shadow: 0 8px 20px -4px rgba(132, 135, 191, 0.15); /* Lavender Shadow */
+}
+
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
 /* Typography */
@@ -107,11 +128,8 @@ body {
     color: var(--text-muted);
     font-size: 0.95rem;
     line-height: 1.6;
-    
-    /* UPDATED: Center text and remove weird extra gaps */
     text-align: center; 
-    white-space: pre-line; /* Collapses multiple spaces, keeps newlines */
-
+    white-space: pre-line;
     font-weight: 500;
     padding: 0 4px; 
 }
@@ -129,7 +147,26 @@ body {
     color: var(--accent-color); margin-top: 1.5rem;
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
+
+/* Light Mode Button adjustments to match Lavender */
+.light-mode .link-btn {
+    background: rgba(132, 135, 191, 0.1);
+    color: #8487BF;
+    border-color: rgba(132, 135, 191, 0.3);
+}
+
 .link-btn:active { background: rgba(59, 130, 246, 0.2); transform: scale(0.98); }
+
+/* Share Button */
+.share-btn {
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    gap: 0.5rem; background: rgba(34, 197, 94, 0.1); padding: 12px;
+    border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+    color: #22c55e; margin-top: 0.5rem;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    transition: all 0.2s;
+}
+.share-btn:active { background: rgba(34, 197, 94, 0.2); transform: scale(0.98); }
 
 .source-link-container { display: flex; justify-content: center; margin-top: 1rem; width: 100%; }
 
@@ -144,17 +181,22 @@ body {
 }
 .settings-card:active { background-color: rgba(255,255,255,0.05); }
 
-/* Settings Card Light Mode Fix */
+/* Settings Card Light Mode Fix - Clean & Soft */
 .light-mode .settings-card { 
     background-color: #FFFFFF; 
-    border-color: rgba(0,0,0,0.08); 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    border-color: rgba(132, 135, 191, 0.2); 
+    box-shadow: 0 4px 15px rgba(132, 135, 191, 0.1); /* Soft Lavender Shadow */
 }
 
 .icon-box {
     width: 40px; height: 40px; background-color: #334155; border-radius: 12px;
     display: flex; align-items: center; justify-content: center; margin-right: 16px; color: white;
 }
+/* Update icon box for light mode to match Lavender */
+.light-mode .icon-box {
+    background-color: #8487BF;
+}
+
 .setting-label { font-size: 1rem; font-weight: 600; color: var(--text-main); }
 
 /* Switch */
@@ -163,6 +205,11 @@ body {
     position: relative; transition: background-color 0.2s ease;
 }
 .toggle-switch.active { background-color: var(--accent-color); }
+
+/* Light Mode Switch Background when inactive */
+.light-mode .toggle-switch { background-color: #D1D5DB; }
+.light-mode .toggle-switch.active { background-color: #8487BF; }
+
 .toggle-dot {
     width: 24px; height: 24px; background-color: white; border-radius: 50%;
     position: absolute; top: 2px; left: 2px;
