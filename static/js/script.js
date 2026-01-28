@@ -1,6 +1,6 @@
 /* =========================================
-   ST AFFICHAGE - 
-   Build: 2026.1.13 
+   ST AFFICHAGE - SECURE CORE
+   Build: 2026.1.13 (OWASP Compliant)
    ========================================= */
 
    let allAnnouncements = [];
@@ -12,15 +12,12 @@
    let ticking = false; 
    
    document.addEventListener("DOMContentLoaded", () => {
-       // Theme & Notif
+       // Theme
        const savedTheme = localStorage.getItem('theme');
        if (savedTheme === 'light') {
            document.body.classList.add('light-mode');
            updateThemeUI(true);
        }
-       const notifState = localStorage.getItem('notifications');
-       if (notifState === 'false') updateNotifUI(false);
-       else updateNotifUI(true);
    
        initApp();
    
@@ -54,7 +51,6 @@
        input.focus();
    }
    
-   // This function completely resets the search mode (Hides bar AND button)
    function hideSearchBarUI() {
        document.getElementById('search-bar-container').classList.remove('search-visible');
        document.getElementById('search-input').blur();
@@ -96,8 +92,13 @@
            window.addEventListener('scroll', onScroll, { passive: true });
    
        } catch (error) {
-           document.getElementById('cards-container').innerHTML = 
-               '<div class="text-center text-red-400 font-mono text-xs mt-10">CONNECTION SECURE<br>Rate Limit or Network Error</div>';
+           document.getElementById('cards-container').innerHTML = `
+                <div class="flex flex-col items-center justify-center mt-20">
+                    <div class="text-center text-red-400 font-mono text-xs mb-4">CONNECTION ERROR</div>
+                    <button onclick="window.location.reload()" class="px-6 py-2 bg-blue-600 rounded-full text-white font-bold text-xs shadow-lg active:scale-95 transition-transform">
+                        RETRY CONNECTION
+                    </button>
+                </div>`;
        }
    }
    
@@ -136,8 +137,9 @@
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
                item.links.forEach(link => {
+                   // TRACKING: Download Event
                    linksHtml += `
-                       <a href="${link}" target="_blank" rel="noopener noreferrer" class="link-btn">
+                       <a href="${link}" target="_blank" rel="external" class="link-btn" onclick="gtag('event', 'download_file', {'file_url': '${link}'})">
                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                            DOWNLOAD FILE
                        </a>`;
@@ -163,7 +165,15 @@
                    <div class="w-12 h-1 bg-blue-500/30 rounded-full mt-2"></div>
                </div>
                <div class="announcement-body">${item.body}</div>
+               
                ${linksHtml}
+
+               <!-- SHARE BUTTON -->
+               <button onclick="gtag('event', 'share_click', {'content_type': 'announcement'}); shareAnnouncement('${item.title.replace(/'/g, "\\'")}', '${item.date}')" class="share-btn">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                   SHARE INFO
+               </button>
+
                ${sourceBtn}
            `;
            fragment.appendChild(card);
@@ -177,6 +187,20 @@
            document.getElementById('end-message').classList.remove('hidden');
        }
    }
+
+   function shareAnnouncement(title, date) {
+        const shareData = {
+            title: 'ST Affichage',
+            text: `📅 ${date}\n📢 ${title}\n\nRead more on ST Affichage app.`
+        };
+
+        if (navigator.share) {
+            navigator.share(shareData).catch(err => console.log('Share closed'));
+        } else {
+            navigator.clipboard.writeText(shareData.text);
+            alert("Information copied to clipboard!");
+        }
+    }
    
    // --- OPTIMIZED SCROLL HANDLER ---
    function onScroll() {
@@ -194,17 +218,14 @@
        const header = document.getElementById('main-header');
        const searchBar = document.getElementById('search-bar-container');
    
-       // --- FIXED LOGIC HERE ---
-       // If scrolling down, hide the INPUT BAR, but DO NOT call hideSearchBarUI().
-       // We want the Cancel Button to remain in the header if it was already there.
+       // FIXED LOGIC: Hide search bar on scroll, but keep Cancel Button
        if (currentScroll > 10 && searchBar.classList.contains('search-visible')) {
            searchBar.classList.remove('search-visible');
            document.getElementById('search-input').blur();
            document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
-           // Note: We deliberately do NOT hide the #header-cancel-btn here.
+           // We do NOT hide the #header-cancel-btn here.
        }
    
-       // Header Slide Up/Down logic
        if (currentScroll > lastScrollTop && currentScroll > 50) {
            header.classList.add('slide-up-hidden');
        } else {
@@ -213,7 +234,6 @@
        
        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
    
-       // Infinite Scroll
        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
            loadMore();
        }
@@ -246,21 +266,17 @@
        const switchEl = document.getElementById('theme-switch');
        isLight ? switchEl.classList.add('active') : switchEl.classList.remove('active');
    }
-   
-   function toggleNotifications() {
-       const switchEl = document.getElementById('notif-switch');
-       if (switchEl.classList.contains('active')) {
-           switchEl.classList.remove('active');
-           localStorage.setItem('notifications', 'false');
-           window.location.href = "st-app://unsubscribe";
-       } else {
-           switchEl.classList.add('active');
-           localStorage.setItem('notifications', 'true');
-           window.location.href = "st-app://subscribe";
-       }
+
+   // NEW: Settings Tools
+   function hardReloadApp() {
+       const btn = event.currentTarget;
+       btn.style.opacity = '0.5';
+       // Force reload from server
+       setTimeout(() => {
+           window.location.reload(true);
+       }, 300);
    }
-   
-   function updateNotifUI(isEnabled) {
-       const switchEl = document.getElementById('notif-switch');
-       isEnabled ? switchEl.classList.add('active') : switchEl.classList.remove('active');
+
+   function contactDev() {
+       window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report";
    }

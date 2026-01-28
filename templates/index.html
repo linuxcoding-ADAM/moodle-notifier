@@ -4,20 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 🟢 GOOGLE ANALYTICS START (Tracking ID: G-6HH5ZV5VW8) -->
+    
+    <!-- GOOGLE ANALYTICS START (Tracking ID: G-6HH5ZV5VW8) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-6HH5ZV5VW8');
     </script>
-    <!-- 🔴 GOOGLE ANALYTICS END -->
+    <!-- GOOGLE ANALYTICS END -->
 
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0B1121">
 </head>
 <body class="pb-28 overscroll-none">
 
@@ -26,7 +30,8 @@
         
         <!-- HEADER -->
         <div id="main-header" class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center transition-transform duration-300">
-            <!-- Left: Open Search Button -->
+            
+            <!-- Left: Search Button -->
             <button onclick="toggleSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-gray-300 active:bg-blue-500/20 active:text-blue-400 transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </button>
@@ -37,12 +42,10 @@
                 <h1 class="text-lg font-extrabold tracking-tight text-white heading-text" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
-            <!-- Right: NEW Cancel Search Button (Hidden by default) -->
+            <!-- Right: Cancel Search Button (Hidden by default) -->
             <button id="header-cancel-btn" onclick="cancelSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-400 transition-all duration-300 opacity-0 pointer-events-none transform scale-90">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <!-- The Search Icon -->
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    <!-- The Bar (Strike through) -->
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4l16 16" stroke="currentColor" stroke-width="2.5" opacity="0.8"></path>
                 </svg>
             </button>
@@ -53,7 +56,6 @@
             <div class="bg-[#1E293B] border border-blue-500/30 p-2 rounded-2xl shadow-2xl flex items-center gap-2 backdrop-blur-xl">
                 <input type="text" id="search-input" placeholder="Search announcements..." 
                        class="w-full bg-transparent text-white text-sm py-2 px-3 focus:outline-none placeholder-gray-500 font-medium">
-                <!-- Kept this simple "Close" text just in case, but the top button is now the main way -->
             </div>
         </div>
 
@@ -73,10 +75,12 @@
         </div>
 
         <div class="px-5 mt-6 space-y-4">
+            
+            <!-- SECTION 1: APPEARANCE -->
             <div class="glass-panel p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Preferences</h3>
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Appearance</h3>
                 
-                <!-- LIGHT MODE TOGGLE -->
+                <!-- Light Mode -->
                 <div class="settings-card" onclick="toggleTheme()">
                     <div class="flex items-center">
                         <div class="icon-box">
@@ -88,37 +92,63 @@
                         <div class="toggle-dot"></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="settings-card mt-3" onclick="toggleNotifications()">
+            <!-- SECTION 2: SUPPORT & TOOLS -->
+            <div class="glass-panel p-5">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Support & Tools</h3>
+
+                <!-- Reload App -->
+                <div class="settings-card" onclick="hardReloadApp()">
                     <div class="flex items-center">
-                        <div class="icon-box">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                        <div class="icon-box bg-orange-500/20 text-orange-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </div>
-                        <span class="setting-label">Notifications</span>
+                        <div class="flex flex-col">
+                            <span class="setting-label">Refresh App</span>
+                            <span class="text-[10px] opacity-60">Fix connection or display issues</span>
+                        </div>
                     </div>
-                    <div id="notif-switch" class="toggle-switch active">
-                        <div class="toggle-dot"></div>
+                    <svg class="w-5 h-5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+
+                <!-- Contact Dev -->
+                <div class="settings-card mt-3" onclick="contactDev()">
+                    <div class="flex items-center">
+                        <div class="icon-box bg-purple-500/20 text-purple-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="setting-label">Report a Bug</span>
                     </div>
+                    <svg class="w-5 h-5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                 </div>
             </div>
 
-            <div class="glass-panel p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">About</h3>
-                <p class="text-sm opacity-70 leading-relaxed mb-4 text-center" style="color: var(--text-muted);">
+            <!-- SECTION 3: ABOUT -->
+            <div class="glass-panel p-5 text-center">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg">
+                    <span class="text-2xl font-bold text-white">st</span>
+                </div>
+                <h3 class="text-lg font-bold text-white heading-text" style="color: var(--text-main);">ST Affichage</h3>
+                <p class="text-xs opacity-50 mb-4">Version 1.9.1 (Stable)</p>
+                
+                <p class="text-sm opacity-70 leading-relaxed px-2" style="color: var(--text-muted);">
                     This application scrapes announcements from the Univ Bejaia e-learning platform. It is an independent project made from student to students.
                 </p>
+
                 <div class="flex items-center justify-center gap-2 mt-4">
                     <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span class="text-xs text-green-500 font-mono">System Online</span>
                 </div>
+
+                <div class="mt-6 pt-4 border-t border-white/10">
+                     <p class="text-[10px] text-gray-500">Designed & Developed by</p>
+                     <p class="text-sm font-bold mt-1 heading-text" style="color: var(--text-main);">Adam Mila</p>
+                     <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
+                </div>
             </div>
             
-            <div class="text-center pt-8 pb-4">
-                <div class="inline-block bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-1 rounded mb-2">BETA 1.9.1</div>
-                <p class="text-xs text-gray-500">Designed & Developed by</p>
-                <p class="text-sm font-bold mt-1 heading-text" style="color: var(--text-main);">Adam Mila</p>
-                <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
-            </div>
+            <div class="h-8"></div>
         </div>
     </div>
 

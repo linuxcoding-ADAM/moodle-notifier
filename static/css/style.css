@@ -12,7 +12,7 @@
 }
 
 .light-mode {
-    /* "Cultured & Lavender" (Your Request) */
+    /* "Cultured & Lavender" (Adam's Choice) */
     --bg-color: #F0F1F2; 
     --text-main: #2D3142; 
     --text-muted: #5C5E70; 
@@ -111,7 +111,7 @@ body {
     letter-spacing: -0.02em;
 }
 
-/* NEW: Date "Pill" / Badge Style */
+/* Date "Pill" / Badge Style */
 .announcement-date {
     background-color: var(--date-bg);
     color: var(--date-text);
@@ -120,7 +120,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     text-align: center;
-    display: inline-block; /* Makes it a pill */
+    display: inline-block;
     padding: 4px 12px;
     border-radius: 99px;
     margin-bottom: 0.75rem;
@@ -219,6 +219,13 @@ body {
 .nav-btn.active { color: var(--accent-color); }
 .nav-btn.active svg { stroke-width: 2.5px; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)); }
 .light-mode .nav-btn.active svg { filter: drop-shadow(0 0 8px rgba(132, 135, 191, 0.4)); }
+
+/* Custom Icon Colors for Settings */
+.icon-box.bg-orange-500\/20 { background-color: rgba(249, 115, 22, 0.2); color: #fb923c; }
+.light-mode .icon-box.bg-orange-500\/20 { background-color: rgba(249, 115, 22, 0.1); color: #ea580c; }
+
+.icon-box.bg-purple-500\/20 { background-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.light-mode .icon-box.bg-purple-500\/20 { background-color: rgba(168, 85, 247, 0.1); color: #9333ea; }
 
 /* Misc */
 .glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; }
