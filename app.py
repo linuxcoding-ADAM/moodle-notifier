@@ -6,6 +6,7 @@ import hashlib
 import os
 import json
 import bleach
+from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 from bs4 import BeautifulSoup, NavigableString, Tag
 from flask_limiter import Limiter
@@ -56,7 +57,7 @@ def add_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     
     # 3. Content Security Policy (CSP)
-    # UPDATED: Added 'https://www.googletagmanager.com' to allow Google Analytics
+    # Allows: Self, Tailwind, Google Fonts, and Google Analytics
     csp_policy = (
         "default-src 'self' https:; "
         "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.googletagmanager.com; "
@@ -68,6 +69,36 @@ def add_security_headers(response):
     return response
 
 # --- HELPERS ---
+
+# Date Parsing for Sorting
+FRENCH_MONTHS = {
+    'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6,
+    'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12,
+    'jan': 1, 'fév': 2, 'mar': 3, 'avr': 4, 'mai': 5, 'jui': 6,
+    'juil': 7, 'aoû': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'déc': 12
+}
+
+def parse_date_to_timestamp(date_str):
+    """
+    Converts string like "27 Janvier 2026 à 14h34" to a timestamp number.
+    Returns 0 if no date found (so it drops to bottom of list).
+    """
+    try:
+        # Regex to find: Day, Month, Year, Hour, Minute (handles "à" or ":")
+        match = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4}).*?(\d{1,2})[h:](\d{1,2})', date_str, re.IGNORECASE)
+        
+        if match:
+            day, month_str, year, hour, minute = match.groups()
+            month = FRENCH_MONTHS.get(month_str.lower(), 1) # Default to Jan if unknown
+            
+            dt = datetime(int(year), int(month), int(day), int(hour), int(minute))
+            return dt.timestamp()
+            
+    except Exception:
+        pass
+    
+    return 0 # Default for "Général" or items with no specific date
+
 def clean_html_text(tag):
     text_parts = []
     for child in tag.children:
@@ -141,10 +172,14 @@ def scrape_task():
                 title = title_match.group(1).strip().replace(":", "")
                 body_html = body_html.replace(title_match.group(0), "", 1)
 
-            # Date Extraction
+            # Date Extraction & Sorting Logic
             date_text = "Général"
-            date_match = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:]+)', raw_text, re.IGNORECASE)
-            if date_match: date_text = date_match.group(1).strip()
+            timestamp = 0 # Default (Oldest possible)
+            
+            date_match_str = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:àh]+)', raw_text, re.IGNORECASE)
+            if date_match_str: 
+                date_text = date_match_str.group(1).strip()
+                timestamp = parse_date_to_timestamp(date_text)
 
             # Source ID
             parent_li = tag.find_parent('li', class_='activity')
@@ -159,9 +194,15 @@ def scrape_task():
                 "body": body_html,
                 "links": extract_links(tag),
                 "date": bleach.clean(date_text, tags=[], strip=True),
+                "timestamp": timestamp, # Used for sorting
                 "source": source_link
             }
             new_data.append(item)
+        
+        # --- SORTING FIX ---
+        # Sort by Timestamp Descending (Newest First)
+        # Items with "Général" (timestamp 0) will go to the bottom
+        new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         
         return new_data
 
