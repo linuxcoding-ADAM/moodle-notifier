@@ -6,7 +6,7 @@ import hashlib
 import os
 import json
 import bleach
-from flask import Flask, render_template, jsonify, request  # <--- Added 'request' here
+from flask import Flask, render_template, jsonify, request
 from bs4 import BeautifulSoup, NavigableString, Tag
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -32,6 +32,9 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
+# Get Admin Password from Railway Variables (Fallback to old one if missing)
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
+
 latest_data = []
 first_run = True
 app = Flask(__name__)
@@ -46,8 +49,22 @@ limiter = Limiter(
 
 @app.after_request
 def add_security_headers(response):
+    # 1. Prevent clickjacking
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    
+    # 2. Prevent MIME type sniffing
     response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # 3. Content Security Policy (CSP) - Controls where resources can load from
+    # Allowing: Self, Tailwind CDN, Google Fonts, and inline styles/scripts (needed for this setup)
+    csp_policy = (
+        "default-src 'self' https:; "
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; "
+        "font-src 'self' https://fonts.gstatic.com;"
+    )
+    response.headers['Content-Security-Policy'] = csp_policy
+    
     return response
 
 # --- HELPERS ---
@@ -65,8 +82,11 @@ def clean_html_text(tag):
             elif child.name == 'br': text_parts.append("\n")
             else: text_parts.append(child_text)
     
+    # Clean up structure
     full_text = "".join(text_parts)
     full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
+    
+    # Sanitize tags (Only allow basic formatting)
     return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
 
 def extract_links(tag):
@@ -114,16 +134,19 @@ def scrape_task():
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
             body_html = clean_html_text(tag)
             
+            # Title Extraction
             title = "Information"
             title_match = re.search(r'<b>(.*?)</b>', body_html)
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
                 body_html = body_html.replace(title_match.group(0), "", 1)
 
+            # Date Extraction
             date_text = "Général"
             date_match = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:]+)', raw_text, re.IGNORECASE)
             if date_match: date_text = date_match.group(1).strip()
 
+            # Source ID
             parent_li = tag.find_parent('li', class_='activity')
             source_link = AFFICHAGE_URL
             if parent_li and parent_li.get('id'):
@@ -139,6 +162,7 @@ def scrape_task():
                 "source": source_link
             }
             new_data.append(item)
+        
         return new_data
 
     except Exception as e:
@@ -151,19 +175,23 @@ def background_loop():
     print("--- Background Loop Started ---")
     while True:
         scraped_items = scrape_task()
+        
         if scraped_items:
             if not first_run and latest_data:
                 old_ids = {item['id'] for item in latest_data}
+                # Check top 5 items for new ones
                 for i in range(min(5, len(scraped_items))):
                     item = scraped_items[i]
                     if item['id'] not in old_ids:
                         print(f"🔔 NEW: {item['title']}")
                         send_fcm_notification(item['title'], "New announcement")
                         break 
+            
             latest_data = scraped_items
             first_run = False
             print(f"✅ Loaded {len(latest_data)} items.")
-        time.sleep(600)
+        
+        time.sleep(600) # 10 Minutes
 
 # --- ROUTES ---
 @app.route('/')
@@ -172,7 +200,11 @@ def index():
 
 @app.route('/api/announcements')
 def api_data():
-    return jsonify(latest_data)
+    response = jsonify(latest_data)
+    # Cache Control: Tell the browser/phone to keep this data for 60 seconds
+    # This reduces load on your server
+    response.headers['Cache-Control'] = 'public, max-age=60'
+    return response
 
 @app.route('/install')
 def install_page():
@@ -184,9 +216,11 @@ def manual_test():
     # 1. If User submits the password (POST request)
     if request.method == 'POST':
         password = request.form.get('password')
-        if password == "34362053":
+        
+        # Use the Environment Variable for comparison
+        if password == ADMIN_PASSWORD:
             try:
-                send_fcm_notification("Just A test", "This Is Just A Test.")
+                send_fcm_notification("Security Test", "Secure System Operational.")
                 return """
                 <div style="font-family: sans-serif; text-align: center; margin-top: 50px; color: green;">
                     <h1>✅ Success</h1>
