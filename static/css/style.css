@@ -231,3 +231,25 @@ body {
 .glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; }
 .loader { width: 32px; height: 32px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* NEW: Open on E-Learning Button (Slate/Gray Style) */
+.source-btn {
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    gap: 0.5rem; background: rgba(148, 163, 184, 0.1); /* Slate-400 tint */
+    padding: 14px;
+    border-radius: 16px; font-size: 0.85rem; font-weight: 700;
+    color: #94a3b8; /* Slate text */
+    margin-top: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    text-decoration: none; /* Remove underline */
+    transition: transform 0.1s;
+}
+
+.source-btn:active { transform: scale(0.97); }
+
+/* Light Mode for Source Button */
+.light-mode .source-btn {
+    background: rgba(100, 116, 139, 0.1);
+    color: #64748b;
+    border-color: rgba(100, 116, 139, 0.2);
+}

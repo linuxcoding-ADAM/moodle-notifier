@@ -6,7 +6,7 @@
    let allAnnouncements = [];
    let activeList = [];
    let displayedCount = 0;
-   const BATCH_SIZE = 15;
+   const BATCH_SIZE = 15; // Keeps the app fast by loading 15 items at a time
    let isLoading = false;
    let lastScrollTop = 0;
    let ticking = false; 
@@ -38,11 +38,9 @@
        const input = document.getElementById('search-input');
        const bottomNav = document.getElementById('bottom-nav'); 
        
-       // Show Search Bar
        bar.classList.add('search-visible');
        bottomNav.classList.add('slide-down-hidden');
 
-       // Show the Cancel Button in the Header
        const cancelBtn = document.getElementById('header-cancel-btn');
        if(cancelBtn) {
            cancelBtn.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
@@ -56,7 +54,6 @@
        document.getElementById('search-input').blur();
        document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
 
-       // Hide the Cancel Button in the Header
        const cancelBtn = document.getElementById('header-cancel-btn');
        if(cancelBtn) {
            cancelBtn.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
@@ -137,7 +134,6 @@
            let linksHtml = '';
            if (item.links && item.links.length > 0) {
                item.links.forEach(link => {
-                   // TRACKING: Download Event
                    linksHtml += `
                        <a href="${link}" target="_blank" rel="external" class="link-btn" onclick="gtag('event', 'download_file', {'file_url': '${link}'})">
                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
@@ -148,19 +144,21 @@
    
            let sourceBtn = '';
            if (item.source) {
+               // UPDATED: Now looks like a proper button box
                sourceBtn = `
-                   <div class="source-link-container">
-                       <a href="${item.source}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono text-gray-500 hover:text-blue-400 flex items-center transition-colors gap-1">
-                           OPEN ON UNIV-BEJAIA.DZ
-                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                       </a>
-                   </div>
+                   <a href="${item.source}" target="_blank" rel="external" class="source-btn">
+                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                       OPEN ON E-LEARNING
+                   </a>
                `;
            }
    
+           // Clean title for sharing (escape quotes)
+           const safeTitle = item.title.replace(/'/g, "\\'");
+           
            card.innerHTML = `
                <div class="flex flex-col items-center mb-4">
-                   <span class="announcement-date">📅 ${item.date}</span>
+                   <span class="announcement-date">${item.date}</span>
                    <h3 class="announcement-title">${item.title}</h3>
                    <div class="w-12 h-1 bg-blue-500/30 rounded-full mt-2"></div>
                </div>
@@ -169,7 +167,7 @@
                ${linksHtml}
 
                <!-- SHARE BUTTON -->
-               <button onclick="gtag('event', 'share_click', {'content_type': 'announcement'}); shareAnnouncement('${item.title.replace(/'/g, "\\'")}', '${item.date}')" class="share-btn">
+               <button onclick="gtag('event', 'share_click', {'content_type': 'announcement'}); shareAnnouncement('${safeTitle}', '${item.date}')" class="share-btn">
                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                    SHARE INFO
                </button>
@@ -188,17 +186,18 @@
        }
    }
 
+   // UPDATED: Native Share Logic
    function shareAnnouncement(title, date) {
-        const shareData = {
-            title: 'ST Affichage',
-            text: `📅 ${date}\n📢 ${title}\n\nRead more on ST Affichage app.`
-        };
-
         if (navigator.share) {
-            navigator.share(shareData).catch(err => console.log('Share closed'));
+            navigator.share({
+                title: 'ST Affichage',
+                text: `📅 *${date}*\n\n📢 *${title}*\n\n📲 View on ST Affichage App`
+            }).catch(err => console.log('Share closed'));
         } else {
-            navigator.clipboard.writeText(shareData.text);
-            alert("Information copied to clipboard!");
+            // Fallback for non-supported devices
+            const text = `📅 ${date}\n📢 ${title}`;
+            navigator.clipboard.writeText(text);
+            alert("Copied to clipboard!");
         }
     }
    
@@ -218,12 +217,10 @@
        const header = document.getElementById('main-header');
        const searchBar = document.getElementById('search-bar-container');
    
-       // FIXED LOGIC: Hide search bar on scroll, but keep Cancel Button
        if (currentScroll > 10 && searchBar.classList.contains('search-visible')) {
            searchBar.classList.remove('search-visible');
            document.getElementById('search-input').blur();
            document.getElementById('bottom-nav').classList.remove('slide-down-hidden');
-           // We do NOT hide the #header-cancel-btn here.
        }
    
        if (currentScroll > lastScrollTop && currentScroll > 50) {
@@ -267,11 +264,9 @@
        isLight ? switchEl.classList.add('active') : switchEl.classList.remove('active');
    }
 
-   // NEW: Settings Tools
    function hardReloadApp() {
        const btn = event.currentTarget;
        btn.style.opacity = '0.5';
-       // Force reload from server
        setTimeout(() => {
            window.location.reload(true);
        }, 300);
