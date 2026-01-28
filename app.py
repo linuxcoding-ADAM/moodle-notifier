@@ -67,19 +67,37 @@ FRENCH_MONTHS = {
     'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6,
     'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12,
     'jan': 1, 'fév': 2, 'mar': 3, 'avr': 4, 'mai': 5, 'jui': 6,
-    'juil': 7, 'aoû': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'déc': 12
+    'juil': 7, 'aoû': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'déc': 12,
+    'janv': 1 
 }
 
 def parse_date_to_timestamp(date_str):
+    """
+    Parses date with or without time. 
+    1. Tries "27 Janvier 2026 14h30"
+    2. Tries "27 Janvier 2026"
+    """
     try:
+        # Pattern 1: Date + Time (digits + month + year + time)
         match = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4}).*?(\d{1,2})[h:](\d{1,2})', date_str, re.IGNORECASE)
         if match:
             day, month_str, year, hour, minute = match.groups()
             month = FRENCH_MONTHS.get(month_str.lower(), 1)
             dt = datetime(int(year), int(month), int(day), int(hour), int(minute))
             return dt.timestamp()
+
+        # Pattern 2: Date Only (digits + month + year) - Fix for missing announcements!
+        match_date = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4})', date_str, re.IGNORECASE)
+        if match_date:
+            day, month_str, year = match_date.groups()
+            month = FRENCH_MONTHS.get(month_str.lower(), 1)
+            # Default to 8:00 AM if no time specified, so it stays on top for that day
+            dt = datetime(int(year), int(month), int(day), 8, 0)
+            return dt.timestamp()
+            
     except Exception:
         pass
+    
     return 0 
 
 def clean_html_text(tag):
@@ -128,7 +146,7 @@ def send_fcm_notification(title, body_preview):
     except Exception as e:
         print(f"❌ FCM Error: {e}")
 
-# --- SCRAPER LOGIC (FIXED) ---
+# --- SCRAPER LOGIC ---
 def scrape_task():
     try:
         print("Checking for updates...")
@@ -138,30 +156,21 @@ def scrape_task():
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 1. Select the Label Activities
+        # Select all Labels
         cards = soup.select('li.activity.modtype_label')
         
         new_data = []
         for tag in cards:
-            # --- CRITICAL FIX: DELETE GARBAGE ---
-            # Remove Moodle's hidden screen-reader text (e.g. "Select activity...", "(copie)")
+            # 1. DELETE GARBAGE (Hidden Moodle Text)
             for junk in tag.select('.accesshide, .sr-only, .hidden, [aria-hidden="true"]'):
                 junk.decompose() 
 
-            # 2. Focus on the actual content div inside the label
-            # Moodle puts the real text inside '.contentwithoutlink' or '.no-overflow'
-            content_div = tag.select_one('.contentwithoutlink')
-            if not content_div:
-                content_div = tag.select_one('.no-overflow')
+            # 2. Find content container
+            content_div = tag.select_one('.contentwithoutlink') or tag.select_one('.no-overflow') or tag
             
-            # If we still can't find a specific content div, use the tag itself,
-            # but we've already cleaned the garbage out of it above.
-            if not content_div:
-                content_div = tag
-
             raw_text = content_div.get_text(" ", strip=True)
 
-            # Skip if empty or just whitespace
+            # Skip empty noise
             if len(raw_text) < 3:
                 continue
 
@@ -170,23 +179,33 @@ def scrape_task():
             
             # Title Extraction
             title = "Information"
-            # Try to grab the first bold text as the title
             title_match = re.search(r'<b>(.*?)</b>', body_html)
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
 
-            # Date Extraction
+            # --- DATE EXTRACTION LOGIC (IMPROVED) ---
             date_text = "Général"
             timestamp = 0 
             
-            clean_body_html = re.sub(r'Affiché le\s*[:]?\s*[0-9/\-\w\s:àh]+', '', body_html, flags=re.IGNORECASE)
-
+            # Step A: Look for "Affiché le" prefix
             date_match_str = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:àh]+)', raw_text, re.IGNORECASE)
+            
             if date_match_str: 
                 date_text = date_match_str.group(1).strip()
                 timestamp = parse_date_to_timestamp(date_text)
+            
+            # Step B: Fallback - If parsing failed or no prefix, search for ANY date pattern in the text
+            if timestamp == 0:
+                # Look for "DD Month YYYY" anywhere in text
+                fallback_match = re.search(r'(\d{1,2}\s+[a-zA-Zéû]+\s+\d{4})', raw_text, re.IGNORECASE)
+                if fallback_match:
+                    date_text = fallback_match.group(1).strip()
+                    timestamp = parse_date_to_timestamp(date_text)
 
-            # Source ID
+            # Remove the date string from body to avoid duplicates
+            clean_body_html = re.sub(r'Affiché le\s*[:]?\s*[0-9/\-\w\s:àh]+', '', body_html, flags=re.IGNORECASE)
+
+            # Source Link
             source_link = AFFICHAGE_URL
             if tag.get('id'):
                 safe_id = re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))
@@ -203,7 +222,7 @@ def scrape_task():
             }
             new_data.append(item)
         
-        # Sort by Timestamp Descending (Newest First)
+        # Sort by Timestamp Descending
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         
         return new_data
@@ -234,7 +253,7 @@ def background_loop():
             first_run = False
             print(f"✅ Loaded {len(latest_data)} items.")
         
-        time.sleep(600) # 10 Minutes
+        time.sleep(600) 
 
 # --- ROUTES ---
 @app.route('/')
