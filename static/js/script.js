@@ -127,7 +127,7 @@
        const nextBatch = activeList.slice(displayedCount, displayedCount + BATCH_SIZE);
        const fragment = document.createDocumentFragment();
    
-       nextBatch.forEach((item, index) => {
+       nextBatch.forEach((item) => {
            const card = document.createElement('div');
            card.className = 'glass-card';
    
@@ -144,7 +144,6 @@
    
            let sourceBtn = '';
            if (item.source) {
-               // UPDATED: Now looks like a proper button box
                sourceBtn = `
                    <a href="${item.source}" target="_blank" rel="external" class="source-btn">
                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -153,9 +152,7 @@
                `;
            }
    
-           // Clean title for sharing (escape quotes)
-           const safeTitle = item.title.replace(/'/g, "\\'");
-           
+           // UPDATED: Use ID for sharing to grab full content
            card.innerHTML = `
                <div class="flex flex-col items-center mb-4">
                    <span class="announcement-date">${item.date}</span>
@@ -166,8 +163,8 @@
                
                ${linksHtml}
 
-               <!-- SHARE BUTTON -->
-               <button onclick="gtag('event', 'share_click', {'content_type': 'announcement'}); shareAnnouncement('${safeTitle}', '${item.date}')" class="share-btn">
+               <!-- SHARE BUTTON UPDATED -->
+               <button onclick="triggerShare('${item.id}')" class="share-btn">
                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                    SHARE INFO
                </button>
@@ -186,20 +183,56 @@
        }
    }
 
-   // UPDATED: Native Share Logic
-   function shareAnnouncement(title, date) {
-        if (navigator.share) {
-            navigator.share({
-                title: 'ST Affichage',
-                text: `📅 *${date}*\n\n📢 *${title}*\n\n📲 View on ST Affichage App`
-            }).catch(err => console.log('Share closed'));
-        } else {
-            // Fallback for non-supported devices
-            const text = `📅 ${date}\n📢 ${title}`;
-            navigator.clipboard.writeText(text);
-            alert("Copied to clipboard!");
-        }
-    }
+   // --- UPDATED SHARE LOGIC ---
+   function triggerShare(id) {
+       // Find the specific item from our data list
+       const item = activeList.find(i => i.id === id);
+       if (!item) return;
+
+       // 1. Convert HTML body to plain text
+       const tempDiv = document.createElement("div");
+       tempDiv.innerHTML = item.body;
+       let plainBody = tempDiv.innerText || tempDiv.textContent || "";
+       
+       // Clean up excessive newlines
+       plainBody = plainBody.replace(/\n\s*\n/g, '\n').trim();
+
+       // 2. Prepare Links
+       let linksText = "";
+       if(item.links && item.links.length > 0) {
+           linksText = "\n\n🔗 Attachments:\n" + item.links.join("\n");
+       }
+
+       // 3. Construct the full message
+       const shareText = `📅 *${item.date}*\n\n📢 *${item.title}*\n\n${plainBody}${linksText}\n\n📲 via ST Affichage App`;
+
+       // 4. Send Analytics
+       if(typeof gtag !== 'undefined') {
+           gtag('event', 'share_click', {'content_type': 'announcement'});
+       }
+
+       // 5. Try Native Share, Fallback to Clipboard (for APK)
+       if (navigator.share) {
+           navigator.share({
+               title: item.title,
+               text: shareText
+           }).catch(err => {
+               // Fallback if user cancels or API fails
+               copyToClipboard(shareText);
+           });
+       } else {
+           // APK WebView usually goes here
+           copyToClipboard(shareText);
+       }
+   }
+
+   function copyToClipboard(text) {
+       navigator.clipboard.writeText(text).then(() => {
+           alert("Announcement copied! You can now paste it.");
+       }).catch(err => {
+           console.error('Clipboard failed', err);
+       });
+   }
    
    // --- OPTIMIZED SCROLL HANDLER ---
    function onScroll() {

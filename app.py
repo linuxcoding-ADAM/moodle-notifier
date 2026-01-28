@@ -157,25 +157,45 @@ def scrape_task():
         response = session.get(AFFICHAGE_URL, timeout=30)
         
         soup = BeautifulSoup(response.text, 'html.parser')
-        cards = soup.select('li.activity.modtype_label .activity-altcontent')
+        
+        # FIX: Broad selector to catch all labels, not just 'activity-altcontent'
+        cards = soup.select('li.activity.modtype_label > div')
         
         new_data = []
         for tag in cards:
-            raw_text = tag.get_text(" ", strip=True)
+            # Skip if it's just a section wrapper (mod-indent-outer) unless it has content
+            # If it's the wrapper, we look inside for the content div
+            if 'mod-indent-outer' in tag.get('class', []):
+                 # Try to find the inner content div
+                 content_div = tag.select_one('.contentwithoutlink') or tag.select_one('.no-overflow') or tag
+            else:
+                 content_div = tag
+            
+            raw_text = content_div.get_text(" ", strip=True)
+            
+            # Filter out very short/empty elements (noise)
+            if len(raw_text) < 3:
+                continue
+
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
-            body_html = clean_html_text(tag)
+            body_html = clean_html_text(content_div)
             
             # Title Extraction
             title = "Information"
+            # Try to grab the first bold text as the title
             title_match = re.search(r'<b>(.*?)</b>', body_html)
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
-                body_html = body_html.replace(title_match.group(0), "", 1)
+                # Optional: Remove title from body to avoid duplication
+                # body_html = body_html.replace(title_match.group(0), "", 1)
 
             # Date Extraction & Sorting Logic
             date_text = "Général"
             timestamp = 0 # Default (Oldest possible)
             
+            # Clean "Affiché le" from the body so it doesn't look repetitive
+            clean_body_html = re.sub(r'Affiché le\s*[:]?\s*[0-9/\-\w\s:àh]+', '', body_html, flags=re.IGNORECASE)
+
             date_match_str = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:àh]+)', raw_text, re.IGNORECASE)
             if date_match_str: 
                 date_text = date_match_str.group(1).strip()
@@ -191,17 +211,15 @@ def scrape_task():
             item = {
                 "id": unique_id,
                 "title": bleach.clean(title, tags=[], strip=True),
-                "body": body_html,
-                "links": extract_links(tag),
+                "body": clean_body_html,
+                "links": extract_links(content_div),
                 "date": bleach.clean(date_text, tags=[], strip=True),
                 "timestamp": timestamp, # Used for sorting
                 "source": source_link
             }
             new_data.append(item)
         
-        # --- SORTING FIX ---
         # Sort by Timestamp Descending (Newest First)
-        # Items with "Général" (timestamp 0) will go to the bottom
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         
         return new_data
