@@ -273,5 +273,5 @@
    }
 
    function contactDev() {
-       window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report";
+       window.location.href = "mailto:adammila92592@gmail.com?subject=ST%20Affichage%20Bug%20Report";
    }
