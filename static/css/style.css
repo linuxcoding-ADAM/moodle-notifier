@@ -18,7 +18,7 @@
     --text-main: #2E3244; 
     --text-muted: #6B7280; 
     
-    /* Cards: White with slight transparency to let wave show through faintly */
+    /* Cards: White with transparency */
     --card-bg: rgba(255, 255, 255, 0.95);
     --card-border: rgba(132, 135, 191, 0.3); 
     
@@ -33,7 +33,6 @@
     --date-text: #6366F1; 
 
     /* ANIMATED WAVE SVG */
-    /* This creates a repeating Lavender wave pattern */
     --wave-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z' fill='%237C83FD' fill-opacity='0.15'/%3E%3C/svg%3E");
 }
 
@@ -60,16 +59,14 @@ body {
     background-image: var(--wave-image);
     background-repeat: repeat-x;
     background-position: 0 100%; /* Bottom alignment */
-    background-size: 200% 150px; /* Stretch width to allow movement */
-    /* Animation: Name | Duration | Timing | Infinite */
+    background-size: 200% 150px; 
     animation: waveFlow 25s linear infinite;
     will-change: background-position;
 }
 
-/* Keyframes for the moving wave */
 @keyframes waveFlow {
     0% { background-position-x: 0px; }
-    100% { background-position-x: 200%; } /* Move horizontally */
+    100% { background-position-x: 200%; }
 }
 
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -101,25 +98,27 @@ body {
     margin-bottom: 1.25rem; 
     opacity: 0; 
     transform: translateY(10px); 
+    /* Base Animation: Fade In */
     animation: fadeInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
     will-change: transform, opacity; 
     position: relative; 
     overflow: hidden; 
 }
 
-/* Light Mode Card - Animated Waves! */
+/* Light Mode Card - FIX APPLIED HERE */
 .light-mode .glass-card { 
     box-shadow: 0 8px 25px -5px rgba(124, 131, 253, 0.15); 
     border-color: rgba(255,255,255,1); 
     
-    /* Card Wave Settings */
     background-image: var(--wave-image);
     background-repeat: repeat-x;
-    background-position: 0 110%; /* Slightly lower than text */
-    background-size: 200% 80px; /* Smaller waves for cards */
+    background-position: 0 110%;
+    background-size: 200% 80px;
     
-    /* Animation: Slower and reverse direction for contrast */
-    animation: waveFlowCard 30s linear infinite reverse;
+    /* FIX: Combine BOTH animations (FadeIn + WaveFlow) */
+    animation: 
+        fadeInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, 
+        waveFlowCard 30s linear infinite reverse;
 }
 
 @keyframes waveFlowCard {
