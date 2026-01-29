@@ -9,34 +9,32 @@
     --accent-color: #3b82f6;
     --date-bg: rgba(52, 211, 153, 0.1);
     --date-text: #34d399;
-    --bg-image: none; /* No waves in dark mode */
+    --wave-image: none; /* No waves in dark mode */
 }
 
 .light-mode {
-    /* White Smoke Background */
+    /* White Smoke & Lavender Theme */
     --bg-color: #F4F6F8; 
-    
-    /* Text Colors */
     --text-main: #2E3244; 
     --text-muted: #6B7280; 
     
-    /* Cards */
-    --card-bg: #FFFFFF;
+    /* Cards: White with slight transparency to let wave show through faintly */
+    --card-bg: rgba(255, 255, 255, 0.95);
     --card-border: rgba(132, 135, 191, 0.3); 
     
     /* Nav */
-    --nav-bg: rgba(244, 246, 248, 0.85); /* Slightly more transparent to see the wave */
+    --nav-bg: rgba(244, 246, 248, 0.85);
     
-    /* Accent: Lavender Blue */
+    /* Accent */
     --accent-color: #7C83FD; 
     
     /* Date Pill */
     --date-bg: rgba(124, 131, 253, 0.15);
     --date-text: #6366F1; 
 
-    /* THE WAVE EFFECT */
-    /* This is an encoded SVG Wave in Lavender Blue with 15% Opacity */
-    --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%237C83FD' fill-opacity='0.12' d='M0,128L48,138.7C96,149,192,171,288,165.3C384,160,480,128,576,122.7C672,117,768,139,864,160C960,181,1056,203,1152,197.3C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+    /* ANIMATED WAVE SVG */
+    /* This creates a repeating Lavender wave pattern */
+    --wave-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z' fill='%237C83FD' fill-opacity='0.15'/%3E%3C/svg%3E");
 }
 
 /* FIX: Hide Scrollbar */
@@ -51,19 +49,27 @@ html {
 
 body { 
     background-color: var(--bg-color); 
-    /* Apply the Wave */
-    background-image: var(--bg-image);
-    background-repeat: no-repeat;
-    background-position: bottom;
-    background-size: cover;
-    background-attachment: fixed; /* Keep wave at bottom while scrolling */
-    
     color: var(--text-main); 
     font-family: 'Inter', sans-serif; 
     -webkit-tap-highlight-color: transparent; 
     overflow-x: hidden; 
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease; 
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    /* WAVE ANIMATION FOR BODY */
+    background-image: var(--wave-image);
+    background-repeat: repeat-x;
+    background-position: 0 100%; /* Bottom alignment */
+    background-size: 200% 150px; /* Stretch width to allow movement */
+    /* Animation: Name | Duration | Timing | Infinite */
+    animation: waveFlow 25s linear infinite;
+    will-change: background-position;
+}
+
+/* Keyframes for the moving wave */
+@keyframes waveFlow {
+    0% { background-position-x: 0px; }
+    100% { background-position-x: 200%; } /* Move horizontally */
 }
 
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -86,12 +92,39 @@ body {
 .slide-down-hidden { transform: translateY(150%); }
 
 /* Cards */
-.glass-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 1.75rem 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1.25rem; opacity: 0; transform: translateY(10px); animation: fadeInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; will-change: transform, opacity; position: relative; overflow: hidden; }
+.glass-card { 
+    background: var(--card-bg); 
+    border: 1px solid var(--card-border); 
+    border-radius: 24px; 
+    padding: 1.75rem 1.5rem; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+    margin-bottom: 1.25rem; 
+    opacity: 0; 
+    transform: translateY(10px); 
+    animation: fadeInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+    will-change: transform, opacity; 
+    position: relative; 
+    overflow: hidden; 
+}
 
-/* Light Mode Card Shadow - Lavender Tinted */
+/* Light Mode Card - Animated Waves! */
 .light-mode .glass-card { 
     box-shadow: 0 8px 25px -5px rgba(124, 131, 253, 0.15); 
     border-color: rgba(255,255,255,1); 
+    
+    /* Card Wave Settings */
+    background-image: var(--wave-image);
+    background-repeat: repeat-x;
+    background-position: 0 110%; /* Slightly lower than text */
+    background-size: 200% 80px; /* Smaller waves for cards */
+    
+    /* Animation: Slower and reverse direction for contrast */
+    animation: waveFlowCard 30s linear infinite reverse;
+}
+
+@keyframes waveFlowCard {
+    0% { background-position-x: 0px; }
+    100% { background-position-x: 200%; }
 }
 
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
