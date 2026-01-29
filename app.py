@@ -33,7 +33,6 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
-# Get Admin Password from Railway Variables
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
 
 latest_data = []
@@ -62,45 +61,27 @@ def add_security_headers(response):
     return response
 
 # --- HELPERS ---
-
 FRENCH_MONTHS = {
     'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6,
     'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12,
     'jan': 1, 'fév': 2, 'mar': 3, 'avr': 4, 'mai': 5, 'jui': 6,
-    'juil': 7, 'aoû': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'déc': 12,
-    'janv': 1 
+    'juil': 7, 'aoû': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'déc': 12
 }
 
 def parse_date_to_timestamp(date_str):
-    """
-    Parses date with or without time. 
-    1. Tries "27 Janvier 2026 14h30"
-    2. Tries "27 Janvier 2026"
-    """
     try:
-        # Pattern 1: Date + Time (digits + month + year + time)
         match = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4}).*?(\d{1,2})[h:](\d{1,2})', date_str, re.IGNORECASE)
         if match:
             day, month_str, year, hour, minute = match.groups()
             month = FRENCH_MONTHS.get(month_str.lower(), 1)
             dt = datetime(int(year), int(month), int(day), int(hour), int(minute))
             return dt.timestamp()
-
-        # Pattern 2: Date Only (digits + month + year) - Fix for missing announcements!
-        match_date = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4})', date_str, re.IGNORECASE)
-        if match_date:
-            day, month_str, year = match_date.groups()
-            month = FRENCH_MONTHS.get(month_str.lower(), 1)
-            # Default to 8:00 AM if no time specified, so it stays on top for that day
-            dt = datetime(int(year), int(month), int(day), 8, 0)
-            return dt.timestamp()
-            
     except Exception:
         pass
-    
-    return 0 
+    return 0
 
 def clean_html_text(tag):
+    if not tag: return ""
     text_parts = []
     for child in tag.children:
         if isinstance(child, NavigableString): 
@@ -113,7 +94,6 @@ def clean_html_text(tag):
             elif child.name in ['p', 'div', 'li']: text_parts.append(f"\n{child_text}\n")
             elif child.name == 'br': text_parts.append("\n")
             else: text_parts.append(child_text)
-    
     full_text = "".join(text_parts)
     full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
     return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
@@ -146,7 +126,7 @@ def send_fcm_notification(title, body_preview):
     except Exception as e:
         print(f"❌ FCM Error: {e}")
 
-# --- SCRAPER LOGIC ---
+# --- SCRAPER LOGIC (AGGRESSIVE MODE) ---
 def scrape_task():
     try:
         print("Checking for updates...")
@@ -156,56 +136,67 @@ def scrape_task():
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Select all Labels
-        cards = soup.select('li.activity.modtype_label')
+        # Select ALL activities, ignoring the 'News Forum' which is usually system junk
+        cards = soup.select('li.activity:not(.modtype_forum)')
         
         new_data = []
         for tag in cards:
-            # 1. DELETE GARBAGE (Hidden Moodle Text)
-            for junk in tag.select('.accesshide, .sr-only, .hidden, [aria-hidden="true"]'):
-                junk.decompose() 
-
-            # 2. Find content container
-            content_div = tag.select_one('.contentwithoutlink') or tag.select_one('.no-overflow') or tag
-            
-            raw_text = content_div.get_text(" ", strip=True)
-
-            # Skip empty noise
-            if len(raw_text) < 3:
-                continue
+            # 1. Base Extraction
+            raw_text = tag.get_text(" ", strip=True)
+            if not raw_text: continue # Skip completely empty tags
 
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
-            body_html = clean_html_text(content_div)
             
-            # Title Extraction
+            # 2. Identify the "Body" content
+            # Try finding the text box first
+            content_div = tag.select_one('.activity-altcontent, .contentwithoutlink, .no-overflow')
+            
+            body_html = ""
+            is_file = False
+            
+            if content_div:
+                body_html = clean_html_text(content_div)
+            else:
+                # If no text box, check if it's a File/Resource
+                instancename = tag.select_one('.instancename')
+                if instancename:
+                    # It's likely a file link
+                    body_html = f"Document: {instancename.get_text(strip=True)}"
+                    is_file = True
+
+            # 3. Title Extraction
             title = "Information"
             title_match = re.search(r'<b>(.*?)</b>', body_html)
+            
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
+                body_html = body_html.replace(title_match.group(0), "", 1) # Remove title from body
+            elif is_file:
+                 # If it's a file, the title is usually the first line or the link name
+                 title = "Fichier / Ressource"
+                 if tag.select_one('.instancename'):
+                     title = tag.select_one('.instancename').get_text(strip=True).replace(" Fichier", "")
 
-            # --- DATE EXTRACTION LOGIC (IMPROVED) ---
+            # 4. Date Extraction
             date_text = "Général"
             timestamp = 0 
-            
-            # Step A: Look for "Affiché le" prefix
             date_match_str = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:àh]+)', raw_text, re.IGNORECASE)
-            
             if date_match_str: 
                 date_text = date_match_str.group(1).strip()
                 timestamp = parse_date_to_timestamp(date_text)
+
+            # 5. Link Extraction
+            links = extract_links(tag)
             
-            # Step B: Fallback - If parsing failed or no prefix, search for ANY date pattern in the text
-            if timestamp == 0:
-                # Look for "DD Month YYYY" anywhere in text
-                fallback_match = re.search(r'(\d{1,2}\s+[a-zA-Zéû]+\s+\d{4})', raw_text, re.IGNORECASE)
-                if fallback_match:
-                    date_text = fallback_match.group(1).strip()
-                    timestamp = parse_date_to_timestamp(date_text)
+            # Special check: If it's a Resource (PDF), the main click is the link
+            if is_file or 'modtype_resource' in tag.get('class', []):
+                main_a = tag.select_one('a')
+                if main_a and main_a.get('href'):
+                    full_href = main_a.get('href')
+                    if full_href not in links:
+                        links.insert(0, full_href) # Put main download link first
 
-            # Remove the date string from body to avoid duplicates
-            clean_body_html = re.sub(r'Affiché le\s*[:]?\s*[0-9/\-\w\s:àh]+', '', body_html, flags=re.IGNORECASE)
-
-            # Source Link
+            # 6. Source ID
             source_link = AFFICHAGE_URL
             if tag.get('id'):
                 safe_id = re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))
@@ -214,15 +205,15 @@ def scrape_task():
             item = {
                 "id": unique_id,
                 "title": bleach.clean(title, tags=[], strip=True),
-                "body": clean_body_html,
-                "links": extract_links(content_div),
+                "body": body_html,
+                "links": links,
                 "date": bleach.clean(date_text, tags=[], strip=True),
                 "timestamp": timestamp,
                 "source": source_link
             }
             new_data.append(item)
         
-        # Sort by Timestamp Descending
+        # Sort: Newest dates first. Items with timestamp 0 (no date) go to bottom.
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         
         return new_data
@@ -237,23 +228,19 @@ def background_loop():
     print("--- Background Loop Started ---")
     while True:
         scraped_items = scrape_task()
-        
         if scraped_items:
             if not first_run and latest_data:
                 old_ids = {item['id'] for item in latest_data}
-                # Check top 5 items for new ones
                 for i in range(min(5, len(scraped_items))):
                     item = scraped_items[i]
                     if item['id'] not in old_ids:
                         print(f"🔔 NEW: {item['title']}")
                         send_fcm_notification(item['title'], "New announcement")
                         break 
-            
             latest_data = scraped_items
             first_run = False
             print(f"✅ Loaded {len(latest_data)} items.")
-        
-        time.sleep(600) 
+        time.sleep(600)
 
 # --- ROUTES ---
 @app.route('/')
@@ -282,21 +269,18 @@ def manual_test():
         if password == ADMIN_PASSWORD:
             try:
                 send_fcm_notification("Security Test", "Secure System Operational.")
-                return "<h1>Success</h1><p>Notification Sent</p>"
+                return "<h1>✅ Success</h1><p>Secure Notification Sent!</p>"
             except Exception as e:
                 return f"<h1>Error</h1><p>{str(e)}</p>"
         else:
-            return "<h1>Access Denied</h1>"
-    
+            return "<h1>❌ Access Denied</h1>"
     return """
     <form method="POST">
-        <h2>Admin</h2>
-        <input type="password" name="password" required>
-        <button type="submit">Send</button>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">SEND</button>
     </form>
     """
 
-# --- ENTRY POINT ---
 threading.Thread(target=background_loop, daemon=True).start()
 
 if __name__ == '__main__':

@@ -1,18 +1,18 @@
 :root {
-    /* Dark Theme (Deep & Premium) */
+    /* Dark Theme */
     --bg-color: #0B1121;
     --text-main: #ffffff;
-    --text-muted: #94a3b8; /* Slightly lighter for better contrast */
-    --card-bg: rgba(30, 41, 59, 0.6); /* More transparency */
+    --text-muted: #94a3b8;
+    --card-bg: rgba(30, 41, 59, 0.6);
     --card-border: rgba(255, 255, 255, 0.08);
-    --nav-bg: rgba(11, 17, 33, 0.85); /* Darker blur */
+    --nav-bg: rgba(11, 17, 33, 0.85);
     --accent-color: #3b82f6;
     --date-bg: rgba(52, 211, 153, 0.1);
     --date-text: #34d399;
 }
 
 .light-mode {
-    /* "Cultured & Lavender" (Adam's Choice) */
+    /* Lavender/Cultured Theme */
     --bg-color: #F0F1F2; 
     --text-main: #2D3142; 
     --text-muted: #5C5E70; 
@@ -24,232 +24,62 @@
     --date-text: #6A6D9E; 
 }
 
-/* FIX: Hide Scrollbar (Crucial for APK feel) */
-::-webkit-scrollbar {
-    display: none;
-}
-* {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
 
-html {
-    background-color: var(--bg-color);
-    transition: background-color 0.3s ease;
-}
-
-body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Inter', sans-serif;
-    -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
+html { background-color: var(--bg-color); transition: background-color 0.3s ease; }
+body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-/* Sticky Elements with stronger blur */
-.header-glass {
-    background: var(--nav-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--card-border);
-}
+.header-glass, .glass-nav { background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--card-border); }
+.glass-nav { border: 1px solid var(--card-border); box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
 
-.glass-nav {
-    background: var(--nav-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.1); /* Floating effect */
-}
-
-/* SEARCH VISIBILITY */
-.search-visible {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-}
-
+.search-visible { transform: translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
 .slide-up-hidden { transform: translateY(-100%); }
 .slide-down-hidden { transform: translateY(150%); }
 
-/* CARDS - Premium Glass Effect */
-.glass-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 24px; /* More rounded = more modern */
-    padding: 1.75rem 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1.25rem;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    will-change: transform, opacity;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Light Mode Card Shadow - Soft & Airy */
-.light-mode .glass-card {
-    box-shadow: 0 10px 30px -5px rgba(132, 135, 191, 0.15);
-    border-color: rgba(255,255,255,0.8);
-}
-
+.glass-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 1.75rem 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1.25rem; opacity: 0; transform: translateY(10px); animation: fadeInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; will-change: transform, opacity; position: relative; overflow: hidden; }
+.light-mode .glass-card { box-shadow: 0 10px 30px -5px rgba(132, 135, 191, 0.15); border-color: rgba(255,255,255,0.8); }
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-/* Typography */
-.announcement-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--text-main);
-    text-align: center; 
-    line-height: 1.35;
-    margin-bottom: 1rem;
-    letter-spacing: -0.02em;
-}
+.announcement-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--text-main); text-align: center; line-height: 1.35; margin-bottom: 1rem; letter-spacing: -0.02em; }
+.announcement-date { background-color: var(--date-bg); color: var(--date-text); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; display: inline-block; padding: 4px 12px; border-radius: 99px; margin-bottom: 0.75rem; }
+.announcement-body { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; text-align: center; white-space: pre-line; font-weight: 500; padding: 0 4px; }
+.announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 700; }
 
-/* Date "Pill" / Badge Style */
-.announcement-date {
-    background-color: var(--date-bg);
-    color: var(--date-text);
-    font-weight: 700;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    text-align: center;
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 99px;
-    margin-bottom: 0.75rem;
-}
-
-.announcement-body {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    line-height: 1.7; /* Better readability */
-    text-align: center; 
-    white-space: pre-line;
-    font-weight: 500;
-    padding: 0 4px; 
-}
-
-.announcement-body b, .announcement-body strong {
-    color: var(--text-main);
-    font-weight: 700;
-}
-
-/* Buttons */
-.link-btn {
-    display: flex; align-items: center; justify-content: center; width: 100%;
-    gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 14px;
-    border-radius: 16px; font-size: 0.85rem; font-weight: 700;
-    color: var(--accent-color); margin-top: 1.5rem;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    transition: transform 0.1s, background-color 0.2s;
-}
-
-.light-mode .link-btn {
-    background: rgba(132, 135, 191, 0.1);
-    color: #8487BF;
-    border-color: rgba(132, 135, 191, 0.3);
-}
-
+.link-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: rgba(59, 130, 246, 0.1); padding: 14px; border-radius: 16px; font-size: 0.85rem; font-weight: 700; color: var(--accent-color); margin-top: 1.5rem; border: 1px solid rgba(59, 130, 246, 0.2); transition: transform 0.1s, background-color 0.2s; }
+.light-mode .link-btn { background: rgba(132, 135, 191, 0.1); color: #8487BF; border-color: rgba(132, 135, 191, 0.3); }
 .link-btn:active { transform: scale(0.97); }
 
-/* Share Button */
-.share-btn {
-    display: flex; align-items: center; justify-content: center; width: 100%;
-    gap: 0.5rem; background: rgba(34, 197, 94, 0.1); padding: 14px;
-    border-radius: 16px; font-size: 0.85rem; font-weight: 700;
-    color: #22c55e; margin-top: 0.75rem;
-    border: 1px solid rgba(34, 197, 94, 0.2);
-    transition: transform 0.1s;
-}
-.share-btn:active { transform: scale(0.97); }
-
+.source-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: rgba(148, 163, 184, 0.1); padding: 14px; border-radius: 16px; font-size: 0.85rem; font-weight: 700; color: #94a3b8; margin-top: 0.75rem; border: 1px solid rgba(148, 163, 184, 0.2); text-decoration: none; transition: transform 0.1s; }
+.source-btn:active { transform: scale(0.97); }
+.light-mode .source-btn { background: rgba(100, 116, 139, 0.1); color: #64748b; border-color: rgba(100, 116, 139, 0.2); }
 .source-link-container { display: flex; justify-content: center; margin-top: 1.25rem; width: 100%; }
 
-/* Settings */
-.settings-card {
-    background-color: var(--card-bg);
-    border-radius: 20px; padding: 0 16px;
-    border: 1px solid var(--card-border);
-    display: flex; justify-content: space-between; align-items: center;
-    height: 76px; cursor: pointer;
-    transition: transform 0.2s ease;
-}
+.settings-card { background-color: var(--card-bg); border-radius: 20px; padding: 0 16px; border: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; height: 76px; cursor: pointer; transition: transform 0.2s ease; }
 .settings-card:active { transform: scale(0.98); }
+.light-mode .settings-card { background-color: #FFFFFF; border-color: rgba(132, 135, 191, 0.2); box-shadow: 0 8px 20px rgba(132, 135, 191, 0.08); }
 
-.light-mode .settings-card { 
-    background-color: #FFFFFF; 
-    border-color: rgba(132, 135, 191, 0.2); 
-    box-shadow: 0 8px 20px rgba(132, 135, 191, 0.08);
-}
-
-.icon-box {
-    width: 44px; height: 44px; background-color: #1e293b; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center; margin-right: 16px; color: white;
-}
+.icon-box { width: 44px; height: 44px; background-color: #1e293b; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 16px; color: white; }
 .light-mode .icon-box { background-color: #8487BF; }
-
 .setting-label { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
 
-/* Switch */
-.toggle-switch {
-    width: 52px; height: 30px; background-color: #334155; border-radius: 99px;
-    position: relative; transition: background-color 0.3s ease;
-}
+.toggle-switch { width: 52px; height: 30px; background-color: #334155; border-radius: 99px; position: relative; transition: background-color 0.3s ease; }
 .toggle-switch.active { background-color: var(--accent-color); }
-
 .light-mode .toggle-switch { background-color: #D1D5DB; }
 .light-mode .toggle-switch.active { background-color: #8487BF; }
-
-.toggle-dot {
-    width: 26px; height: 26px; background-color: white; border-radius: 50%;
-    position: absolute; top: 2px; left: 2px;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy effect */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+.toggle-dot { width: 26px; height: 26px; background-color: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 .toggle-switch.active .toggle-dot { transform: translateX(22px); }
 
-/* Nav */
 .nav-btn.active { color: var(--accent-color); }
 .nav-btn.active svg { stroke-width: 2.5px; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)); }
 .light-mode .nav-btn.active svg { filter: drop-shadow(0 0 8px rgba(132, 135, 191, 0.4)); }
 
-/* Custom Icon Colors for Settings */
 .icon-box.bg-orange-500\/20 { background-color: rgba(249, 115, 22, 0.2); color: #fb923c; }
 .light-mode .icon-box.bg-orange-500\/20 { background-color: rgba(249, 115, 22, 0.1); color: #ea580c; }
-
 .icon-box.bg-purple-500\/20 { background-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
 .light-mode .icon-box.bg-purple-500\/20 { background-color: rgba(168, 85, 247, 0.1); color: #9333ea; }
 
-/* Misc */
 .glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; }
 .loader { width: 32px; height: 32px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* NEW: Open on E-Learning Button (Slate/Gray Style) */
-.source-btn {
-    display: flex; align-items: center; justify-content: center; width: 100%;
-    gap: 0.5rem; background: rgba(148, 163, 184, 0.1); /* Slate-400 tint */
-    padding: 14px;
-    border-radius: 16px; font-size: 0.85rem; font-weight: 700;
-    color: #94a3b8; /* Slate text */
-    margin-top: 0.75rem;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    text-decoration: none; /* Remove underline */
-    transition: transform 0.1s;
-}
-
-.source-btn:active { transform: scale(0.97); }
-
-/* Light Mode for Source Button */
-.light-mode .source-btn {
-    background: rgba(100, 116, 139, 0.1);
-    color: #64748b;
-    border-color: rgba(100, 116, 139, 0.2);
-}
