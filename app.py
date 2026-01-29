@@ -70,6 +70,8 @@ FRENCH_MONTHS = {
 
 def parse_date_to_timestamp(date_str):
     try:
+        # Regex to catch: "27 Janvier 2026", "27/01/2026", etc.
+        # Handles "à 14h30", ": 14h30", or just the date.
         match = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4}).*?(\d{1,2})[h:](\d{1,2})', date_str, re.IGNORECASE)
         if match:
             day, month_str, year, hour, minute = match.groups()
@@ -83,29 +85,52 @@ def parse_date_to_timestamp(date_str):
 def clean_html_text(tag):
     if not tag: return ""
     text_parts = []
+    
+    # Recursively extract text while keeping basic structure
     for child in tag.children:
         if isinstance(child, NavigableString): 
-            text_parts.append(child.string)
+            text = child.string.strip()
+            if text: text_parts.append(text)
         elif isinstance(child, Tag):
+            # Skip hidden elements (screen readers etc) if any
+            if 'accesshide' in child.get('class', []): continue
+            
             child_text = clean_html_text(child)
-            if child.name in ['b', 'strong']: text_parts.append(f"<b>{child_text}</b>")
-            elif child.name in ['i', 'em']: text_parts.append(f"<i>{child_text}</i>")
-            elif child.name == 'a': text_parts.append(child_text)
-            elif child.name in ['p', 'div', 'li']: text_parts.append(f"\n{child_text}\n")
-            elif child.name == 'br': text_parts.append("\n")
-            else: text_parts.append(child_text)
-    full_text = "".join(text_parts)
+            if child_text:
+                if child.name in ['b', 'strong', 'h3', 'h4', 'h5']: 
+                    text_parts.append(f"<b>{child_text}</b>")
+                elif child.name in ['i', 'em']: 
+                    text_parts.append(f"<i>{child_text}</i>")
+                elif child.name in ['p', 'div', 'li', 'br', 'ul']: 
+                    text_parts.append(f"\n{child_text}\n")
+                elif child.name == 'a':
+                     text_parts.append(child_text) # Links handled separately
+                else: 
+                    text_parts.append(child_text)
+                    
+    full_text = " ".join(text_parts)
+    # Fix massive whitespace issues
     full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
+    full_text = re.sub(r' +', ' ', full_text)
+    
     return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
 
 def extract_links(tag):
     links = []
+    # Find all links in the tag
     for a in tag.find_all("a", href=True):
         href = a.get('href')
+        # Skip internal Moodle junk links (like user profiles or help)
+        if 'user/view' in href or 'help.php' in href: continue
+        
+        # Fix relative URLs
         if href and "http" not in href:
              href = f"https://elearning.univ-bejaia.dz{href}" if href.startswith('/') else f"https://elearning.univ-bejaia.dz/{href}"
+        
         if href and href.startswith('http'):
-            links.append(href)
+            # Avoid duplicates
+            if href not in links:
+                links.append(href)
     return links
 
 def send_fcm_notification(title, body_preview):
@@ -126,7 +151,7 @@ def send_fcm_notification(title, body_preview):
     except Exception as e:
         print(f"❌ FCM Error: {e}")
 
-# --- SCRAPER LOGIC (AGGRESSIVE MODE) ---
+# --- ROBUST "CATCH-ALL" SCRAPER ---
 def scrape_task():
     try:
         print("Checking for updates...")
@@ -136,67 +161,60 @@ def scrape_task():
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Select ALL activities, ignoring the 'News Forum' which is usually system junk
-        cards = soup.select('li.activity:not(.modtype_forum)')
+        # Select ALL activities inside the main region
+        # This ignores sidebars and blocks, focuses on the course flow
+        cards = soup.select('li.activity')
         
         new_data = []
         for tag in cards:
-            # 1. Base Extraction
+            # 1. Skip strictly system items (like forums header)
+            if 'modtype_forum' in tag.get('class', []): continue
+
+            # 2. Extract Raw Text (to create ID and find Date)
             raw_text = tag.get_text(" ", strip=True)
-            if not raw_text: continue # Skip completely empty tags
+            if not raw_text or len(raw_text) < 3: continue 
 
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
-            
-            # 2. Identify the "Body" content
-            # Try finding the text box first
-            content_div = tag.select_one('.activity-altcontent, .contentwithoutlink, .no-overflow')
-            
-            body_html = ""
-            is_file = False
-            
-            if content_div:
-                body_html = clean_html_text(content_div)
-            else:
-                # If no text box, check if it's a File/Resource
-                instancename = tag.select_one('.instancename')
-                if instancename:
-                    # It's likely a file link
-                    body_html = f"Document: {instancename.get_text(strip=True)}"
-                    is_file = True
 
-            # 3. Title Extraction
+            # 3. Determine CONTENT
+            # Strategy: Grab the 'content' container. If missing, grab the whole tag.
+            content_area = tag.select_one('.contentwithoutlink, .activity-altcontent, .no-overflow')
+            if not content_area:
+                content_area = tag # Fallback: Scrape the whole card
+            
+            body_html = clean_html_text(content_area)
+            
+            # 4. Determine TITLE
+            # Strategy: Look for Bold -> Look for Activity Name -> Default
             title = "Information"
             title_match = re.search(r'<b>(.*?)</b>', body_html)
             
+            instancename = tag.select_one('.instancename')
+            
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
-                body_html = body_html.replace(title_match.group(0), "", 1) # Remove title from body
-            elif is_file:
-                 # If it's a file, the title is usually the first line or the link name
-                 title = "Fichier / Ressource"
-                 if tag.select_one('.instancename'):
-                     title = tag.select_one('.instancename').get_text(strip=True).replace(" Fichier", "")
-
-            # 4. Date Extraction
-            date_text = "Général"
-            timestamp = 0 
-            date_match_str = re.search(r'Affiché le\s*[:]?\s*([0-9/\-\w\s:àh]+)', raw_text, re.IGNORECASE)
-            if date_match_str: 
-                date_text = date_match_str.group(1).strip()
-                timestamp = parse_date_to_timestamp(date_text)
-
-            # 5. Link Extraction
-            links = extract_links(tag)
+                # Remove the title from body to avoid repetition
+                body_html = body_html.replace(title_match.group(0), "", 1)
+            elif instancename:
+                # Common for PDFs: The title is the link name
+                title_text = instancename.get_text(strip=True)
+                # Cleanup Moodle automatic suffixes
+                title = title_text.replace(" Fichier", "").replace(" URL", "").replace(" Dossier", "")
             
-            # Special check: If it's a Resource (PDF), the main click is the link
-            if is_file or 'modtype_resource' in tag.get('class', []):
-                main_a = tag.select_one('a')
-                if main_a and main_a.get('href'):
-                    full_href = main_a.get('href')
-                    if full_href not in links:
-                        links.insert(0, full_href) # Put main download link first
+            # 5. Extract Date
+            date_text = "Général"
+            timestamp = 0
+            # Look for "Affiché le" anywhere in the raw text
+            date_match = re.search(r'Affiché le\s*[:]?\s*([0-9]{1,2}\s+[a-zA-Zéû]+\s+[0-9]{4}.*?(\d{1,2}[h:]\d{1,2})?)', raw_text, re.IGNORECASE)
+            
+            if date_match:
+                date_text = date_match.group(1).strip()
+                timestamp = parse_date_to_timestamp(date_text)
+            
+            # 6. Extract Links
+            links = extract_links(tag)
 
-            # 6. Source ID
+            # 7. Source
             source_link = AFFICHAGE_URL
             if tag.get('id'):
                 safe_id = re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))
@@ -213,7 +231,7 @@ def scrape_task():
             }
             new_data.append(item)
         
-        # Sort: Newest dates first. Items with timestamp 0 (no date) go to bottom.
+        # Sort: Newest First. Undated ("Général") go to bottom.
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         
         return new_data
