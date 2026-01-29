@@ -9,49 +9,76 @@
     --accent-color: #3b82f6;
     --date-bg: rgba(52, 211, 153, 0.1);
     --date-text: #34d399;
+    --bg-image: none; /* No waves in dark mode */
 }
 
 .light-mode {
-    /* NEW: White Smoke & Lavender Blue */
-    
-    /* Background: White Smoke with a tiny cool blue tint (Reduces brightness) */
+    /* White Smoke Background */
     --bg-color: #F4F6F8; 
     
-    /* Text: Dark Blue-Grey (Softer than black) */
+    /* Text Colors */
     --text-main: #2E3244; 
-    
-    /* Muted: Cool Grey */
     --text-muted: #6B7280; 
     
-    /* Cards: Pure White to contrast slightly with the Smoke background */
+    /* Cards */
     --card-bg: #FFFFFF;
-    
-    /* Border: A stronger Lavender hint to define edges without harsh lines */
     --card-border: rgba(132, 135, 191, 0.3); 
     
-    /* Nav: Matches the White Smoke background */
-    --nav-bg: rgba(244, 246, 248, 0.92);
+    /* Nav */
+    --nav-bg: rgba(244, 246, 248, 0.85); /* Slightly more transparent to see the wave */
     
-    /* Accent: The Star - Lavender Blue */
-    --accent-color: #7C83FD; /* Slightly punchier Lavender for visibility */
+    /* Accent: Lavender Blue */
+    --accent-color: #7C83FD; 
     
-    /* Date Pill: Pale Lavender */
+    /* Date Pill */
     --date-bg: rgba(124, 131, 253, 0.15);
     --date-text: #6366F1; 
+
+    /* THE WAVE EFFECT */
+    /* This is an encoded SVG Wave in Lavender Blue with 15% Opacity */
+    --bg-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%237C83FD' fill-opacity='0.12' d='M0,128L48,138.7C96,149,192,171,288,165.3C384,160,480,128,576,122.7C672,117,768,139,864,160C960,181,1056,203,1152,197.3C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
 }
 
 /* FIX: Hide Scrollbar */
 ::-webkit-scrollbar { display: none; }
 * { -ms-overflow-style: none; scrollbar-width: none; }
 
-html { background-color: var(--bg-color); transition: background-color 0.3s ease; }
-body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
+html { 
+    background-color: var(--bg-color); 
+    transition: background-color 0.3s ease;
+    height: 100%;
+}
+
+body { 
+    background-color: var(--bg-color); 
+    /* Apply the Wave */
+    background-image: var(--bg-image);
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-size: cover;
+    background-attachment: fixed; /* Keep wave at bottom while scrolling */
+    
+    color: var(--text-main); 
+    font-family: 'Inter', sans-serif; 
+    -webkit-tap-highlight-color: transparent; 
+    overflow-x: hidden; 
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease; 
+}
 
 .heading-text { font-family: 'Plus Jakarta Sans', sans-serif; }
 
 /* Headers & Nav */
-.header-glass, .glass-nav { background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--card-border); }
-.glass-nav { border: 1px solid var(--card-border); box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+.header-glass, .glass-nav { 
+    background: var(--nav-bg); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+    border-bottom: 1px solid var(--card-border); 
+}
+.glass-nav { 
+    border: 1px solid var(--card-border); 
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.05); 
+}
 
 /* Animation & Layout */
 .search-visible { transform: translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
@@ -64,7 +91,7 @@ body { background-color: var(--bg-color); color: var(--text-main); font-family: 
 /* Light Mode Card Shadow - Lavender Tinted */
 .light-mode .glass-card { 
     box-shadow: 0 8px 25px -5px rgba(124, 131, 253, 0.15); 
-    border-color: rgba(255,255,255,1); /* Crisp white edge */
+    border-color: rgba(255,255,255,1); 
 }
 
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
@@ -97,7 +124,7 @@ body { background-color: var(--bg-color); color: var(--text-main); font-family: 
 /* Switch */
 .toggle-switch { width: 52px; height: 30px; background-color: #334155; border-radius: 99px; position: relative; transition: background-color 0.3s ease; }
 .toggle-switch.active { background-color: var(--accent-color); }
-.light-mode .toggle-switch { background-color: #E2E4E9; } /* Softer switch track */
+.light-mode .toggle-switch { background-color: #E2E4E9; }
 .light-mode .toggle-switch.active { background-color: #7C83FD; }
 .toggle-dot { width: 26px; height: 26px; background-color: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 .toggle-switch.active .toggle-dot { transform: translateX(22px); }
