@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
     
-    <!-- GOOGLE ANALYTICS START (Tracking ID: G-6HH5ZV5VW8) -->
+    <!-- GOOGLE ANALYTICS START -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -16,12 +16,10 @@
     <!-- GOOGLE ANALYTICS END -->
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <!-- PWA Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#0B1121">
+    <meta name="theme-color" content="#0B1120">
 </head>
 <body class="pb-28 overscroll-none">
 
@@ -29,64 +27,62 @@
     <div id="page-home" class="active">
         
         <!-- HEADER -->
-        <div id="main-header" class="header-glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center transition-transform duration-300">
+        <div id="main-header" class="header-glass sticky top-0 z-50 px-5 py-4 flex justify-between items-center transition-transform duration-300 shadow-sm">
             
-            <!-- Left: Search Button -->
-            <button onclick="toggleSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-gray-300 active:bg-blue-500/20 active:text-blue-400 transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </button>
-
-            <!-- Center: Logo -->
-            <div class="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
-                <span class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-0.5">Univ Bejaïa</span>
-                <h1 class="text-lg font-extrabold tracking-tight text-white heading-text" style="color: var(--text-main);">ST Affichage</h1>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <span class="text-white font-extrabold text-lg heading-text">st</span>
+                </div>
+                <div>
+                    <h1 class="text-[1.1rem] font-extrabold tracking-tight heading-text leading-none">ST Affichage</h1>
+                    <span class="text-[10px] font-semibold text-blue-500 uppercase tracking-widest mt-0.5 block">Univ Bejaïa</span>
+                </div>
             </div>
 
-            <!-- Right: Cancel Search Button (Hidden by default) -->
-            <button id="header-cancel-btn" onclick="cancelSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-400 transition-all duration-300 opacity-0 pointer-events-none transform scale-90">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4l16 16" stroke="currentColor" stroke-width="2.5" opacity="0.8"></path>
-                </svg>
-            </button>
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button id="header-cancel-btn" onclick="cancelSearch()" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 transition-all duration-300 opacity-0 pointer-events-none transform scale-90">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <button onclick="toggleSearch()" class="w-10 h-10 flex items-center justify-center rounded-full opacity-70 hover:opacity-100 active:scale-95 transition-all" style="color: var(--text-main);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+            </div>
         </div>
 
-        <!-- SEARCH BAR -->
+        <!-- SEARCH BAR (Drops down) -->
         <div id="search-bar-container" class="fixed top-[74px] left-0 right-0 z-40 px-4 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
-            <div class="bg-[#1E293B] border border-blue-500/30 p-2 rounded-2xl shadow-2xl flex items-center gap-2 backdrop-blur-xl">
-                <input type="text" id="search-input" placeholder="Search announcements..." 
-                       class="w-full bg-transparent text-white text-sm py-2 px-3 focus:outline-none placeholder-gray-500 font-medium">
+            <div class="p-1 rounded-2xl shadow-xl flex items-center gap-2 glass-nav">
+                <svg class="w-5 h-5 ml-3 opacity-50" style="color: var(--text-main)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-3 px-2 focus:outline-none placeholder-gray-500 font-medium" style="color: var(--text-main);">
             </div>
         </div>
 
-        <!-- Content -->
+        <!-- Content Area -->
         <div class="px-4 mt-4 transition-all duration-300" id="content-area">
-            <div id="cards-container" class="min-h-[100vh]">
+            <div id="cards-container" class="min-h-[100vh] max-w-md mx-auto">
                 <div class="loader"></div>
             </div>
-            <div id="end-message" class="text-center text-xs text-gray-500 py-8 hidden font-mono tracking-widest opacity-60">END OF STREAM</div>
+            <div id="end-message" class="text-center text-xs text-gray-400 py-8 hidden font-mono tracking-widest uppercase">Fin des annonces</div>
         </div>
     </div>
 
     <!-- PAGE: SETTINGS -->
-    <div id="page-settings" class="hidden">
-        <div class="header-glass sticky top-0 z-50 px-6 py-5">
-            <h1 class="text-2xl font-bold tracking-tight heading-text" style="color: var(--text-main);">Settings</h1>
+    <div id="page-settings" class="hidden pb-10">
+        <div class="header-glass sticky top-0 z-50 px-5 py-5 border-b border-white/5 shadow-sm">
+            <h1 class="text-2xl font-extrabold tracking-tight heading-text">Settings</h1>
         </div>
 
-        <div class="px-5 mt-6 space-y-4">
+        <div class="px-5 mt-6 max-w-md mx-auto">
             
-            <!-- SECTION 1: APPEARANCE -->
-            <div class="glass-panel p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Appearance</h3>
-                
-                <!-- Light Mode -->
+            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2">Preferences</h3>
+            <div class="settings-group">
                 <div class="settings-card" onclick="toggleTheme()">
                     <div class="flex items-center">
-                        <div class="icon-box">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" /></svg>
+                        <div class="icon-box bg-theme">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                         </div>
-                        <span class="setting-label">Light Mode</span>
+                        <span class="setting-label">Dark Mode / Light Mode</span>
                     </div>
                     <div id="theme-switch" class="toggle-switch">
                         <div class="toggle-dot"></div>
@@ -94,75 +90,60 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: SUPPORT & TOOLS -->
-            <div class="glass-panel p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Support & Tools</h3>
-
-                <!-- Reload App -->
+            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2 mt-6">Support</h3>
+            <div class="settings-group">
                 <div class="settings-card" onclick="hardReloadApp()">
                     <div class="flex items-center">
-                        <div class="icon-box bg-orange-500/20 text-orange-400">
+                        <div class="icon-box bg-orange">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </div>
-                        <div class="flex flex-col">
-                            <span class="setting-label">Refresh App</span>
-                            <span class="text-[10px] opacity-60">Fix connection or display issues</span>
-                        </div>
+                        <span class="setting-label">Refresh Application</span>
                     </div>
-                    <svg class="w-5 h-5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
 
-                <!-- Contact Dev -->
-                <div class="settings-card mt-3" onclick="contactDev()">
+                <div class="settings-card" onclick="contactDev()">
                     <div class="flex items-center">
-                        <div class="icon-box bg-purple-500/20 text-purple-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <div class="icon-box bg-purple">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                         </div>
-                        <span class="setting-label">Report a Bug</span>
+                        <span class="setting-label">Report an Issue</span>
                     </div>
-                    <svg class="w-5 h-5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
                 </div>
             </div>
 
-            <!-- SECTION 3: ABOUT -->
-            <div class="glass-panel p-5 text-center">
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg">
-                    <span class="text-2xl font-bold text-white">st</span>
+            <!-- Developer Info -->
+            <div class="mt-10 text-center">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg">
+                    <span class="text-xl font-bold text-white heading-text">st</span>
                 </div>
-                <h3 class="text-lg font-bold text-white heading-text" style="color: var(--text-main);">ST Affichage</h3>
-                <p class="text-xs opacity-50 mb-4">Version 1.9.1 (Beta)</p>
-                
-                <p class="text-sm opacity-70 leading-relaxed px-2" style="color: var(--text-muted);">
-                    This application scrapes announcements from the Univ Bejaia e-learning platform. It is an independent project made from student to students.
-                </p>
-
-                <div class="flex items-center justify-center gap-2 mt-4">
+                <h3 class="text-lg font-bold heading-text">ST Affichage</h3>
+                <p class="text-xs opacity-50 mb-2 font-mono">v1.9.1 (Beta)</p>
+                <div class="flex items-center justify-center gap-1.5 mt-2">
                     <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span class="text-xs text-green-500 font-mono">System Online</span>
+                    <span class="text-[10px] text-green-500 font-bold uppercase tracking-wider">System Online</span>
                 </div>
-
-                <div class="mt-6 pt-4 border-t border-white/10">
-                     <p class="text-[10px] text-gray-500">Designed & Developed by</p>
-                     <p class="text-sm font-bold mt-1 heading-text" style="color: var(--text-main);">Adam Mila</p>
-                     <p class="text-[10px] text-gray-600 mt-4">© 2026 ST Affichage</p>
-                </div>
+                <p class="text-xs opacity-50 mt-8">Made with ❤️ by Adam Mila</p>
             </div>
-            
-            <div class="h-8"></div>
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
-    <div id="bottom-nav" class="fixed bottom-5 left-5 right-5 h-16 glass-nav rounded-2xl flex items-center justify-around z-50 shadow-2xl transition-transform duration-300 will-change-transform">
-        <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex flex-col items-center justify-center gap-1 w-full h-full rounded-l-2xl text-blue-500 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span class="text-[10px] font-bold">Home</span>
-        </button>
-        <div class="w-px h-8 bg-white/10"></div>
-        <button onclick="switchTab('settings')" id="tab-settings" class="nav-btn text-gray-500 flex flex-col items-center justify-center gap-1 w-full h-full rounded-r-2xl transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            <span class="text-[10px] font-bold">Settings</span>
-        </button>
+    <!-- FLOATING BOTTOM NAV PILL -->
+    <div id="bottom-nav" class="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 transition-transform duration-300">
+        <div class="glass-nav w-full max-w-[240px] h-16 rounded-full flex items-center justify-around px-2">
+            
+            <button onclick="switchTab('home')" id="tab-home" class="nav-btn active flex flex-col items-center justify-center w-full h-full rounded-full">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-[9px] font-bold tracking-wide">Home</span>
+            </button>
+            
+            <div class="w-px h-6 bg-gray-500/30"></div>
+            
+            <button onclick="switchTab('settings')" id="tab-settings" class="nav-btn flex flex-col items-center justify-center w-full h-full rounded-full">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="text-[9px] font-bold tracking-wide">Settings</span>
+            </button>
+
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
