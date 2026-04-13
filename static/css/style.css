@@ -5,7 +5,7 @@
     --text-muted: #94A3B8;
     --card-bg: rgba(30, 41, 59, 0.4);
     --card-border: rgba(255, 255, 255, 0.08);
-    --nav-bg: rgba(15, 23, 42, 0.85); /* Slightly darker for drawer */
+    --nav-bg: rgba(11, 17, 32, 0.55); /* More transparent for stronger blur */
     --accent-color: #3b82f6;
     --accent-hover: #2563eb;
     --date-bg: rgba(52, 211, 153, 0.15);
@@ -19,7 +19,7 @@
     --text-muted: #475569; 
     --card-bg: #FFFFFF;
     --card-border: rgba(226, 232, 240, 1); 
-    --nav-bg: rgba(255, 255, 255, 0.85);
+    --nav-bg: rgba(255, 255, 255, 0.65); /* More transparent for stronger blur */
     --accent-color: #4F46E5; 
     --accent-hover: #4338CA;
     --date-bg: rgba(79, 70, 229, 0.1);
@@ -35,9 +35,10 @@ html {
     height: 100%;
 }
 
-/* 🟢 FIX FOR SMOOTH THEME TRANSITION 🟢 */
-body, .glass-card, .header-glass, .glass-drawer, .settings-card, .search-bar-inner {
-    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease !important;
+/* 🟢 OPTIMIZED: Buttery Smooth Theme Transition (No lag) 🟢 */
+body, .glass-card, .header-glass, .glass-drawer, .settings-card, .search-bar-inner, #header-cancel-btn {
+    transition: background-color 0.3s ease-out, color 0.3s ease-out !important;
+    will-change: background-color, color;
 }
 
 body { 
@@ -57,16 +58,16 @@ body {
     border-bottom: 1px solid var(--card-border); 
 }
 
-/* 🟢 NEW: GLASS SIDE DRAWER 🟢 */
+/* 🟢 HEAVY BLUR GLASS DRAWER 🟢 */
 .glass-drawer {
     background: var(--nav-bg);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    backdrop-filter: blur(40px); /* Increased blur */
+    -webkit-backdrop-filter: blur(40px);
     border-right: 1px solid var(--card-border);
-    box-shadow: 20px 0 50px rgba(0,0,0,0.3);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.4);
 }
 .light-mode .glass-drawer {
-    box-shadow: 20px 0 50px rgba(0,0,0,0.05);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.08);
 }
 
 /* JS Animation States */
@@ -87,27 +88,67 @@ body {
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
 }
 
-.light-mode .glass-card { 
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05); 
-}
-
+.light-mode .glass-card { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05); }
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-/* Forcing Left Alignment for better reading */
+/* Forcing Left Alignment */
 .glass-card > .flex-col { align-items: flex-start !important; }
 .glass-card .w-12 { margin-left: 0 !important; height: 3px; border-radius: 2px; }
 
 /* Typography inside Cards */
-.announcement-title { 
-    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.15rem; font-weight: 800; 
-    color: var(--text-main); text-align: left !important; line-height: 1.4; margin-bottom: 0.25rem; 
+.announcement-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--text-main); text-align: left !important; line-height: 1.4; margin-bottom: 0.25rem; }
+.announcement-date { background-color: var(--date-bg); color: var(--date-text); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; display: inline-block; padding: 6px 10px; border-radius: 8px; margin-bottom: 1rem; }
+.announcement-body { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-align: left !important; white-space: pre-line; font-weight: 400; }
+.announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 700; }
+
+/* Buttons */
+.link-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: var(--accent-color); padding: 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-top: 1.5rem; transition: transform 0.1s, background-color 0.2s; }
+.link-btn:active { transform: scale(0.97); background: var(--accent-hover); }
+
+.source-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: transparent; padding: 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.5rem; border: 1px solid var(--card-border); transition: transform 0.1s, background-color 0.2s; }
+.source-btn:active { transform: scale(0.97); background: var(--card-border); }
+
+/* Settings Grouped List */
+.settings-group { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; margin-bottom: 1.5rem; }
+.settings-card { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--card-border); }
+.settings-card:last-child { border-bottom: none; }
+.settings-card:active { background-color: var(--card-border); }
+
+.icon-box { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px; color: white; }
+.setting-label { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
+
+/* 🟢 MODERN iOS TOGGLE SWITCH 🟢 */
+.toggle-switch { 
+    width: 52px; height: 30px; 
+    background-color: #334155; 
+    border-radius: 99px; 
+    position: relative; 
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
 }
-.announcement-date { 
-    background-color: var(--date-bg); color: var(--date-text); font-weight: 700; font-size: 0.65rem; 
-    text-transform: uppercase; letter-spacing: 0.05em; text-align: left; display: inline-block; 
-    padding: 6px 10px; border-radius: 8px; margin-bottom: 1rem; 
+.toggle-switch.active { background-color: var(--accent-color); }
+.light-mode .toggle-switch { background-color: #CBD5E1; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); }
+
+.toggle-dot { 
+    width: 24px; height: 24px; 
+    background-color: white; 
+    border-radius: 50%; 
+    position: absolute; 
+    top: 3px; left: 3px; 
+    /* Bouncy modern animation */
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25), 0 1px 1px rgba(0,0,0,0.1); 
 }
-.announcement-body { 
+.toggle-switch.active .toggle-dot { transform: translateX(22px); }
+
+/* Colors */
+.bg-theme { background-color: var(--accent-color); }
+.bg-orange { background-color: #F97316; }
+.bg-purple { background-color: #8B5CF6; }
+
+/* Loader */
+.loader { width: 28px; height: 28px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }.announcement-body { 
     color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-align: left !important; 
     white-space: pre-line; font-weight: 400;
 }
