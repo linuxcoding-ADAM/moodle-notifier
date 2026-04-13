@@ -4,8 +4,8 @@
     --text-main: #F8FAFC;
     --text-muted: #94A3B8;
     --card-bg: rgba(30, 41, 59, 0.4);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --nav-bg: rgba(11, 17, 32, 0.55); /* More transparent for stronger blur */
+    --card-border: rgba(255, 255, 255, 0.06);
+    --nav-bg: rgba(11, 17, 32, 0.4); /* Much more transparent for Apple-like glass */
     --accent-color: #3b82f6;
     --accent-hover: #2563eb;
     --date-bg: rgba(52, 211, 153, 0.15);
@@ -19,7 +19,7 @@
     --text-muted: #475569; 
     --card-bg: #FFFFFF;
     --card-border: rgba(226, 232, 240, 1); 
-    --nav-bg: rgba(255, 255, 255, 0.65); /* More transparent for stronger blur */
+    --nav-bg: rgba(255, 255, 255, 0.5); 
     --accent-color: #4F46E5; 
     --accent-hover: #4338CA;
     --date-bg: rgba(79, 70, 229, 0.1);
@@ -33,12 +33,13 @@
 html { 
     background-color: var(--bg-color); 
     height: 100%;
+    scroll-behavior: smooth;
 }
 
-/* 🟢 OPTIMIZED: Buttery Smooth Theme Transition (No lag) 🟢 */
+/* Smooth Theme Transition (Hardware Accelerated) */
 body, .glass-card, .header-glass, .glass-drawer, .settings-card, .search-bar-inner, #header-cancel-btn {
-    transition: background-color 0.3s ease-out, color 0.3s ease-out !important;
-    will-change: background-color, color;
+    transition: background-color 0.4s ease-out, color 0.4s ease-out, border-color 0.4s ease-out !important;
+    will-change: background-color, color, border-color;
 }
 
 body { 
@@ -58,232 +59,109 @@ body {
     border-bottom: 1px solid var(--card-border); 
 }
 
-/* 🟢 HEAVY BLUR GLASS DRAWER 🟢 */
+/* 🟢 HEAVY APPLE-STYLE GLASS DRAWER 🟢 */
 .glass-drawer {
     background: var(--nav-bg);
-    backdrop-filter: blur(40px); /* Increased blur */
-    -webkit-backdrop-filter: blur(40px);
+    backdrop-filter: blur(48px) saturate(200%); /* Saturate makes the glass effect stunning */
+    -webkit-backdrop-filter: blur(48px) saturate(200%);
     border-right: 1px solid var(--card-border);
-    box-shadow: 20px 0 50px rgba(0,0,0,0.4);
+    box-shadow: 25px 0 50px rgba(0,0,0,0.5);
 }
 .light-mode .glass-drawer {
-    box-shadow: 20px 0 50px rgba(0,0,0,0.08);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.1);
 }
 
 /* JS Animation States */
 .search-visible { transform: translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
-.slide-up-hidden { transform: translateY(-100%); }
 
 /* Premium Cards */
 .glass-card { 
     background: var(--card-bg); 
     border: 1px solid var(--card-border); 
-    border-radius: 20px; 
+    border-radius: 28px; /* Softer, modern corners */
     padding: 1.5rem; 
-    margin-bottom: 1rem; 
+    margin-bottom: 1.25rem; 
     opacity: 0; 
     transform: translateY(15px); 
     animation: fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
     will-change: transform, opacity; 
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
 }
 
-.light-mode .glass-card { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05); }
+.light-mode .glass-card { box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08); }
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
 /* Forcing Left Alignment */
 .glass-card > .flex-col { align-items: flex-start !important; }
-.glass-card .w-12 { margin-left: 0 !important; height: 3px; border-radius: 2px; }
+.glass-card .w-12 { margin-left: 0 !important; height: 3px; border-radius: 99px; }
 
 /* Typography inside Cards */
 .announcement-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--text-main); text-align: left !important; line-height: 1.4; margin-bottom: 0.25rem; }
-.announcement-date { background-color: var(--date-bg); color: var(--date-text); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; display: inline-block; padding: 6px 10px; border-radius: 8px; margin-bottom: 1rem; }
+.announcement-date { background-color: var(--date-bg); color: var(--date-text); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; display: inline-block; padding: 6px 12px; border-radius: 999px; margin-bottom: 1rem; }
 .announcement-body { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-align: left !important; white-space: pre-line; font-weight: 400; }
 .announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 700; }
 
-/* Buttons */
-.link-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: var(--accent-color); padding: 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-top: 1.5rem; transition: transform 0.1s, background-color 0.2s; }
-.link-btn:active { transform: scale(0.97); background: var(--accent-hover); }
+/* 🟢 MODERN PILL BUTTONS (NO MORE SQUARES) 🟢 */
+.link-btn { 
+    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
+    background: var(--accent-color); padding: 14px; 
+    border-radius: 999px; /* Perfect Pill */
+    font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-top: 1.5rem; 
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s; 
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+.link-btn:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2); }
 
-.source-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: transparent; padding: 12px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.5rem; border: 1px solid var(--card-border); transition: transform 0.1s, background-color 0.2s; }
-.source-btn:active { transform: scale(0.97); background: var(--card-border); }
+.source-btn { 
+    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
+    background: var(--card-bg); padding: 12px; 
+    border-radius: 999px; /* Perfect Pill */
+    font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.75rem; 
+    border: 1px solid var(--card-border); 
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s; 
+}
+.source-btn:active { transform: scale(0.95); background: var(--card-border); }
 
-/* Settings Grouped List */
-.settings-group { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; margin-bottom: 1.5rem; }
-.settings-card { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--card-border); }
-.settings-card:last-child { border-bottom: none; }
-.settings-card:active { background-color: var(--card-border); }
+/* Settings List (Floating modern bubbles instead of joined boxy cards) */
+.settings-card { 
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px; /* Smooth bubble shape */
+    padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; 
+    cursor: pointer; margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+}
+.settings-card:active { transform: scale(0.96); background-color: var(--card-border); }
 
-.icon-box { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px; color: white; }
+.icon-box { width: 38px; height: 38px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-right: 14px; color: white; }
 .setting-label { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
 
-/* 🟢 MODERN iOS TOGGLE SWITCH 🟢 */
+/* 🟢 ELEGANT iOS TOGGLE 🟢 */
 .toggle-switch { 
-    width: 52px; height: 30px; 
+    width: 50px; height: 30px; 
     background-color: #334155; 
-    border-radius: 99px; 
+    border-radius: 999px; 
     position: relative; 
     cursor: pointer;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    transition: background-color 0.3s ease;
 }
 .toggle-switch.active { background-color: var(--accent-color); }
 .light-mode .toggle-switch { background-color: #CBD5E1; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); }
 
 .toggle-dot { 
-    width: 24px; height: 24px; 
+    width: 26px; height: 26px; 
     background-color: white; 
     border-radius: 50%; 
     position: absolute; 
-    top: 3px; left: 3px; 
-    /* Bouncy modern animation */
+    top: 2px; left: 2px; 
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25), 0 1px 1px rgba(0,0,0,0.1); 
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16); 
 }
-.toggle-switch.active .toggle-dot { transform: translateX(22px); }
+.toggle-switch.active .toggle-dot { transform: translateX(20px); }
 
 /* Colors */
-.bg-theme { background-color: var(--accent-color); }
-.bg-orange { background-color: #F97316; }
-.bg-purple { background-color: #8B5CF6; }
-
-/* Loader */
-.loader { width: 28px; height: 28px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
-@keyframes spin { to { transform: rotate(360deg); } }.announcement-body { 
-    color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-align: left !important; 
-    white-space: pre-line; font-weight: 400;
-}
-.announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 700; }
-
-/* Buttons */
-.link-btn { 
-    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
-    background: var(--accent-color); padding: 14px; border-radius: 14px; 
-    font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-top: 1.5rem; 
-    transition: transform 0.1s, background-color 0.2s; 
-}
-.link-btn:active { transform: scale(0.97); background: var(--accent-hover); }
-
-.source-btn { 
-    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
-    background: transparent; padding: 12px; border-radius: 14px; 
-    font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.5rem; 
-    border: 1px solid var(--card-border); transition: transform 0.1s, background-color 0.2s; 
-}
-.source-btn:active { transform: scale(0.97); background: var(--card-border); }
-
-/* Settings Grouped List */
-.settings-group {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-.settings-card { 
-    padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; 
-    cursor: pointer; border-bottom: 1px solid var(--card-border);
-}
-.settings-card:last-child { border-bottom: none; }
-.settings-card:active { background-color: var(--card-border); }
-
-.icon-box { 
-    width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; 
-    justify-content: center; margin-right: 14px; color: white; 
-}
-.setting-label { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-
-/* Toggle Switch */
-.toggle-switch { width: 50px; height: 28px; background-color: #334155; border-radius: 99px; position: relative; }
-.toggle-switch.active { background-color: var(--accent-color); }
-.light-mode .toggle-switch { background-color: #CBD5E1; }
-.toggle-dot { width: 24px; height: 24px; background-color: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-.toggle-switch.active .toggle-dot { transform: translateX(22px); }
-
-/* Colors */
-.bg-theme { background-color: var(--accent-color); }
-.bg-orange { background-color: #F97316; }
-.bg-purple { background-color: #8B5CF6; }
-
-/* Loader */
-.loader { width: 28px; height: 28px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
-@keyframes spin { to { transform: rotate(360deg); } }    background-color: var(--date-bg); 
-    color: var(--date-text); 
-    font-weight: 700; 
-    font-size: 0.65rem; 
-    text-transform: uppercase; 
-    letter-spacing: 0.05em; 
-    text-align: left; 
-    display: inline-block; 
-    padding: 6px 10px; 
-    border-radius: 8px; 
-    margin-bottom: 1rem; 
-}
-.announcement-body { 
-    color: var(--text-muted); 
-    font-size: 0.95rem; 
-    line-height: 1.6; 
-    text-align: left !important; 
-    white-space: pre-line; 
-    font-weight: 400;
-}
-.announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 700; }
-
-/* Buttons */
-.link-btn { 
-    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
-    background: var(--accent-color); padding: 14px; border-radius: 14px; 
-    font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-top: 1.5rem; 
-    transition: transform 0.1s, background-color 0.2s; 
-}
-.link-btn:active { transform: scale(0.97); background: var(--accent-hover); }
-
-.source-btn { 
-    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
-    background: transparent; padding: 12px; border-radius: 14px; 
-    font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.5rem; 
-    border: 1px solid var(--card-border); transition: transform 0.1s, background-color 0.2s; 
-}
-.source-btn:active { transform: scale(0.97); background: var(--card-border); }
-
-/* Settings Grouped List (iOS Style) */
-.settings-group {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-.settings-card { 
-    padding: 16px 20px; 
-    display: flex; justify-content: space-between; align-items: center; 
-    cursor: pointer; transition: background-color 0.2s ease;
-    border-bottom: 1px solid var(--card-border);
-}
-.settings-card:last-child { border-bottom: none; }
-.settings-card:active { background-color: var(--card-border); }
-
-.icon-box { 
-    width: 36px; height: 36px; border-radius: 10px; 
-    display: flex; align-items: center; justify-content: center; 
-    margin-right: 14px; color: white; 
-}
-.setting-label { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-
-/* Toggle Switch */
-.toggle-switch { width: 50px; height: 28px; background-color: #334155; border-radius: 99px; position: relative; transition: background-color 0.3s ease; }
-.toggle-switch.active { background-color: var(--accent-color); }
-.light-mode .toggle-switch { background-color: #CBD5E1; }
-.toggle-dot { width: 24px; height: 24px; background-color: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-.toggle-switch.active .toggle-dot { transform: translateX(22px); }
-
-/* Nav Icons */
-.nav-btn { color: var(--text-muted); opacity: 0.7; transition: all 0.2s; }
-.nav-btn.active { color: var(--accent-color); opacity: 1; }
-.nav-btn.active svg { transform: translateY(-2px); }
-
-/* Settings Icons colors */
 .bg-theme { background-color: var(--accent-color); }
 .bg-orange { background-color: #F97316; }
 .bg-purple { background-color: #8B5CF6; }
@@ -291,3 +169,35 @@ body {
 /* Loader */
 .loader { width: 28px; height: 28px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* 🟢 BACK TO TOP BUTTON 🟢 */
+#back-to-top {
+    position: fixed;
+    bottom: 25px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 999px;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 45;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px) scale(0.8);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#back-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+#back-to-top:active {
+    transform: scale(0.9);
+}
