@@ -27,10 +27,10 @@
     <div id="page-home" class="active">
         
         <!-- HEADER -->
-        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center transition-transform duration-300 shadow-sm">
+        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm">
             
             <!-- LEFT: Slider Menu Button -->
-            <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-95 transition-all" style="color: var(--text-main);">
+            <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"></path>
                 </svg>
@@ -42,14 +42,12 @@
                 <h1 class="text-[1.1rem] font-extrabold tracking-tight heading-text leading-none" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
-            <!-- RIGHT: FIX FOR SEARCH BUTTON OVERLAP -->
+            <!-- RIGHT: Search Buttons -->
             <div class="relative w-10 h-10 flex items-center justify-center">
-                <!-- Regular Search Button (Underneath) -->
-                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end opacity-80 hover:opacity-100 active:scale-95 transition-all" style="color: var(--text-main);">
+                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </button>
                 
-                <!-- Cancel Button (Appears exactly on top, solid background hides search icon) -->
                 <button id="header-cancel-btn" onclick="cancelSearch()" class="absolute right-0 flex items-center justify-center rounded-full w-9 h-9 transition-all duration-300 opacity-0 pointer-events-none transform scale-90 shadow-md" style="background-color: var(--bg-color); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2);">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -58,14 +56,14 @@
 
         <!-- SEARCH BAR (Drops down) -->
         <div id="search-bar-container" class="fixed top-[74px] left-0 right-0 z-30 px-4 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
-            <div class="p-1 rounded-2xl shadow-xl flex items-center gap-2 glass-drawer search-bar-inner border border-blue-500/20">
-                <svg class="w-5 h-5 ml-3 opacity-50" style="color: var(--text-main)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="p-1 rounded-[24px] shadow-xl flex items-center gap-2 glass-drawer search-bar-inner border border-blue-500/20">
+                <svg class="w-5 h-5 ml-4 opacity-50" style="color: var(--text-main)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-3 px-2 focus:outline-none placeholder-gray-500 font-medium" style="color: var(--text-main);">
             </div>
         </div>
 
         <!-- Content Area -->
-        <div class="px-4 mt-4 pb-10 transition-all duration-300" id="content-area">
+        <div class="px-4 mt-5 pb-12 transition-all duration-300" id="content-area">
             <div id="cards-container" class="min-h-[100vh] max-w-md mx-auto">
                 <div class="loader"></div>
             </div>
@@ -73,75 +71,79 @@
         </div>
     </div>
 
+    <!-- 🟢 FLOATING BACK TO TOP BUTTON 🟢 -->
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path>
+        </svg>
+    </button>
+
     <!-- 🟢 GLASS SIDE DRAWER OVERLAY 🟢 -->
-    <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0 transition-opacity duration-400" onclick="toggleDrawer()"></div>
+    <!-- (visibility: hidden prevents random flashes on page load) -->
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-50 opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="toggleDrawer()"></div>
 
     <!-- 🟢 GLASS SIDE DRAWER MENU 🟢 -->
-    <div id="side-drawer" class="glass-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto">
+    <div id="side-drawer" class="glass-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto" style="visibility: hidden;">
         
         <!-- Drawer Header -->
-        <div class="p-6 pb-4 border-b border-white/5 flex justify-between items-start">
+        <div class="p-6 pb-4 flex justify-between items-start">
             <div class="flex flex-col">
-                <div class="w-12 h-12 bg-blue-500 rounded-[14px] flex items-center justify-center shadow-lg shadow-blue-500/20 mb-4">
-                    <span class="text-white font-extrabold text-xl heading-text">st</span>
+                <div class="w-14 h-14 bg-blue-500 rounded-[20px] flex items-center justify-center shadow-lg shadow-blue-500/30 mb-5">
+                    <span class="text-white font-extrabold text-2xl heading-text">st</span>
                 </div>
-                <h2 class="text-xl font-extrabold heading-text" style="color: var(--text-main);">ST Affichage</h2>
+                <h2 class="text-2xl font-extrabold heading-text tracking-tight" style="color: var(--text-main);">ST Affichage</h2>
                 <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.1 (Beta)</p>
             </div>
             <!-- Close Button -->
-            <button onclick="toggleDrawer()" class="w-8 h-8 flex items-center justify-center rounded-full bg-black/10 active:scale-95 transition-transform" style="color: var(--text-main);">
+            <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform" style="color: var(--text-main);">
                 <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
 
         <!-- Drawer Content (Settings) -->
-        <div class="p-5 flex-1">
-            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2">Apparence</h3>
-            <div class="settings-group">
-                <div class="settings-card" onclick="toggleTheme()">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-theme">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                        </div>
-                        <span class="setting-label">Mode Sombre</span>
+        <div class="p-5 flex-1 mt-2">
+            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2">Apparence</h3>
+            
+            <div class="settings-card" onclick="toggleTheme()">
+                <div class="flex items-center">
+                    <div class="icon-box bg-theme">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </div>
-                    <div id="theme-switch" class="toggle-switch">
-                        <div class="toggle-dot"></div>
-                    </div>
+                    <span class="setting-label">Mode Sombre</span>
+                </div>
+                <div id="theme-switch" class="toggle-switch">
+                    <div class="toggle-dot"></div>
                 </div>
             </div>
 
-            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2 mt-6">Système & Support</h3>
-            <div class="settings-group">
-                <div class="settings-card" onclick="hardReloadApp(); toggleDrawer();">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-orange">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="setting-label">Rafraîchir l'app</span>
-                        </div>
+            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2 mt-8">Système & Support</h3>
+            
+            <div class="settings-card" onclick="hardReloadApp();">
+                <div class="flex items-center">
+                    <div class="icon-box bg-orange">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     </div>
+                    <span class="setting-label">Rafraîchir l'app</span>
                 </div>
+            </div>
 
-                <div class="settings-card" onclick="contactDev()">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-purple">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </div>
-                        <span class="setting-label">Signaler un bug</span>
+            <div class="settings-card" onclick="contactDev()">
+                <div class="flex items-center">
+                    <div class="icon-box bg-purple">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                     </div>
+                    <span class="setting-label">Signaler un bug</span>
                 </div>
             </div>
 
             <!-- Server Status -->
-            <div class="flex items-center justify-center gap-2 mt-6">
+            <div class="flex items-center justify-center gap-2 mt-8">
                 <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-[10px] text-green-500 font-bold uppercase tracking-wider">Serveur en ligne</span>
+                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Serveur en ligne</span>
             </div>
 
-            <!-- INDEPENDENT PROJECT TEXT (ADDED HERE) -->
-            <div class="mt-6 px-1 text-center">
+            <!-- Independent project text -->
+            <div class="mt-6 px-2 text-center">
                 <p class="text-[11px] leading-relaxed opacity-70 font-medium" style="color: var(--text-muted);">
                     Cette application collecte les annonces de la plateforme e-learning de l'Univ Bejaïa. C'est un projet indépendant conçu d'un étudiant pour les étudiants.
                 </p>
@@ -149,192 +151,55 @@
         </div>
 
         <!-- Drawer Footer -->
-        <div class="p-6 text-center border-t border-white/5 pb-8 bg-black/5">
-            <p class="text-xs font-semibold opacity-70" style="color: var(--text-main);">Designed and developed by</p>
-            <p class="text-sm font-extrabold mt-1 heading-text text-blue-500">Adam Mila</p>
+        <div class="p-6 text-center border-t border-white/5 pb-8 mt-auto">
+            <p class="text-[11px] font-semibold opacity-60 uppercase tracking-wider" style="color: var(--text-main);">Designed and developed by</p>
+            <p class="text-[15px] font-extrabold mt-1.5 heading-text text-blue-500">Adam Mila</p>
         </div>
     </div>
 
-    <!-- Keep this hidden so script.js doesn't crash if it looks for it -->
-    <div id="page-settings" class="hidden"></div>
-    <div id="bottom-nav" class="hidden"></div>
+    <!-- STRICLY HIDDEN elements so script.js doesn't crash OR flash on screen -->
+    <div id="page-settings" style="display: none !important;"></div>
+    <div id="bottom-nav" style="display: none !important;"></div>
 
-    <!-- UI Logic for the Slider (Independent from script.js) -->
+    <!-- UI Logic for Slider & Scrolling -->
     <script>
         function toggleDrawer() {
             const drawer = document.getElementById('side-drawer');
             const overlay = document.getElementById('drawer-overlay');
             
             if (drawer.classList.contains('-translate-x-full')) {
-                // Open Drawer
-                overlay.classList.remove('hidden');
-                // Delay to allow display:block to apply before animating opacity
+                // Open: Make visible instantly, then transition
+                overlay.style.visibility = 'visible';
+                drawer.style.visibility = 'visible';
+                
                 setTimeout(() => {
                     overlay.classList.remove('opacity-0');
                     drawer.classList.remove('-translate-x-full');
                 }, 10);
             } else {
-                // Close Drawer
+                // Close: Transition first, then hide completely
                 drawer.classList.add('-translate-x-full');
                 overlay.classList.add('opacity-0');
+                
                 setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 400); // Matches the new duration-400
+                    overlay.style.visibility = 'hidden';
+                    drawer.style.visibility = 'hidden';
+                }, 400); 
             }
         }
-    </script>
 
-    <!-- Core App Logic (Untouched) -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
-                                                                                                           </html>                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2 mt-6">Système & Support</h3>
-            <div class="settings-group">
-                <div class="settings-card" onclick="hardReloadApp(); toggleDrawer();">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-orange">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="setting-label">Rafraîchir l'app</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-card" onclick="contactDev()">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-purple">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </div>
-                        <span class="setting-label">Signaler un bug</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Status -->
-            <div class="flex items-center justify-center gap-2 mt-6">
-                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-[10px] text-green-500 font-bold uppercase tracking-wider">Serveur en ligne</span>
-            </div>
-
-            <!-- INDEPENDENT PROJECT TEXT (ADDED HERE) -->
-            <div class="mt-6 px-1 text-center">
-                <p class="text-[11px] leading-relaxed opacity-70 font-medium" style="color: var(--text-muted);">
-                    Cette application collecte les annonces de la plateforme e-learning de l'Univ Bejaïa. C'est un projet indépendant conçu d'un étudiant pour les étudiants.
-                </p>
-            </div>
-        </div>
-
-        <!-- Drawer Footer -->
-        <div class="p-6 text-center border-t border-white/5 pb-8 bg-black/5">
-            <p class="text-xs font-semibold opacity-70" style="color: var(--text-main);">Designed and developed by</p>
-            <p class="text-sm font-extrabold mt-1 heading-text text-blue-500">Adam Mila</p>
-        </div>
-    </div>
-
-    <!-- Keep this hidden so script.js doesn't crash if it looks for it -->
-    <div id="page-settings" class="hidden"></div>
-    <div id="bottom-nav" class="hidden"></div>
-
-    <!-- UI Logic for the Slider (Independent from script.js) -->
-    <script>
-        function toggleDrawer() {
-            const drawer = document.getElementById('side-drawer');
-            const overlay = document.getElementById('drawer-overlay');
-            
-            if (drawer.classList.contains('-translate-x-full')) {
-                // Open Drawer
-                overlay.classList.remove('hidden');
-                // Delay to allow display:block to apply before animating opacity
-                setTimeout(() => {
-                    overlay.classList.remove('opacity-0');
-                    drawer.classList.remove('-translate-x-full');
-                }, 10);
+        // Logic for Back to Top Button
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('back-to-top');
+            if (window.scrollY > 300) {
+                btn.classList.add('visible');
             } else {
-                // Close Drawer
-                drawer.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 400); // Matches the new duration-400
+                btn.classList.remove('visible');
             }
-        }
+        });
     </script>
 
     <!-- Core App Logic (Untouched) -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-</html>
-            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-2 mt-6">Système & Support</h3>
-            <div class="settings-group">
-                <div class="settings-card" onclick="hardReloadApp(); toggleDrawer();">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-orange">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="setting-label">Rafraîchir l'app</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-card" onclick="contactDev()">
-                    <div class="flex items-center">
-                        <div class="icon-box bg-purple">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </div>
-                        <span class="setting-label">Signaler un bug</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 mt-6 ml-3">
-                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-[10px] text-green-500 font-bold uppercase tracking-wider">Serveur en ligne</span>
-            </div>
-        </div>
-
-        <!-- Drawer Footer -->
-        <div class="p-6 text-center border-t border-white/5 pb-8">
-            <p class="text-xs font-semibold" style="color: var(--text-main);">Designed and developed by</p>
-            <p class="text-sm font-extrabold mt-1 heading-text text-blue-500">Adam Mila</p>
-        </div>
-    </div>
-
-    <!-- Keep this hidden so script.js doesn't crash if it looks for it -->
-    <div id="page-settings" class="hidden"></div>
-    <div id="bottom-nav" class="hidden"></div>
-
-    <!-- UI Logic for the Slider (Independent from script.js) -->
-    <script>
-        function toggleDrawer() {
-            const drawer = document.getElementById('side-drawer');
-            const overlay = document.getElementById('drawer-overlay');
-            
-            if (drawer.classList.contains('-translate-x-full')) {
-                // Open Drawer
-                overlay.classList.remove('hidden');
-                // Tiny delay to allow display:block to apply before animating opacity
-                setTimeout(() => {
-                    overlay.classList.remove('opacity-0');
-                    drawer.classList.remove('-translate-x-full');
-                }, 10);
-            } else {
-                // Close Drawer
-                drawer.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                // Wait for animation to finish before hiding element
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 300);
-            }
-        }
-    </script>
-
-    <!-- Core App Logic (Untouched) -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-</body>
-                            </html>
+                </html>
