@@ -26,18 +26,19 @@
     <div id="page-home" class="active">
         
         <!-- HEADER -->
-        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm">
+        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm h-[72px]">
             
+            <!-- Hamburger Menu -->
             <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <path d="M4 6h16M4 12h16M4 18h10"></path>
                 </svg>
             </button>
 
-            <!-- 🟢 EXACT MATCH TO YOUR SCREENSHOT 🟢 -->
-            <div class="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2 mt-1">
-                <span class="text-[11px] font-bold tracking-[0.25em] uppercase mb-1" style="color: #3b82f6;">Univ Bejaïa</span>
-                <h1 class="text-[1.35rem] font-extrabold tracking-tight heading-text leading-none" style="color: var(--text-main);">ST Affichage</h1>
+            <!-- 🟢 FIXED HEADER TITLE (No more wrapping!) 🟢 -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max pointer-events-none">
+                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px]" style="color: #3b82f6;">Univ Bejaïa</span>
+                <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
             <!-- SEARCH BUTTONS -->
@@ -85,9 +86,8 @@
         <!-- Drawer Header -->
         <div class="p-6 pb-4 flex justify-between items-start">
             <div class="flex flex-col mt-2">
-                <!-- Match the sidebar to the new top header layout -->
                 <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: #3b82f6;">Univ Bejaïa</span>
-                <h2 class="text-2xl font-bold heading-text tracking-tight" style="color: var(--text-main);">ST Affichage</h2>
+                <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h2>
                 <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.1 (Beta)</p>
             </div>
             <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
@@ -102,7 +102,6 @@
             <div class="settings-card" onclick="toggleTheme()">
                 <div class="flex items-center">
                     <div class="icon-box bg-theme">
-                        <!-- 🟢 NEW ELEGANT MOON & STAR ICON 🟢 -->
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
                             <path d="M19 3v4"></path>
@@ -130,7 +129,6 @@
             <div class="settings-card" onclick="contactDev()">
                 <div class="flex items-center">
                     <div class="icon-box bg-purple">
-                        <!-- 🟢 NEW ACTUAL BUG ICON 🟢 -->
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                             <path d="M8 2v4"></path>
                             <path d="M16 2v4"></path>
