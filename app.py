@@ -135,10 +135,14 @@ def extract_links(tag):
 
 def send_fcm_notification(title, body_preview):
     try:
+        # FIXED: Removed 'FLUTTER_NOTIFICATION_CLICK' so the APK opens normally
         android_config = messaging.AndroidConfig(
             priority='high',
             ttl=86400,
-            notification=messaging.AndroidNotification(click_action='FLUTTER_NOTIFICATION_CLICK')
+            notification=messaging.AndroidNotification(
+                default_sound=True,
+                default_vibrate_timings=True
+            )
         )
         safe_title = bleach.clean(title, tags=[], strip=True)
         message = messaging.Message(
