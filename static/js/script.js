@@ -109,13 +109,21 @@ function loadMore() {
             });
         }
 
-        // Images (NEW FEATURE)
+        // 🟢 IMAGES WITH FLOATING DOWNLOAD BUTTON 🟢
         let imagesHtml = '';
         if (item.images && item.images.length > 0) {
             item.images.forEach(img => {
                 imagesHtml += `
-                    <div class="mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
+                    <div class="relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
+                        <!-- The Image -->
                         <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
+                        
+                        <!-- The Floating Download Button -->
+                        <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10" aria-label="Download Image">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </a>
                     </div>
                 `;
             });
@@ -179,4 +187,4 @@ function hardReloadApp() {
 
 function contactDev() {
     window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report";
-    }
+}
