@@ -14,56 +14,58 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Standardized on Inter for the pure minimalist feel -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Syne for bold massive headers, Inter for clean body text -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#191919">
+    <meta name="theme-color" content="#110C1A">
 </head>
 <body class="overscroll-none">
 
     <div id="page-home" class="active">
         
         <!-- HEADER -->
-        <div id="main-header" class="header-glass sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
+        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center">
             
-            <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-70 hover:opacity-100 transition-opacity" style="color: var(--text-main);">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <!-- Hamburger (Matches Résumia purple square) -->
+            <button onclick="toggleDrawer()" class="w-11 h-11 flex items-center justify-center menu-btn">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>
 
-            <!-- Workspace Style Title -->
-            <div class="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
-                <span class="text-lg">📚</span>
-                <h1 class="text-base font-semibold heading-text" style="color: var(--text-main);">ST Affichage</h1>
+            <!-- Brand Name -->
+            <div class="flex items-center absolute left-[68px]">
+                <h1 class="text-xl font-bold font-syne tracking-wide" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
-            <div class="relative w-10 h-10 flex items-center justify-center">
-                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end opacity-70 hover:opacity-100 transition-opacity" style="color: var(--text-main);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <!-- Search Area -->
+            <div class="relative w-11 h-11 flex items-center justify-center">
+                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end transition-transform active:scale-90" style="color: var(--text-main);">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </button>
                 
-                <button id="header-cancel-btn" onclick="cancelSearch()" class="absolute right-0 flex items-center justify-center rounded w-8 h-8 transition-all duration-200 opacity-0 pointer-events-none" style="background-color: var(--bg-color); color: var(--text-main);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button id="header-cancel-btn" onclick="cancelSearch()" class="absolute right-0 flex items-center justify-center rounded-xl w-10 h-10 transition-all duration-300 opacity-0 pointer-events-none transform scale-90" style="background-color: var(--surface); color: var(--error-color); border: 1px solid var(--border);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
         </div>
 
-        <!-- SEARCH BAR -->
-        <div id="search-bar-container" class="fixed top-[60px] left-0 right-0 z-30 px-4 transition-all duration-200 transform -translate-y-[150%] opacity-0 pointer-events-none">
-            <div class="p-1 rounded-md flex items-center gap-2 search-bar-inner border" style="background-color: var(--bg-color); border-color: var(--accent-color);">
-                <svg class="w-4 h-4 ml-3 opacity-50" style="color: var(--text-main)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-2 px-2 focus:outline-none placeholder-gray-500" style="color: var(--text-main);">
+        <!-- SEARCH BAR DROP DOWN -->
+        <div id="search-bar-container" class="fixed top-[80px] left-0 right-0 z-30 px-5 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
+            <div class="p-1 rounded-2xl flex items-center gap-2 border shadow-lg" style="background-color: var(--surface); border-color: var(--border);">
+                <svg class="w-5 h-5 ml-4" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-3 px-2 focus:outline-none" style="color: var(--text-main);">
             </div>
         </div>
 
         <!-- Content Area -->
-        <div class="px-4 mt-6 pb-12" id="content-area">
-            <!-- Document Title Style inside the feed -->
-            <div class="max-w-md mx-auto mb-6">
-                <h2 class="text-2xl font-bold mb-1" style="color: var(--text-main);">Annonces</h2>
-                <p class="text-sm" style="color: var(--text-muted);">Dernières mises à jour de l'Univ Bejaïa.</p>
+        <div class="px-5 mt-6 pb-12" id="content-area">
+            
+            <!-- Section Header mimicking Résumia text style -->
+            <div class="flex items-center gap-2 mb-6">
+                <span class="text-xs" style="color: var(--accent-primary);">✦</span>
+                <span class="text-xs font-bold tracking-widest uppercase" style="color: var(--accent-primary);">Mises à jour récentes</span>
             </div>
 
             <div id="cards-container" class="min-h-[100vh] max-w-md mx-auto">
@@ -73,82 +75,78 @@
         </div>
     </div>
 
-    <!-- Minimal Back to Top -->
+    <!-- Back to Top Button -->
     <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path>
         </svg>
     </button>
 
     <!-- DRAWER OVERLAY -->
-    <div id="drawer-overlay" class="fixed inset-0 bg-black/40 z-50 opacity-0 transition-opacity duration-300" style="visibility: hidden;" onclick="toggleDrawer()"></div>
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 z-50 opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="toggleDrawer()"></div>
 
-    <!-- NOTION SIDEBAR -->
-    <div id="side-drawer" class="glass-drawer fixed top-0 left-0 h-full w-[80%] max-w-[300px] z-50 transform -translate-x-full transition-transform duration-300 ease-out flex flex-col overflow-y-auto" style="visibility: hidden;">
+    <!-- SIDEBAR DRAWER (Matches Screenshot Layout) -->
+    <div id="side-drawer" class="side-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto" style="visibility: hidden;">
         
-        <!-- Sidebar Profile/Header -->
-        <div class="p-4 flex items-center gap-3 mb-4 mt-2">
-            <div class="w-10 h-10 rounded border flex items-center justify-center text-lg" style="border-color: var(--card-border); background: var(--bg-color);">
-                📚
-            </div>
-            <div class="flex-1">
-                <h2 class="text-sm font-semibold" style="color: var(--text-main);">ST Affichage</h2>
-                <p class="text-xs" style="color: var(--text-muted);">Univ Bejaïa</p>
-            </div>
+        <!-- Drawer Header -->
+        <div class="px-6 py-6 border-b flex justify-between items-center" style="border-color: var(--border);">
+            <h2 class="text-xl font-bold font-syne" style="color: var(--text-main);">Menu</h2>
+            <button onclick="toggleDrawer()" class="w-8 h-8 flex items-center justify-end active:scale-90 transition-transform" style="color: var(--text-muted);">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
 
-        <div class="px-2 flex-1">
-            <p class="text-xs font-medium mb-1 px-3" style="color: var(--text-muted);">Paramètres</p>
+        <!-- Drawer Content -->
+        <div class="p-6 flex-1">
             
+            <!-- SECTION: ACCOUNT -->
+            <p class="section-label">ACCOUNT</p>
+            <div class="account-box">
+                <div class="account-icon font-syne font-bold text-xl">
+                    &lt;/&gt;
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold" style="color: var(--text-main);">Adam Mila Dev</span>
+                    <span class="text-[11px]" style="color: var(--text-muted);">adam.mila.dev@gmail.com</span>
+                </div>
+            </div>
+            
+            <button onclick="contactDev()" class="text-xs font-bold mt-2 mb-8 ml-2 transition-colors hover:opacity-80" style="color: var(--error-color);">
+                Signaler un bug
+            </button>
+
+            <!-- SECTION: SETTINGS -->
+            <p class="section-label">SETTINGS</p>
             <div class="settings-card" onclick="toggleTheme()">
-                <div class="flex items-center">
-                    <div class="icon-box">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    </div>
-                    <span class="setting-label">Mode Sombre</span>
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    <span class="text-[15px] font-semibold" style="color: var(--text-main);">Dark Mode</span>
                 </div>
                 <div id="theme-switch" class="toggle-switch">
                     <div class="toggle-dot"></div>
                 </div>
             </div>
 
-            <p class="text-xs font-medium mb-1 mt-6 px-3" style="color: var(--text-muted);">Actions</p>
-            
-            <div class="settings-card" onclick="hardReloadApp();">
-                <div class="flex items-center">
-                    <div class="icon-box">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    </div>
-                    <span class="setting-label">Actualiser</span>
+            <button class="action-btn mt-6" onclick="hardReloadApp(); toggleDrawer();">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Actualiser l'application
+            </button>
+
+            <!-- SECTION: INFO -->
+            <p class="section-label mt-10">SYSTEM INFO</p>
+            <div class="flex items-center gap-3 ml-2 mb-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--surface); border: 1px solid var(--border);">
+                    <svg class="w-4 h-4" style="color: var(--accent-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold" style="color: var(--text-main);">Version 1.9.1 (Beta)</span>
+                    <span class="text-[11px]" style="color: var(--text-muted);">Projet indépendant d'étudiant.</span>
                 </div>
             </div>
-
-            <div class="settings-card" onclick="contactDev()">
-                <div class="flex items-center">
-                    <div class="icon-box">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                    </div>
-                    <span class="setting-label">Signaler un bug</span>
-                </div>
-            </div>
-
-            <!-- Server Status -->
-            <div class="flex items-center gap-2 mt-4 px-3">
-                <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                <span class="text-xs" style="color: var(--text-muted);">Système en ligne</span>
-            </div>
-        </div>
-
-        <!-- Sidebar Footer -->
-        <div class="p-4 border-t mt-auto" style="border-color: var(--card-border);">
-            <p class="text-xs mb-2 leading-relaxed" style="color: var(--text-muted);">
-                Ce projet indépendant collecte les annonces de la plateforme e-learning. Conçu d'un étudiant pour les étudiants.
-            </p>
-            <p class="text-xs font-medium" style="color: var(--text-main);">Conçu par Adam Mila</p>
         </div>
     </div>
 
-    <!-- HIDDEN ELEMENTS FOR JS COMPATIBILITY -->
+    <!-- Hidden elements for JS compatibility -->
     <div id="page-settings" style="display: none !important;"></div>
     <div id="bottom-nav" style="display: none !important;"></div>
 
@@ -170,7 +168,7 @@
                 setTimeout(() => {
                     overlay.style.visibility = 'hidden';
                     drawer.style.visibility = 'hidden';
-                }, 300); 
+                }, 400); 
             }
         }
 
@@ -182,4 +180,4 @@
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-</html>
+    </html>
