@@ -1,44 +1,32 @@
 :root {
-    /* 🌌 DARK THEME (Résumia Style) */
-    --bg-color: #110C1A;
-    --bg-gradient: linear-gradient(180deg, #140E1F 0%, #0F0A15 100%);
-    --surface: #1B1525;
-    --surface-hover: #241D30;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-dashed: rgba(255, 255, 255, 0.15);
-    
+    /* 🌌 Résumia Dark Theme Colors */
+    --bg-color: #110C1A; /* Deep dark violet */
     --text-main: #FFFFFF;
     --text-muted: #A39BB2;
-    --text-label: #7C748B;
-    
-    --accent-primary: #8B5CF6; /* Vibrant Purple */
+    --card-bg: rgba(27, 21, 37, 0.4); /* Frosted violet surface */
+    --card-border: rgba(255, 255, 255, 0.08);
+    --nav-bg: rgba(17, 12, 26, 0.4); /* Transparent dark violet for drawer */
+    --accent-color: #8B5CF6; /* Résumia Vibrant Purple */
     --accent-hover: #7C3AED;
-    --accent-gradient: linear-gradient(90deg, #A855F7, #D946EF);
-    --accent-light: rgba(139, 92, 246, 0.15);
-    
-    --error-color: #EF4444;
+    --date-bg: rgba(139, 92, 246, 0.15); /* Tinted purple */
+    --date-text: #C084FC; /* Light purple */
 }
 
 .light-mode {
-    /* 🌅 LIGHT THEME (Résumia Style) */
-    --bg-color: #F8F6FA;
-    --bg-gradient: linear-gradient(180deg, #FCFAFF 0%, #F4F1F8 100%);
-    --surface: #FFFFFF;
-    --surface-hover: #F0EDF4;
-    --border: rgba(0, 0, 0, 0.06);
-    --border-dashed: rgba(0, 0, 0, 0.15);
-    
-    --text-main: #1A1525;
-    --text-muted: #6E6680;
-    --text-label: #8C849E;
-    
-    --accent-primary: #8B5CF6;
+    /* 🌅 Résumia Light Theme Colors */
+    --bg-color: #F8F6FA; 
+    --text-main: #1A1525; 
+    --text-muted: #6E6680; 
+    --card-bg: rgba(255, 255, 255, 0.7); /* Frosted white */
+    --card-border: rgba(0, 0, 0, 0.06); 
+    --nav-bg: rgba(248, 246, 250, 0.5); 
+    --accent-color: #8B5CF6; 
     --accent-hover: #7C3AED;
-    --accent-gradient: linear-gradient(90deg, #8B5CF6, #C026D3);
-    --accent-light: rgba(139, 92, 246, 0.1);
+    --date-bg: rgba(139, 92, 246, 0.1);
+    --date-text: #7C3AED; 
 }
 
-/* Base Styles */
+/* Base Styles & Resets */
 ::-webkit-scrollbar { display: none; }
 * { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -48,9 +36,14 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Smooth Theme Transition (Hardware Accelerated) */
+body, .glass-card, .header-glass, .glass-drawer, .settings-card, .search-bar-inner, #header-cancel-btn {
+    transition: background-color 0.4s ease-out, color 0.4s ease-out, border-color 0.4s ease-out !important;
+    will-change: background-color, color, border-color;
+}
+
 body { 
-    background: var(--bg-gradient); 
-    background-attachment: fixed;
+    background-color: var(--bg-color); 
     color: var(--text-main); 
     font-family: 'Inter', sans-serif; 
     -webkit-tap-highlight-color: transparent; 
@@ -58,168 +51,131 @@ body {
     min-height: 100vh;
 }
 
-/* Smooth Theme Transition */
-body, .glass-card, .header-glass, .side-drawer, .settings-card, .search-bar-inner, .account-box {
-    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease !important;
-    will-change: background-color, color, border-color;
-}
+/* Syne font for that wide, modern Résumia look */
+.heading-text { font-family: 'Syne', sans-serif; }
 
-/* Typography */
-.font-syne { font-family: 'Syne', sans-serif; }
-.text-gradient {
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-}
-
-/* Header */
+/* Headers */
 .header-glass { 
-    background: transparent; 
-    border-bottom: 1px solid var(--border); 
-}
-.menu-btn {
-    background: var(--accent-primary);
-    color: #FFFFFF;
-    border-radius: 12px;
-    transition: transform 0.2s, background-color 0.2s;
-}
-.menu-btn:active { transform: scale(0.95); background: var(--accent-hover); }
-
-/* Sidebar Drawer (Résumia Style) */
-.side-drawer {
-    background: var(--bg-color); /* Solid background, no blur, just like screenshot */
-    border-right: 1px solid var(--border);
-    box-shadow: 20px 0 50px rgba(0,0,0,0.5);
-}
-.light-mode .side-drawer { box-shadow: 20px 0 50px rgba(0,0,0,0.05); }
-
-/* Sidebar Sections */
-.section-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-label);
-    margin-bottom: 0.75rem;
-    margin-left: 0.25rem;
+    background: var(--bg-color); 
+    border-bottom: 1px solid var(--card-border); 
 }
 
-.account-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 0.75rem;
+/* 🟢 HEAVY APPLE-STYLE GLASS DRAWER 🟢 */
+.glass-drawer {
+    background: var(--nav-bg);
+    backdrop-filter: blur(48px) saturate(200%); 
+    -webkit-backdrop-filter: blur(48px) saturate(200%);
+    border-right: 1px solid var(--card-border);
+    box-shadow: 25px 0 50px rgba(0,0,0,0.5);
 }
-.account-icon {
-    width: 44px; height: 44px;
-    background: #000000;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent-primary);
-}
+.light-mode .glass-drawer { box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
 
+/* JS Animation States */
+.search-visible { transform: translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
+
+/* 🟢 PREMIUM FROSTED CARDS 🟢 */
+.glass-card { 
+    background: var(--card-bg); 
+    border: 1px solid var(--card-border); 
+    border-radius: 28px; /* Smooth rounded corners */
+    padding: 1.5rem; 
+    margin-bottom: 1.25rem; 
+    opacity: 0; 
+    transform: translateY(15px); 
+    animation: fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+    will-change: transform, opacity; 
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+}
+.light-mode .glass-card { box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05); }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+/* Forcing Left Alignment */
+.glass-card > .flex-col { align-items: flex-start !important; }
+.glass-card .w-12 { margin-left: 0 !important; height: 3px; border-radius: 99px; background-color: var(--accent-color); opacity: 0.5; }
+
+/* Typography inside Cards */
+.announcement-title { font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--text-main); text-align: left !important; line-height: 1.3; margin-bottom: 0.5rem; }
+.announcement-date { background-color: var(--date-bg); color: var(--date-text); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; display: inline-block; padding: 6px 12px; border-radius: 999px; margin-bottom: 1rem; }
+.announcement-body { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-align: left !important; white-space: pre-line; font-weight: 400; }
+.announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 700; }
+
+/* 🟢 MODERN PILL BUTTONS 🟢 */
+.link-btn { 
+    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
+    background: var(--accent-color); padding: 14px; 
+    border-radius: 999px; /* Perfect Pill */
+    font-size: 0.85rem; font-weight: 700; color: #FFFFFF; margin-top: 1.5rem; 
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s; 
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); /* Purple shadow */
+}
+.link-btn:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2); }
+
+.source-btn { 
+    display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; 
+    background: var(--card-bg); padding: 12px; 
+    border-radius: 999px; /* Perfect Pill */
+    font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.75rem; 
+    border: 1px solid var(--card-border); 
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s; 
+}
+.source-btn:active { transform: scale(0.95); background: var(--card-border); }
+
+/* Settings List (Floating modern bubbles) */
 .settings-card { 
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px 20px; 
-    display: flex; justify-content: space-between; align-items: center; 
-    margin-bottom: 0.75rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; 
+    cursor: pointer; margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
 }
+.settings-card:active { transform: scale(0.96); background-color: var(--card-border); }
 
-/* Action Buttons (Like "Create New Resume") */
-.action-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: var(--accent-primary);
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: background-color 0.2s, transform 0.2s;
-    cursor: pointer;
-    width: 100%;
-}
-.action-btn:active { transform: scale(0.98); background: var(--surface-hover); }
+.icon-box { width: 38px; height: 38px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-right: 14px; color: white; }
+.setting-label { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
 
-/* Toggle Switch */
+/* 🟢 ELEGANT iOS TOGGLE 🟢 */
 .toggle-switch { 
-    width: 46px; height: 26px; 
-    background-color: var(--surface-hover); 
+    width: 50px; height: 30px; 
+    background-color: rgba(255, 255, 255, 0.1); 
     border-radius: 999px; 
     position: relative; 
     cursor: pointer;
-    border: 1px solid var(--border);
-    transition: background-color 0.3s;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    transition: background-color 0.3s ease;
 }
-.toggle-switch.active { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+.toggle-switch.active { background-color: var(--accent-color); }
+.light-mode .toggle-switch { background-color: #E2E8F0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); }
+
 .toggle-dot { 
-    width: 20px; height: 20px; 
+    width: 26px; height: 26px; 
     background-color: white; 
     border-radius: 50%; 
     position: absolute; 
     top: 2px; left: 2px; 
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16); 
 }
 .toggle-switch.active .toggle-dot { transform: translateX(20px); }
 
-/* Cards (Announcements) */
-.glass-card { 
-    background: var(--surface); 
-    border: 1px solid var(--border); 
-    border-radius: 24px; 
-    padding: 1.5rem; 
-    margin-bottom: 1rem; 
-    opacity: 0; 
-    transform: translateY(15px); 
-    animation: fadeInUp 0.5s ease-out forwards; 
-}
-@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-
-/* Typography inside Cards */
-.announcement-title { font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--text-main); text-align: left !important; line-height: 1.3; margin-bottom: 0.5rem; }
-.announcement-date { background-color: var(--accent-light); color: var(--accent-primary); font-weight: 600; font-size: 0.7rem; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; margin-bottom: 1rem; }
-.announcement-body { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; text-align: left !important; white-space: pre-line; font-weight: 400; }
-.announcement-body b, .announcement-body strong { color: var(--text-main); font-weight: 600; }
-
-/* In-Card Buttons */
-.link-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: var(--accent-primary); padding: 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; color: #FFFFFF; margin-top: 1.5rem; transition: transform 0.2s; }
-.link-btn:active { transform: scale(0.97); background: var(--accent-hover); }
-
-.source-btn { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0.5rem; background: transparent; padding: 14px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-top: 0.5rem; border: 1px solid var(--border); transition: transform 0.2s, background-color 0.2s; }
-.source-btn:active { transform: scale(0.97); background: var(--surface-hover); color: var(--text-main); }
-
-/* Dashed Box (Like Upload Box) */
-.dashed-box {
-    border: 1px dashed var(--border-dashed);
-    border-radius: 24px;
-    background: transparent;
-    padding: 2rem;
-    text-align: center;
-}
+/* Icon Colors */
+.bg-theme { background-color: var(--accent-color); }
+.bg-orange { background-color: #EC4899; } /* Pinkish for Résumia vibe */
+.bg-purple { background-color: #A855F7; }
 
 /* Loader */
-.loader { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 40px auto; }
+.loader { width: 28px; height: 28px; border: 3px solid var(--card-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s ease-in-out infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Back to top */
+/* 🟢 BACK TO TOP BUTTON 🟢 */
 #back-to-top {
     position: fixed; bottom: 25px; right: 20px;
-    width: 48px; height: 48px; border-radius: 16px;
-    background: var(--surface); border: 1px solid var(--border);
-    color: var(--text-main); display: flex; align-items: center; justify-content: center;
-    z-index: 45; opacity: 0; pointer-events: none; transform: translateY(20px);
-    transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    width: 50px; height: 50px; border-radius: 999px;
+    background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border); color: var(--text-main); display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 45; opacity: 0; pointer-events: none;
+    transform: translateY(20px) scale(0.8); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-#back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-#back-to-top:active { background: var(--surface-hover); transform: scale(0.9); }
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+#back-to-top:active { transform: scale(0.9); }
