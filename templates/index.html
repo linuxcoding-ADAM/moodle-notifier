@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
     
+    <!-- GOOGLE ANALYTICS START -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -14,7 +15,7 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Syne for bold massive headers, Inter for clean body text -->
+    <!-- Syne for Headings, Inter for Body -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -25,59 +26,52 @@
     <div id="page-home" class="active">
         
         <!-- HEADER -->
-        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center">
+        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm">
             
-            <!-- Hamburger (Matches Résumia purple square) -->
-            <button onclick="toggleDrawer()" class="w-11 h-11 flex items-center justify-center menu-btn">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+            <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"></path>
                 </svg>
             </button>
 
-            <!-- Brand Name -->
-            <div class="flex items-center absolute left-[68px]">
-                <h1 class="text-xl font-bold font-syne tracking-wide" style="color: var(--text-main);">ST Affichage</h1>
+            <!-- Brand Text (Résumia Font) -->
+            <div class="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
+                <span class="text-[10px] font-bold tracking-[0.2em] uppercase mb-0.5" style="color: var(--accent-color);">Univ Bejaïa</span>
+                <h1 class="text-xl font-extrabold tracking-wide heading-text leading-none" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
-            <!-- Search Area -->
-            <div class="relative w-11 h-11 flex items-center justify-center">
-                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end transition-transform active:scale-90" style="color: var(--text-main);">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <!-- SEARCH BUTTONS -->
+            <div class="relative w-10 h-10 flex items-center justify-center">
+                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </button>
                 
-                <button id="header-cancel-btn" onclick="cancelSearch()" class="absolute right-0 flex items-center justify-center rounded-xl w-10 h-10 transition-all duration-300 opacity-0 pointer-events-none transform scale-90" style="background-color: var(--surface); color: var(--error-color); border: 1px solid var(--border);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button id="header-cancel-btn" onclick="cancelSearch()" class="absolute right-0 flex items-center justify-center rounded-full w-9 h-9 transition-all duration-300 opacity-0 pointer-events-none transform scale-90 shadow-md" style="background-color: var(--bg-color); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
         </div>
 
         <!-- SEARCH BAR DROP DOWN -->
-        <div id="search-bar-container" class="fixed top-[80px] left-0 right-0 z-30 px-5 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
-            <div class="p-1 rounded-2xl flex items-center gap-2 border shadow-lg" style="background-color: var(--surface); border-color: var(--border);">
-                <svg class="w-5 h-5 ml-4" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-3 px-2 focus:outline-none" style="color: var(--text-main);">
+        <div id="search-bar-container" class="fixed top-[74px] left-0 right-0 z-30 px-4 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
+            <div class="p-1 rounded-[24px] shadow-xl flex items-center gap-2 glass-drawer search-bar-inner border" style="border-color: var(--accent-color);">
+                <svg class="w-5 h-5 ml-4 opacity-50" style="color: var(--text-main)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-3 px-2 focus:outline-none placeholder-gray-500 font-medium" style="color: var(--text-main);">
             </div>
         </div>
 
         <!-- Content Area -->
-        <div class="px-5 mt-6 pb-12" id="content-area">
-            
-            <!-- Section Header mimicking Résumia text style -->
-            <div class="flex items-center gap-2 mb-6">
-                <span class="text-xs" style="color: var(--accent-primary);">✦</span>
-                <span class="text-xs font-bold tracking-widest uppercase" style="color: var(--accent-primary);">Mises à jour récentes</span>
-            </div>
-
+        <div class="px-4 mt-5 pb-12 transition-all duration-300" id="content-area">
             <div id="cards-container" class="min-h-[100vh] max-w-md mx-auto">
                 <div class="loader"></div>
             </div>
-            <div id="end-message" class="text-center text-xs py-8 hidden" style="color: var(--text-muted);">— Fin des annonces —</div>
+            <div id="end-message" class="text-center text-xs text-gray-500 py-8 hidden font-mono tracking-widest uppercase">Fin des annonces</div>
         </div>
     </div>
 
-    <!-- Back to Top Button -->
+    <!-- BACK TO TOP BUTTON -->
     <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path>
         </svg>
     </button>
@@ -85,68 +79,79 @@
     <!-- DRAWER OVERLAY -->
     <div id="drawer-overlay" class="fixed inset-0 bg-black/60 z-50 opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="toggleDrawer()"></div>
 
-    <!-- SIDEBAR DRAWER (Matches Screenshot Layout) -->
-    <div id="side-drawer" class="side-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto" style="visibility: hidden;">
+    <!-- HEAVY GLASS SIDE DRAWER -->
+    <div id="side-drawer" class="glass-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto" style="visibility: hidden;">
         
         <!-- Drawer Header -->
-        <div class="px-6 py-6 border-b flex justify-between items-center" style="border-color: var(--border);">
-            <h2 class="text-xl font-bold font-syne" style="color: var(--text-main);">Menu</h2>
-            <button onclick="toggleDrawer()" class="w-8 h-8 flex items-center justify-end active:scale-90 transition-transform" style="color: var(--text-muted);">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div class="p-6 pb-4 flex justify-between items-start">
+            <div class="flex flex-col">
+                <div class="w-14 h-14 rounded-[20px] flex items-center justify-center shadow-lg mb-5" style="background-color: var(--accent-color); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);">
+                    <span class="text-white font-extrabold text-2xl heading-text">st</span>
+                </div>
+                <h2 class="text-2xl font-bold heading-text tracking-tight" style="color: var(--text-main);">ST Affichage</h2>
+                <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.1 (Beta)</p>
+            </div>
+            <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform" style="color: var(--text-main);">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
 
-        <!-- Drawer Content -->
-        <div class="p-6 flex-1">
+        <!-- Settings -->
+        <div class="p-5 flex-1 mt-2">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Apparence</h3>
             
-            <!-- SECTION: ACCOUNT -->
-            <p class="section-label">ACCOUNT</p>
-            <div class="account-box">
-                <div class="account-icon font-syne font-bold text-xl">
-                    &lt;/&gt;
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-sm font-bold" style="color: var(--text-main);">Adam Mila Dev</span>
-                    <span class="text-[11px]" style="color: var(--text-muted);">adam.mila.dev@gmail.com</span>
-                </div>
-            </div>
-            
-            <button onclick="contactDev()" class="text-xs font-bold mt-2 mb-8 ml-2 transition-colors hover:opacity-80" style="color: var(--error-color);">
-                Signaler un bug
-            </button>
-
-            <!-- SECTION: SETTINGS -->
-            <p class="section-label">SETTINGS</p>
             <div class="settings-card" onclick="toggleTheme()">
-                <div class="flex items-center gap-3">
-                    <svg class="w-5 h-5" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    <span class="text-[15px] font-semibold" style="color: var(--text-main);">Dark Mode</span>
+                <div class="flex items-center">
+                    <div class="icon-box bg-theme">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </div>
+                    <span class="setting-label">Mode Sombre</span>
                 </div>
                 <div id="theme-switch" class="toggle-switch">
                     <div class="toggle-dot"></div>
                 </div>
             </div>
 
-            <button class="action-btn mt-6" onclick="hardReloadApp(); toggleDrawer();">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                Actualiser l'application
-            </button>
-
-            <!-- SECTION: INFO -->
-            <p class="section-label mt-10">SYSTEM INFO</p>
-            <div class="flex items-center gap-3 ml-2 mb-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--surface); border: 1px solid var(--border);">
-                    <svg class="w-4 h-4" style="color: var(--accent-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-sm font-semibold" style="color: var(--text-main);">Version 1.9.1 (Beta)</span>
-                    <span class="text-[11px]" style="color: var(--text-muted);">Projet indépendant d'étudiant.</span>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-8" style="color: var(--text-muted);">Système & Support</h3>
+            
+            <div class="settings-card" onclick="hardReloadApp();">
+                <div class="flex items-center">
+                    <div class="icon-box bg-orange">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </div>
+                    <span class="setting-label">Rafraîchir l'app</span>
                 </div>
             </div>
+
+            <div class="settings-card" onclick="contactDev()">
+                <div class="flex items-center">
+                    <div class="icon-box bg-purple">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    </div>
+                    <span class="setting-label">Signaler un bug</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 mt-8">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Serveur en ligne</span>
+            </div>
+
+            <div class="mt-6 px-2 text-center">
+                <p class="text-[11px] leading-relaxed font-medium" style="color: var(--text-muted);">
+                    Cette application collecte les annonces de la plateforme e-learning de l'Univ Bejaïa. C'est un projet indépendant conçu d'un étudiant pour les étudiants.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-6 text-center border-t border-white/5 pb-8 mt-auto">
+            <p class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Designed and developed by</p>
+            <p class="text-[15px] font-extrabold mt-1.5 heading-text" style="color: var(--accent-color);">Adam Mila</p>
         </div>
     </div>
 
-    <!-- Hidden elements for JS compatibility -->
+    <!-- Hidden UI -->
     <div id="page-settings" style="display: none !important;"></div>
     <div id="bottom-nav" style="display: none !important;"></div>
 
@@ -171,7 +176,6 @@
                 }, 400); 
             }
         }
-
         window.addEventListener('scroll', () => {
             const btn = document.getElementById('back-to-top');
             if (window.scrollY > 300) btn.classList.add('visible');
@@ -180,4 +184,4 @@
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-    </html>
+</html>
