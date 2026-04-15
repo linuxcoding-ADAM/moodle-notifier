@@ -5,58 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ST Affichage - Télécharger</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { background-color: #FFFFFF; color: #37352F; font-family: 'Inter', sans-serif; }
-        .minimal-btn {
-            background: #2383E2; color: white; transition: background 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-radius: 6px;
-        }
-        .minimal-btn:hover { background: #1D6CB5; }
-        .minimal-border { border: 1px solid #EAEAEA; }
-        .text-muted { color: #787774; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F7F7F5]">
+<body class="min-h-screen flex flex-col justify-center px-6 py-12 relative">
 
-    <div class="bg-white p-8 max-w-sm w-full minimal-border rounded-md text-center shadow-sm">
+    <div class="max-w-md w-full mx-auto relative z-10">
         
-        <div class="text-4xl mb-4">📚</div>
-
-        <h1 class="text-xl font-bold mb-2">ST Affichage</h1>
-        <p class="text-sm text-muted mb-6 leading-relaxed">
-            L'application essentielle, minimale et rapide pour les annonces de la faculté ST.
-        </p>
-
-        <!-- Feature List -->
-        <div class="text-left text-sm space-y-3 mb-8 text-muted">
-            <div class="flex items-center gap-2">
-                <span class="text-green-500">✓</span> Notifications en temps réel
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-green-500">✓</span> Interface minimaliste (Mode sombre inclus)
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-green-500">✓</span> Rapide & Sans Publicité
-            </div>
+        <!-- Subtitle like "AI STUDY ARCHITECT" -->
+        <div class="flex items-center gap-2 mb-6">
+            <span class="text-xs" style="color: var(--accent-primary);">✦</span>
+            <span class="text-xs font-bold tracking-widest uppercase" style="color: var(--accent-primary);">PROJET INDÉPENDANT</span>
         </div>
 
-        <!-- Download Button -->
-        <a href="/static/ST%20Affichage.apk" download class="minimal-btn w-full py-3 font-medium flex items-center justify-center gap-2 mb-4">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            Télécharger (.APK)
-        </a>
+        <!-- Massive Typography like screenshot -->
+        <h1 class="text-[3.5rem] leading-[1.05] font-syne font-extrabold mb-10 tracking-tight" style="color: var(--text-main);">
+            L'application<br>
+            essentielle<br>
+            pour les<br>
+            <span class="text-gradient">étudiants ST.</span>
+        </h1>
 
-        <div class="text-[11px] text-muted flex justify-center gap-4 border-t border-[#EAEAEA] pt-4 mt-2">
-            <span>Vérifié</span>
-            <span>Sécurisé</span>
-            <span>Gratuit</span>
+        <!-- Step 1 Label -->
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background: var(--surface); border: 1px solid var(--accent-primary); color: var(--text-main);">
+                1
+            </div>
+            <span class="text-lg font-syne font-bold" style="color: var(--text-main);">Télécharger l'APK</span>
         </div>
-    </div>
 
-    <div class="mt-8 text-center text-[11px] text-muted max-w-xs leading-relaxed">
-        <p class="mb-1">Projet indépendant conçu par Adam Mila.</p>
-        <p>Pour installer, acceptez l'autorisation "Sources inconnues" dans vos paramètres Android.</p>
+        <!-- Dashed Upload-style Box -->
+        <div class="dashed-box flex flex-col items-center">
+            
+            <!-- Icon Circle -->
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mb-4" style="background: var(--surface-hover); border: 1px solid var(--accent-primary); color: var(--accent-primary);">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            </div>
+
+            <!-- Download Button/Text -->
+            <a href="/static/ST%20Affichage.apk" download class="text-lg font-bold mb-1 hover:underline decoration-2 underline-offset-4" style="color: var(--text-main);">
+                Cliquez pour télécharger
+            </a>
+            <p class="text-sm" style="color: var(--accent-primary);">Fichier sécurisé : 1.9.1 (Beta)</p>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-8 text-center text-xs leading-relaxed" style="color: var(--text-muted);">
+            <p class="mb-1">Conçu et développé par Adam Mila.</p>
+            <p>Pour installer, acceptez l'autorisation "Sources inconnues" dans vos paramètres Android.</p>
+        </div>
+
     </div>
 
 </body>
