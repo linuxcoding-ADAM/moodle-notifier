@@ -56,6 +56,7 @@ def add_security_headers(response):
         "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.googletagmanager.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; "
         "font-src 'self' https://fonts.gstatic.com;"
+        "img-src * data:;" # Allowed images to load from anywhere
     )
     response.headers['Content-Security-Policy'] = csp_policy
     return response
@@ -70,8 +71,6 @@ FRENCH_MONTHS = {
 
 def parse_date_to_timestamp(date_str):
     try:
-        # Regex to catch: "27 Janvier 2026", "27/01/2026", etc.
-        # Handles "à 14h30", ": 14h30", or just the date.
         match = re.search(r'(\d{1,2})\s+([a-zA-Zéû]+)\s+(\d{4}).*?(\d{1,2})[h:](\d{1,2})', date_str, re.IGNORECASE)
         if match:
             day, month_str, year, hour, minute = match.groups()
@@ -85,16 +84,12 @@ def parse_date_to_timestamp(date_str):
 def clean_html_text(tag):
     if not tag: return ""
     text_parts = []
-    
-    # Recursively extract text while keeping basic structure
     for child in tag.children:
         if isinstance(child, NavigableString): 
             text = child.string.strip()
             if text: text_parts.append(text)
         elif isinstance(child, Tag):
-            # Skip hidden elements (screen readers etc) if any
             if 'accesshide' in child.get('class', []): continue
-            
             child_text = clean_html_text(child)
             if child_text:
                 if child.name in ['b', 'strong', 'h3', 'h4', 'h5']: 
@@ -104,38 +99,46 @@ def clean_html_text(tag):
                 elif child.name in ['p', 'div', 'li', 'br', 'ul']: 
                     text_parts.append(f"\n{child_text}\n")
                 elif child.name == 'a':
-                     text_parts.append(child_text) # Links handled separately
+                     text_parts.append(child_text)
                 else: 
                     text_parts.append(child_text)
                     
     full_text = " ".join(text_parts)
-    # Fix massive whitespace issues
     full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
     full_text = re.sub(r' +', ' ', full_text)
-    
     return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
 
 def extract_links(tag):
     links = []
-    # Find all links in the tag
     for a in tag.find_all("a", href=True):
         href = a.get('href')
-        # Skip internal Moodle junk links (like user profiles or help)
         if 'user/view' in href or 'help.php' in href: continue
-        
-        # Fix relative URLs
         if href and "http" not in href:
              href = f"https://elearning.univ-bejaia.dz{href}" if href.startswith('/') else f"https://elearning.univ-bejaia.dz/{href}"
-        
         if href and href.startswith('http'):
-            # Avoid duplicates
             if href not in links:
                 links.append(href)
     return links
 
+# --- NEW: EXTRACT IMAGES SAFELY ---
+def extract_images(tag):
+    images = []
+    for img in tag.find_all("img", src=True):
+        src = img.get('src')
+        # Ignore annoying Moodle UI icons (like PDF logos, spacers, etc)
+        if 'theme/image.php' in src or '/pix/' in src or 'icon' in src.lower() or 'spacer' in src.lower():
+            continue
+        
+        # Fix relative URLs
+        if src and "http" not in src:
+            src = f"https://elearning.univ-bejaia.dz{src}" if src.startswith('/') else f"https://elearning.univ-bejaia.dz/{src}"
+            
+        if src not in images:
+            images.append(src)
+    return images
+
 def send_fcm_notification(title, body_preview):
     try:
-        # FIXED: Removed 'FLUTTER_NOTIFICATION_CLICK' so the APK opens normally
         android_config = messaging.AndroidConfig(
             priority='high',
             ttl=86400,
@@ -162,63 +165,46 @@ def scrape_task():
         session = requests.Session()
         session.headers.update(HEADERS)
         response = session.get(AFFICHAGE_URL, timeout=30)
-        
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Select ALL activities inside the main region
-        # This ignores sidebars and blocks, focuses on the course flow
         cards = soup.select('li.activity')
         
         new_data = []
         for tag in cards:
-            # 1. Skip strictly system items (like forums header)
             if 'modtype_forum' in tag.get('class', []): continue
 
-            # 2. Extract Raw Text (to create ID and find Date)
             raw_text = tag.get_text(" ", strip=True)
             if not raw_text or len(raw_text) < 3: continue 
 
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
 
-            # 3. Determine CONTENT
-            # Strategy: Grab the 'content' container. If missing, grab the whole tag.
             content_area = tag.select_one('.contentwithoutlink, .activity-altcontent, .no-overflow')
             if not content_area:
-                content_area = tag # Fallback: Scrape the whole card
+                content_area = tag 
             
             body_html = clean_html_text(content_area)
             
-            # 4. Determine TITLE
-            # Strategy: Look for Bold -> Look for Activity Name -> Default
             title = "Information"
             title_match = re.search(r'<b>(.*?)</b>', body_html)
-            
             instancename = tag.select_one('.instancename')
             
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
-                # Remove the title from body to avoid repetition
                 body_html = body_html.replace(title_match.group(0), "", 1)
             elif instancename:
-                # Common for PDFs: The title is the link name
                 title_text = instancename.get_text(strip=True)
-                # Cleanup Moodle automatic suffixes
                 title = title_text.replace(" Fichier", "").replace(" URL", "").replace(" Dossier", "")
             
-            # 5. Extract Date
             date_text = "Général"
             timestamp = 0
-            # Look for "Affiché le" anywhere in the raw text
             date_match = re.search(r'Affiché le\s*[:]?\s*([0-9]{1,2}\s+[a-zA-Zéû]+\s+[0-9]{4}.*?(\d{1,2}[h:]\d{1,2})?)', raw_text, re.IGNORECASE)
             
             if date_match:
                 date_text = date_match.group(1).strip()
                 timestamp = parse_date_to_timestamp(date_text)
             
-            # 6. Extract Links
             links = extract_links(tag)
+            images = extract_images(tag) # <-- NEW
 
-            # 7. Source
             source_link = AFFICHAGE_URL
             if tag.get('id'):
                 safe_id = re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))
@@ -229,15 +215,14 @@ def scrape_task():
                 "title": bleach.clean(title, tags=[], strip=True),
                 "body": body_html,
                 "links": links,
+                "images": images, # <-- NEW
                 "date": bleach.clean(date_text, tags=[], strip=True),
                 "timestamp": timestamp,
                 "source": source_link
             }
             new_data.append(item)
         
-        # Sort: Newest First. Undated ("Général") go to bottom.
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
-        
         return new_data
 
     except Exception as e:
