@@ -35,9 +35,9 @@
                 </svg>
             </button>
 
-            <!-- 🟢 FIXED HEADER TITLE (No more wrapping!) 🟢 -->
+            <!-- 🟢 HEADER TITLE (Univ Bejaïa is now Purple) 🟢 -->
             <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max pointer-events-none">
-                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px]" style="color: #3b82f6;">Univ Bejaïa</span>
+                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px]" style="color: var(--accent-color);">Univ Bejaïa</span>
                 <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h1>
             </div>
 
@@ -66,7 +66,7 @@
             <div id="cards-container" class="min-h-[100vh] max-w-md mx-auto">
                 <div class="loader"></div>
             </div>
-            <div id="end-message" class="text-center text-xs text-gray-500 py-8 hidden font-mono tracking-widest uppercase">Fin des annonces</div>
+            <div id="end-message" class="text-center text-xs text-gray-500 py-8 hidden font-mono tracking-widest uppercase">End of announcements</div>
         </div>
     </div>
 
@@ -86,7 +86,7 @@
         <!-- Drawer Header -->
         <div class="p-6 pb-4 flex justify-between items-start">
             <div class="flex flex-col mt-2">
-                <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: #3b82f6;">Univ Bejaïa</span>
+                <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: var(--accent-color);">Univ Bejaïa</span>
                 <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h2>
                 <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.1 (Beta)</p>
             </div>
@@ -95,9 +95,9 @@
             </button>
         </div>
 
-        <!-- Settings -->
+        <!-- 🟢 TRANSLATED SETTINGS SECTION 🟢 -->
         <div class="p-5 flex-1 mt-2">
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Apparence</h3>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Appearance</h3>
             
             <div class="settings-card" onclick="toggleTheme()">
                 <div class="flex items-center">
@@ -108,21 +108,21 @@
                             <path d="M21 5h-4"></path>
                         </svg>
                     </div>
-                    <span class="setting-label">Mode Sombre</span>
+                    <span class="setting-label">Dark Mode</span>
                 </div>
                 <div id="theme-switch" class="toggle-switch">
                     <div class="toggle-dot"></div>
                 </div>
             </div>
 
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-8" style="color: var(--text-muted);">Système & Support</h3>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-8" style="color: var(--text-muted);">System & Support</h3>
             
             <div class="settings-card" onclick="hardReloadApp();">
                 <div class="flex items-center">
                     <div class="icon-box bg-orange">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     </div>
-                    <span class="setting-label">Rafraîchir l'app</span>
+                    <span class="setting-label">Refresh App</span>
                 </div>
             </div>
 
@@ -142,18 +142,18 @@
                             <path d="M20 20l-2-2"></path>
                         </svg>
                     </div>
-                    <span class="setting-label">Signaler un bug</span>
+                    <span class="setting-label">Report a Bug</span>
                 </div>
             </div>
 
             <div class="flex items-center justify-center gap-2 mt-8">
                 <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Serveur en ligne</span>
+                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Server Online</span>
             </div>
 
             <div class="mt-6 px-2 text-center">
                 <p class="text-[11px] leading-relaxed font-medium" style="color: var(--text-muted);">
-                    Cette application collecte les annonces de la plateforme e-learning de l'Univ Bejaïa. C'est un projet indépendant conçu d'un étudiant pour les étudiants.
+                    This application collects announcements from the Univ Bejaïa e-learning platform. It is an independent project made by a student for students.
                 </p>
             </div>
         </div>
