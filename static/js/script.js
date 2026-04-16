@@ -95,7 +95,7 @@ function loadMore() {
 
     nextBatch.forEach((item) => {
         const card = document.createElement('div');
-        card.className = 'glass-card flex flex-col items-start';
+        card.className = 'glass-card flex flex-col items-start w-full';
 
         // Links
         let linksHtml = '';
@@ -103,23 +103,20 @@ function loadMore() {
             item.links.forEach(link => {
                 linksHtml += `
                     <a href="${link}" target="_blank" rel="external" class="link-btn">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Download File
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Télécharger le fichier
                     </a>`;
             });
         }
 
-        // 🟢 IMAGES WITH FLOATING DOWNLOAD BUTTON 🟢
+        // Images 
         let imagesHtml = '';
         if (item.images && item.images.length > 0) {
             item.images.forEach(img => {
                 imagesHtml += `
                     <div class="relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
-                        <!-- The Image -->
                         <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
-                        
-                        <!-- The Floating Download Button -->
-                        <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10" aria-label="Download Image">
+                        <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                             </svg>
@@ -134,18 +131,29 @@ function loadMore() {
         if (item.source) {
             sourceBtn = `
                 <a href="${item.source}" target="_blank" rel="external" class="source-btn">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                    Open on e-learning
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    Ouvrir sur e-learning
                 </a>`;
         }
 
         card.innerHTML = `
-            <span class="announcement-date">${item.date}</span>
-            <h3 class="announcement-title">${item.title}</h3>
+            <!-- 🟢 HEADER WITH DATE AND SHARE BUTTON 🟢 -->
+            <div class="flex justify-between items-start w-full mb-1">
+                <span class="announcement-date" style="margin-bottom: 0;">${item.date}</span>
+                
+                <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white active:scale-90 transition-all shadow-sm" aria-label="Partager">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <h3 class="announcement-title w-full">${item.title}</h3>
+            <div class="announcement-body mt-2 w-full">${item.body}</div>
             
-            <div class="announcement-body mt-2">${item.body}</div>
-            
-            ${imagesHtml} <!-- Injects images perfectly here -->
+            ${imagesHtml} 
             ${linksHtml}
             ${sourceBtn}
         `;
@@ -158,6 +166,34 @@ function loadMore() {
     
     if (displayedCount >= activeList.length) {
         document.getElementById('end-message').classList.remove('hidden');
+    }
+}
+
+// 🟢 NEW SHARE FUNCTION 🟢
+async function shareAnnouncement(id) {
+    const item = allAnnouncements.find(a => a.id === id);
+    if (!item) return;
+
+    // Create a clean preview of the text (strip HTML tags if any sneaked through, limit length)
+    let cleanBody = item.body.replace(/<[^>]*>?/gm, '');
+    if(cleanBody.length > 150) cleanBody = cleanBody.substring(0, 150) + "...";
+
+    const shareData = {
+        title: item.title,
+        text: `📢 ${item.title}\n\n${cleanBody}\n\nVoir plus sur ST Affichage :`,
+        url: item.source || window.location.origin
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            // Fallback if browser doesn't support native share (e.g. older desktop)
+            navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+            alert("Lien copié dans le presse-papier !");
+        }
+    } catch (err) {
+        console.log("Share canceled or failed", err);
     }
 }
 
