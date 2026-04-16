@@ -73,7 +73,7 @@
     </button>
 
     <!-- DRAWER OVERLAY -->
-    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 z-50 opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="toggleDrawer()"></div>
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 z-40 opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="toggleDrawer()"></div>
 
     <!-- HEAVY GLASS SIDE DRAWER -->
     <div id="side-drawer" class="glass-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto" style="visibility: hidden;">
@@ -147,27 +147,7 @@
         </div>
     </div>
 
-    <!-- Hidden UI -->
-    <div id="page-settings" style="display: none !important;"></div>
-    <div id="bottom-nav" style="display: none !important;"></div>
-
-    <script>
-        function toggleDrawer() {
-            const drawer = document.getElementById('side-drawer');
-            const overlay = document.getElementById('drawer-overlay');
-            if (drawer.classList.contains('-translate-x-full')) {
-                overlay.style.visibility = 'visible'; drawer.style.visibility = 'visible';
-                setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full'); }, 10);
-            } else {
-                drawer.classList.add('-translate-x-full'); overlay.classList.add('opacity-0');
-                setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
-            }
-        }
-        window.addEventListener('scroll', () => {
-            const btn = document.getElementById('back-to-top');
-            if (window.scrollY > 300) btn.classList.add('visible'); else btn.classList.remove('visible');
-        });
-        <!-- 🟢 CUSTOM SHARE MENU (For the APK) 🟢 -->
+    <!-- 🟢 CUSTOM SHARE MENU (For the APK) 🟢 -->
     <div id="share-overlay" class="fixed inset-0 bg-black/60 z-[60] opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="closeShareSheet()"></div>
 
     <div id="share-sheet" class="fixed bottom-0 left-0 w-full z-[70] transform translate-y-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] rounded-t-[32px] border-t" style="background-color: var(--card-bg); border-color: var(--card-border); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); box-shadow: 0 -10px 40px rgba(0,0,0,0.5);">
@@ -175,9 +155,9 @@
             <!-- Drag handle -->
             <div class="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-6"></div>
             
-            <h3 class="font-syne font-bold text-lg mb-6" style="color: var(--text-main);">Partager via</h3>
+            <h3 class="font-syne font-bold text-lg mb-6 text-center" style="color: var(--text-main);">Partager via</h3>
             
-            <div class="flex items-center justify-around">
+            <div class="flex items-center justify-center gap-8">
                 <!-- WhatsApp -->
                 <button onclick="shareTo('whatsapp')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
                     <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#25D366] text-white">
@@ -204,7 +184,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Hidden UI -->
+    <div id="page-settings" style="display: none !important;"></div>
+    <div id="bottom-nav" style="display: none !important;"></div>
+
+    <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('side-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            if (drawer.classList.contains('-translate-x-full')) {
+                overlay.style.visibility = 'visible'; drawer.style.visibility = 'visible';
+                setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full'); }, 10);
+            } else {
+                drawer.classList.add('-translate-x-full'); overlay.classList.add('opacity-0');
+                setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
+            }
+        }
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('back-to-top');
+            if (window.scrollY > 300) btn.classList.add('visible'); else btn.classList.remove('visible');
+        });
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-</html>
+    </html>
