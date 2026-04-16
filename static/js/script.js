@@ -137,21 +137,23 @@ function loadMore() {
         }
 
         card.innerHTML = `
-            <!-- 🟢 HEADER WITH DATE AND SHARE BUTTON 🟢 -->
-            <div class="flex justify-between items-start w-full mb-1">
+            <!-- 🟢 HEADER WITH DATE AND PURPLE SHARE BUTTON 🟢 -->
+            <div class="flex justify-between items-center w-full mb-3">
                 <span class="announcement-date" style="margin-bottom: 0;">${item.date}</span>
                 
-                <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white active:scale-90 transition-all shadow-sm" aria-label="Partager">
+                <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                        <polyline points="16 6 12 2 8 6"></polyline>
-                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                     </svg>
                 </button>
             </div>
 
             <h3 class="announcement-title w-full">${item.title}</h3>
-            <div class="announcement-body mt-2 w-full">${item.body}</div>
+            <div class="announcement-body mt-1 w-full">${item.body}</div>
             
             ${imagesHtml} 
             ${linksHtml}
@@ -169,28 +171,28 @@ function loadMore() {
     }
 }
 
-// 🟢 NEW SHARE FUNCTION 🟢
+// 🟢 NEW FORMATTED SHARE FUNCTION 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
-    // Create a clean preview of the text (strip HTML tags if any sneaked through, limit length)
-    let cleanBody = item.body.replace(/<[^>]*>?/gm, '');
-    if(cleanBody.length > 150) cleanBody = cleanBody.substring(0, 150) + "...";
+    // Get the full text but remove HTML tags for clean sharing
+    let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
 
-    const shareData = {
-        title: item.title,
-        text: `📢 ${item.title}\n\n${cleanBody}\n\nVoir plus sur ST Affichage :`,
-        url: item.source || window.location.origin
-    };
+    // Format the text perfectly (using * makes it bold on WhatsApp)
+    const shareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
         if (navigator.share) {
-            await navigator.share(shareData);
+            // We pass only text because passing the URL separately sometimes overrides the text on certain Android devices.
+            await navigator.share({
+                title: item.title,
+                text: shareText
+            });
         } else {
-            // Fallback if browser doesn't support native share (e.g. older desktop)
-            navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-            alert("Lien copié dans le presse-papier !");
+            // Fallback for older browsers / desktop
+            navigator.clipboard.writeText(shareText);
+            alert("Annonce copiée dans le presse-papier !");
         }
     } catch (err) {
         console.log("Share canceled or failed", err);
@@ -223,4 +225,4 @@ function hardReloadApp() {
 
 function contactDev() {
     window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report";
-}
+   }
