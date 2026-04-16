@@ -7,15 +7,8 @@ let activeList = [];
 let displayedCount = 0;
 const BATCH_SIZE = 15;
 let isLoading = false;
-let lastScrollTop = 0;
-let ticking = false; 
 
 document.addEventListener("DOMContentLoaded", () => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
-        updateThemeUI(true);
-    }
     initApp();
 
     const searchInput = document.getElementById('search-input');
@@ -97,7 +90,6 @@ function loadMore() {
         const card = document.createElement('div');
         card.className = 'glass-card flex flex-col items-start w-full';
 
-        // Links
         let linksHtml = '';
         if (item.links && item.links.length > 0) {
             item.links.forEach(link => {
@@ -109,12 +101,11 @@ function loadMore() {
             });
         }
 
-        // Images 
         let imagesHtml = '';
         if (item.images && item.images.length > 0) {
             item.images.forEach(img => {
                 imagesHtml += `
-                    <div class="relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
+                    <div class="announcement-media relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
                         <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
                         <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -126,7 +117,6 @@ function loadMore() {
             });
         }
 
-        // Source E-learning Button
         let sourceBtn = '';
         if (item.source) {
             sourceBtn = `
@@ -137,24 +127,16 @@ function loadMore() {
         }
 
         card.innerHTML = `
-            <!-- 🟢 HEADER WITH DATE AND PURPLE SHARE BUTTON 🟢 -->
             <div class="flex justify-between items-center w-full mb-3">
                 <span class="announcement-date" style="margin-bottom: 0;">${item.date}</span>
-                
                 <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                     </svg>
                 </button>
             </div>
-
             <h3 class="announcement-title w-full">${item.title}</h3>
             <div class="announcement-body mt-1 w-full">${item.body}</div>
-            
             ${imagesHtml} 
             ${linksHtml}
             ${sourceBtn}
@@ -165,64 +147,29 @@ function loadMore() {
     container.appendChild(fragment);
     displayedCount += nextBatch.length;
     isLoading = false;
-    
-    if (displayedCount >= activeList.length) {
-        document.getElementById('end-message').classList.remove('hidden');
-    }
+    if (displayedCount >= activeList.length) document.getElementById('end-message').classList.remove('hidden');
 }
 
-// 🟢 NEW FORMATTED SHARE FUNCTION 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
-    // Get the full text but remove HTML tags for clean sharing
     let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
-
-    // Format the text perfectly (using * makes it bold on WhatsApp)
     const shareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
         if (navigator.share) {
-            // We pass only text because passing the URL separately sometimes overrides the text on certain Android devices.
-            await navigator.share({
-                title: item.title,
-                text: shareText
-            });
+            await navigator.share({ title: item.title, text: shareText });
         } else {
-            // Fallback for older browsers / desktop
             navigator.clipboard.writeText(shareText);
             alert("Annonce copiée dans le presse-papier !");
         }
-    } catch (err) {
-        console.log("Share canceled or failed", err);
-    }
+    } catch (err) { console.log("Share canceled or failed", err); }
 }
 
-// Infinite Scroll
 window.addEventListener('scroll', () => {
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
-        loadMore();
-    }
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) loadMore();
 }, { passive: true });
 
-function toggleTheme() {
-    const isLight = document.body.classList.toggle('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    updateThemeUI(isLight);
-}
-
-function updateThemeUI(isLight) {
-    const switchEl = document.getElementById('theme-switch');
-    if(switchEl) {
-        isLight ? switchEl.classList.add('active') : switchEl.classList.remove('active');
-    }
-}
-
-function hardReloadApp() {
-    setTimeout(() => { window.location.reload(true); }, 200);
-}
-
-function contactDev() {
-    window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report";
-   }
+function hardReloadApp() { setTimeout(() => { window.location.reload(true); }, 200); }
+function contactDev() { window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report"; }
