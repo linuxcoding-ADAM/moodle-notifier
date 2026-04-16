@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
     
-    <!-- GOOGLE ANALYTICS START -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -15,7 +14,6 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Syne for Headings, Inter for Body -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -24,18 +22,15 @@
 <body class="overscroll-none">
 
     <div id="page-home" class="active">
-        
         <!-- HEADER -->
         <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm h-[72px]">
-            
-            <!-- Hamburger Menu -->
             <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <path d="M4 6h16M4 12h16M4 18h10"></path>
                 </svg>
             </button>
 
-            <!-- 🟢 HEADER TITLE (Univ Bejaïa is now Purple) 🟢 -->
+            <!-- HEADER TITLE -->
             <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max pointer-events-none">
                 <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px]" style="color: var(--accent-color);">Univ Bejaïa</span>
                 <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h1>
@@ -88,34 +83,16 @@
             <div class="flex flex-col mt-2">
                 <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: var(--accent-color);">Univ Bejaïa</span>
                 <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h2>
-                <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.3 (Beta)</p>
+                <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.1 (Beta)</p>
             </div>
             <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
                 <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
 
-        <!-- 🟢 TRANSLATED SETTINGS SECTION 🟢 -->
+        <!-- 🟢 SYSTEM & SUPPORT SETTINGS 🟢 -->
         <div class="p-5 flex-1 mt-2">
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Appearance</h3>
-            
-            <div class="settings-card" onclick="toggleTheme()">
-                <div class="flex items-center">
-                    <div class="icon-box bg-theme">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-                            <path d="M19 3v4"></path>
-                            <path d="M21 5h-4"></path>
-                        </svg>
-                    </div>
-                    <span class="setting-label">Dark Mode</span>
-                </div>
-                <div id="theme-switch" class="toggle-switch">
-                    <div class="toggle-dot"></div>
-                </div>
-            </div>
-
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-8" style="color: var(--text-muted);">System & Support</h3>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Menu & Support</h3>
             
             <div class="settings-card" onclick="hardReloadApp();">
                 <div class="flex items-center">
@@ -130,19 +107,24 @@
                 <div class="flex items-center">
                     <div class="icon-box bg-purple">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                            <path d="M8 2v4"></path>
-                            <path d="M16 2v4"></path>
-                            <path d="M12 18v4"></path>
-                            <path d="M12 6a4 4 0 0 0-4 4v4a4 4 0 1 0 8 0v-4a4 4 0 0 0-4-4Z"></path>
-                            <path d="M6 14H2"></path>
-                            <path d="M22 14h-4"></path>
-                            <path d="M4 8l2 2"></path>
-                            <path d="M20 8l-2 2"></path>
-                            <path d="M4 20l2-2"></path>
-                            <path d="M20 20l-2-2"></path>
+                            <path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M12 18v4"></path><path d="M12 6a4 4 0 0 0-4 4v4a4 4 0 1 0 8 0v-4a4 4 0 0 0-4-4Z"></path><path d="M6 14H2"></path><path d="M22 14h-4"></path><path d="M4 8l2 2"></path><path d="M20 8l-2 2"></path><path d="M4 20l2-2"></path><path d="M20 20l-2-2"></path>
                         </svg>
                     </div>
                     <span class="setting-label">Report a Bug</span>
+                </div>
+            </div>
+
+            <!-- 🟢 NEW INSTAGRAM BUTTON 🟢 -->
+            <div class="settings-card" onclick="window.open('https://www.instagram.com/41_64_61_6d_20_6d_69_6c_61?igsh=MTJ1em5kN3dneHlnNQ==', '_blank')">
+                <div class="flex items-center">
+                    <div class="icon-box bg-instagram">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </div>
+                    <span class="setting-label">Developer's Instagram</span>
                 </div>
             </div>
 
@@ -173,27 +155,17 @@
         function toggleDrawer() {
             const drawer = document.getElementById('side-drawer');
             const overlay = document.getElementById('drawer-overlay');
-            
             if (drawer.classList.contains('-translate-x-full')) {
-                overlay.style.visibility = 'visible';
-                drawer.style.visibility = 'visible';
-                setTimeout(() => {
-                    overlay.classList.remove('opacity-0');
-                    drawer.classList.remove('-translate-x-full');
-                }, 10);
+                overlay.style.visibility = 'visible'; drawer.style.visibility = 'visible';
+                setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full'); }, 10);
             } else {
-                drawer.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => {
-                    overlay.style.visibility = 'hidden';
-                    drawer.style.visibility = 'hidden';
-                }, 400); 
+                drawer.classList.add('-translate-x-full'); overlay.classList.add('opacity-0');
+                setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
             }
         }
         window.addEventListener('scroll', () => {
             const btn = document.getElementById('back-to-top');
-            if (window.scrollY > 300) btn.classList.add('visible');
-            else btn.classList.remove('visible');
+            if (window.scrollY > 300) btn.classList.add('visible'); else btn.classList.remove('visible');
         });
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
