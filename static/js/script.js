@@ -7,6 +7,7 @@ let activeList = [];
 let displayedCount = 0;
 const BATCH_SIZE = 15;
 let isLoading = false;
+let currentShareText = ""; 
 
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
@@ -150,47 +151,77 @@ function loadMore() {
     if (displayedCount >= activeList.length) document.getElementById('end-message').classList.remove('hidden');
 }
 
-// 🟢 THE MAGIC NATIVE ANDROID SHARE 🟢
+// 🟢 HYBRID SHARE SYSTEM (Website vs APK) 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
     let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
-    const shareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
+    currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
-        // Try the standard browser share first
         if (navigator.share) {
-            await navigator.share({ title: item.title, text: shareText });
+            // Normal Browser Native Share
+            await navigator.share({ title: item.title, text: currentShareText });
         } else {
-            throw new Error("navigator.share not supported");
+            throw new Error("No navigator.share");
         }
     } catch (err) {
-        // If it fails (because we are inside the APK WebView), force the Android Native Share Intent
-        const isAndroid = /android/i.test(navigator.userAgent);
-        
-        if (isAndroid) {
-            // This special URL tells the Android OS to open the Share Sheet with all apps
-            const intentUrl = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(shareText)};end`;
-            window.location.href = intentUrl;
-            
-            // Backup just in case the APK wrapper blocks the intent
-            setTimeout(() => {
-                navigator.clipboard.writeText(shareText);
-                showToast("Annonce copiée !");
-            }, 500);
-        } else {
-            // Fallback for PC
-            navigator.clipboard.writeText(shareText);
-            showToast("Annonce copiée dans le presse-papier !");
-        }
+        // If in APK WebView, open custom Share Sheet!
+        openShareSheet();
     }
 }
 
-// Sleek App-style Toast Notification
+// 🟢 CUSTOM SHARE SHEET CONTROLS 🟢
+function openShareSheet() {
+    const sheet = document.getElementById('share-sheet');
+    const overlay = document.getElementById('share-overlay');
+    overlay.style.visibility = 'visible';
+    setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        sheet.classList.remove('translate-y-full');
+    }, 10);
+}
+
+function closeShareSheet() {
+    const sheet = document.getElementById('share-sheet');
+    const overlay = document.getElementById('share-overlay');
+    sheet.classList.add('translate-y-full');
+    overlay.classList.add('opacity-0');
+    setTimeout(() => { overlay.style.visibility = 'hidden'; }, 400);
+}
+
+function shareTo(platform) {
+    const encodedText = encodeURIComponent(currentShareText);
+    
+    if (platform === 'whatsapp') {
+        // Deep link to directly open WhatsApp
+        window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
+    } 
+    else if (platform === 'telegram') {
+        // Deep link to directly open Telegram
+        window.location.href = `https://t.me/share/url?url=&text=${encodedText}`;
+    } 
+    else if (platform === 'instagram') {
+        // Instagram trick: Copy text, then open IG so user can paste it.
+        navigator.clipboard.writeText(currentShareText);
+        showToast("Copied! Opening Instagram...");
+        setTimeout(() => {
+            window.location.href = "instagram://app";
+        }, 1000);
+    } 
+    else if (platform === 'copy') {
+        navigator.clipboard.writeText(currentShareText);
+        showToast("Text copied to clipboard!");
+    }
+    
+    closeShareSheet();
+}
+
+// 🟢 SLEEK TOAST NOTIFICATION 🟢
 function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white text-black px-5 py-3 rounded-full shadow-2xl z-[100] text-sm font-bold transition-all duration-300 opacity-0 translate-y-4';
+    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white text-black px-5 py-3 rounded-full shadow-2xl z-[100] text-sm font-bold transition-all duration-300 opacity-0 translate-y-4 text-center w-max max-w-[90%]';
     toast.style.fontFamily = "'Syne', sans-serif";
     toast.innerText = message;
     document.body.appendChild(toast);
