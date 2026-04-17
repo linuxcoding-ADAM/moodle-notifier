@@ -161,13 +161,11 @@ async function shareAnnouncement(id) {
 
     try {
         if (navigator.share) {
-            // Normal Browser Native Share
             await navigator.share({ title: item.title, text: currentShareText });
         } else {
             throw new Error("No navigator.share");
         }
     } catch (err) {
-        // If in APK WebView, open custom Share Sheet!
         openShareSheet();
     }
 }
@@ -195,20 +193,11 @@ function shareTo(platform) {
     const encodedText = encodeURIComponent(currentShareText);
     
     if (platform === 'whatsapp') {
-        // Deep link to directly open WhatsApp
         window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
     } 
     else if (platform === 'telegram') {
-        // Deep link to directly open Telegram
-        window.location.href = `https://t.me/share/url?url=&text=${encodedText}`;
-    } 
-    else if (platform === 'instagram') {
-        // Instagram trick: Copy text, then open IG so user can paste it.
-        navigator.clipboard.writeText(currentShareText);
-        showToast("Copied! Opening Instagram...");
-        setTimeout(() => {
-            window.location.href = "instagram://app";
-        }, 1000);
+        // 🟢 FIXED: Deep Link to force Telegram App to open 🟢
+        window.location.href = `tg://msg?text=${encodedText}`;
     } 
     else if (platform === 'copy') {
         navigator.clipboard.writeText(currentShareText);
