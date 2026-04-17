@@ -1,215 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ST Affichage</title>
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-6HH5ZV5VW8');
-    </script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Télécharger ST Affichage</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#110C1A">
-</head>
-<body class="overscroll-none">
-
-    <div id="page-home" class="active">
-        <!-- HEADER -->
-        <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm h-[72px]">
-            <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M4 6h16M4 12h16M4 18h10"></path>
-                </svg>
-            </button>
-
-            <!-- HEADER TITLE -->
-            <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max pointer-events-none">
-                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px]" style="color: var(--accent-color);">Univ Bejaïa</span>
-                <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h1>
-            </div>
-
-            <!-- SEARCH BUTTONS -->
-            <div class="relative w-10 h-10 flex items-center justify-center">
-                <button onclick="toggleSearch()" class="absolute inset-0 flex items-center justify-end opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
-                
-                <button id="header-cancel-btn" onclick="cancelSearch()" class="absolute right-0 flex items-center justify-center rounded-full w-9 h-9 transition-all duration-300 opacity-0 pointer-events-none transform scale-90 shadow-md" style="background-color: var(--bg-color); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2);">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- SEARCH BAR DROP DOWN -->
-        <div id="search-bar-container" class="fixed top-[74px] left-0 right-0 z-30 px-4 transition-all duration-300 transform -translate-y-[150%] opacity-0 pointer-events-none">
-            <div class="p-1 rounded-[24px] shadow-xl flex items-center gap-2 glass-drawer search-bar-inner border" style="border-color: var(--accent-color);">
-                <svg class="w-5 h-5 ml-4 opacity-50" style="color: var(--text-main)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search announcements..." class="w-full bg-transparent text-sm py-3 px-2 focus:outline-none placeholder-gray-500 font-medium" style="color: var(--text-main);">
-            </div>
-        </div>
-
-        <!-- Content Area -->
-        <div class="px-4 mt-5 pb-12 transition-all duration-300" id="content-area">
-            <div id="cards-container" class="min-h-[100vh] max-w-md mx-auto">
-                <div class="loader"></div>
-            </div>
-            <div id="end-message" class="text-center text-xs text-gray-500 py-8 hidden font-mono tracking-widest uppercase">End of announcements</div>
-        </div>
-    </div>
-
-    <!-- BACK TO TOP BUTTON -->
-    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-            <path d="M5 15l7-7 7 7"></path>
-        </svg>
-    </button>
-
-    <!-- DRAWER OVERLAY -->
-    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 z-40 opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="toggleDrawer()"></div>
-
-    <!-- HEAVY GLASS SIDE DRAWER -->
-    <div id="side-drawer" class="glass-drawer fixed top-0 left-0 h-full w-[85%] max-w-[340px] z-50 transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col overflow-y-auto" style="visibility: hidden;">
-        
-        <!-- Drawer Header -->
-        <div class="p-6 pb-4 flex justify-between items-start">
-            <div class="flex flex-col mt-2">
-                <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: var(--accent-color);">Univ Bejaïa</span>
-                <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main);">ST Affichage</h2>
-                <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 1.9.1 (Beta)</p>
-            </div>
-            <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
-                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-
-        <!-- 🟢 SYSTEM & SUPPORT SETTINGS 🟢 -->
-        <div class="p-5 flex-1 mt-2">
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Menu & Support</h3>
-            
-            <div class="settings-card" onclick="hardReloadApp();">
-                <div class="flex items-center">
-                    <div class="icon-box bg-orange">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    </div>
-                    <span class="setting-label">Refresh App</span>
-                </div>
-            </div>
-
-            <div class="settings-card" onclick="contactDev()">
-                <div class="flex items-center">
-                    <div class="icon-box bg-purple">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                            <path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M12 18v4"></path><path d="M12 6a4 4 0 0 0-4 4v4a4 4 0 1 0 8 0v-4a4 4 0 0 0-4-4Z"></path><path d="M6 14H2"></path><path d="M22 14h-4"></path><path d="M4 8l2 2"></path><path d="M20 8l-2 2"></path><path d="M4 20l2-2"></path><path d="M20 20l-2-2"></path>
-                        </svg>
-                    </div>
-                    <span class="setting-label">Report a Bug</span>
-                </div>
-            </div>
-
-            <div class="settings-card" onclick="window.open('https://www.instagram.com/41_64_61_6d_20_6d_69_6c_61?igsh=MTJ1em5kN3dneHlnNQ==', '_blank')">
-                <div class="flex items-center">
-                    <div class="icon-box" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                        </svg>
-                    </div>
-                    <span class="setting-label">Developer's Instagram</span>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center gap-2 mt-8">
-                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Server Online</span>
-            </div>
-
-            <div class="mt-6 px-2 text-center">
-                <p class="text-[11px] leading-relaxed font-medium" style="color: var(--text-muted);">
-                    This application collects announcements from the Univ Bejaïa e-learning platform. It is an independent project made by a student for students.
-                </p>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="p-6 text-center border-t border-white/5 pb-8 mt-auto">
-            <p class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Designed and developed by</p>
-            <p class="text-[15px] font-extrabold mt-1.5 heading-text" style="color: var(--accent-color);">Adam Mila</p>
-        </div>
-    </div>
-
-    <!-- 🟢 CUSTOM SHARE MENU (For the APK Fallback) 🟢 -->
-    <div id="share-overlay" class="fixed inset-0 bg-black/60 z-[60] opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="closeShareSheet()"></div>
-
-    <div id="share-sheet" class="fixed bottom-0 left-0 w-full z-[70] transform translate-y-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] rounded-t-[32px] border-t" style="background-color: var(--bg-color); border-color: var(--card-border); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); box-shadow: 0 -10px 40px rgba(0,0,0,0.5);">
-        <div class="p-6 pb-10">
-            <!-- Drag handle -->
-            <div class="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-6"></div>
-            
-            <h3 class="font-syne font-extrabold text-xl mb-6 text-center" style="color: var(--text-main);">Share via</h3>
-            
-            <div class="flex items-center justify-center gap-6">
-                <!-- WhatsApp -->
-                <button onclick="shareTo('whatsapp')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#25D366] text-white">
-                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-                    </div>
-                    <span class="text-[11px] font-bold" style="color: var(--text-main);">WhatsApp</span>
-                </button>
-
-                <!-- Telegram -->
-                <button onclick="shareTo('telegram')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#0088cc] text-white">
-                        <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.94z"/></svg>
-                    </div>
-                    <span class="text-[11px] font-bold" style="color: var(--text-main);">Telegram</span>
-                </button>
-
-                <!-- Instagram -->
-                <button onclick="shareTo('instagram')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg text-white" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                    </div>
-                    <span class="text-[11px] font-bold" style="color: var(--text-main);">Instagram</span>
-                </button>
-
-                <!-- Copier -->
-                <button onclick="shareTo('copy')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: var(--text-main);">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <span class="text-[11px] font-bold" style="color: var(--text-main);">Copy</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- UI Logic Scripts -->
-    <script>
-        function toggleDrawer() {
-            const drawer = document.getElementById('side-drawer');
-            const overlay = document.getElementById('drawer-overlay');
-            if (drawer.classList.contains('-translate-x-full')) {
-                overlay.style.visibility = 'visible'; drawer.style.visibility = 'visible';
-                setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full'); }, 10);
-            } else {
-                drawer.classList.add('-translate-x-full'); overlay.classList.add('opacity-0');
-                setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
-            }
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #110C1A; 
+            color: #FFFFFF; 
+            font-family: 'Inter', sans-serif; 
         }
-        window.addEventListener('scroll', () => {
-            const btn = document.getElementById('back-to-top');
-            if (window.scrollY > 300) btn.classList.add('visible'); else btn.classList.remove('visible');
-        });
-    </script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        .heading-text { font-family: 'Syne', sans-serif; }
+        
+        .hero-bg {
+            background: radial-gradient(circle at top, rgba(139, 92, 246, 0.15) 0%, #110C1A 50%);
+        }
+
+        .download-card {
+            background: rgba(27, 21, 37, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary {
+            background: #8B5CF6;
+            border-radius: 999px;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2); }
+
+        .feature-icon {
+            background: rgba(139, 92, 246, 0.15);
+            color: #A855F7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden hero-bg">
+
+    <div class="download-card p-8 max-w-sm w-full relative z-10 text-center">
+        
+        <div class="w-20 h-20 bg-[#8B5CF6] rounded-[24px] mx-auto flex items-center justify-center mb-6 shadow-[0_10px_30px_rgba(139,92,246,0.3)]">
+            <span class="text-4xl font-extrabold text-white heading-text tracking-tighter">st</span>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-2 heading-text">ST Affichage</h1>
+        <p class="text-sm mb-6 leading-relaxed px-2" style="color: #A39BB2;">
+            L'application essentielle pour les étudiants de l'Université de Bejaïa.
+        </p>
+
+        <div class="flex flex-col gap-3 mb-8 text-left bg-black/20 p-4 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full feature-icon flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-200">Notifications en temps réel</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full feature-icon flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-200">Interface Dark & Light Mode</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full feature-icon flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-200">Accès ultra-rapide</span>
+            </div>
+        </div>
+
+        <a href="/static/ST%20Affichage.apk" download class="btn-primary w-full py-4 font-bold text-[15px] flex items-center justify-center gap-3 text-white mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Télécharger l'APK
+        </a>
+
+        <div class="flex items-center justify-center gap-4 text-[11px] font-medium" style="color: #A39BB2;">
+            <span>Vérifié & Sécurisé</span>
+            <div class="w-1 h-1 rounded-full bg-gray-600"></div>
+            <span>Sans Publicité</span>
+        </div>
+    </div>
+
+    <!-- 🟢 Updated to 1.9.9 🟢 -->
+    <div class="mt-8 text-center text-xs" style="color: #6E6680;">
+        <p class="mb-1 text-gray-400">Version 1.9.9 (Beta) • Adam Mila</p>
+        <p class="max-w-xs mx-auto">Acceptez "Sources inconnues" dans vos paramètres pour installer.</p>
+    </div>
+
 </body>
 </html>
