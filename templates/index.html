@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ST Affichage</title>
     
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -14,7 +15,12 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 🟢 OPTIMIZED FONT LOADING 🟢 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#110C1A">
@@ -90,7 +96,7 @@
             </button>
         </div>
 
-        <!-- 🟢 SYSTEM & SUPPORT SETTINGS 🟢 -->
+        <!-- SYSTEM & SUPPORT SETTINGS -->
         <div class="p-5 flex-1 mt-2">
             <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Menu & Support</h3>
             
@@ -114,6 +120,7 @@
                 </div>
             </div>
 
+            <!-- INSTAGRAM BUTTON -->
             <div class="settings-card" onclick="window.open('https://www.instagram.com/41_64_61_6d_20_6d_69_6c_61?igsh=MTJ1em5kN3dneHlnNQ==', '_blank')">
                 <div class="flex items-center">
                     <div class="icon-box bg-instagram">
@@ -146,17 +153,16 @@
         </div>
     </div>
 
-    <!-- 🟢 CUSTOM SHARE MENU (For the APK) 🟢 -->
+    <!-- 🟢 CUSTOM SHARE MENU (For the APK Fallback) 🟢 -->
     <div id="share-overlay" class="fixed inset-0 bg-black/60 z-[60] opacity-0 transition-opacity duration-400" style="visibility: hidden;" onclick="closeShareSheet()"></div>
 
-    <div id="share-sheet" class="fixed bottom-0 left-0 w-full z-[70] transform translate-y-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] rounded-t-[32px] border-t" style="background-color: var(--card-bg); border-color: var(--card-border); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); box-shadow: 0 -10px 40px rgba(0,0,0,0.5);">
+    <div id="share-sheet" class="fixed bottom-0 left-0 w-full z-[70] transform translate-y-full transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] rounded-t-[32px] border-t" style="background-color: var(--bg-color); border-color: var(--card-border); backdrop-filter: blur(48px) saturate(200%); -webkit-backdrop-filter: blur(48px) saturate(200%); box-shadow: 0 -10px 40px rgba(0,0,0,0.5);">
         <div class="p-6 pb-10">
             <!-- Drag handle -->
             <div class="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-6"></div>
             
-            <h3 class="font-syne font-bold text-lg mb-6 text-center" style="color: var(--text-main);">Partager via</h3>
+            <h3 class="font-syne font-extrabold text-xl mb-6 text-center" style="color: var(--text-main);">Share via</h3>
             
-            <!-- 🟢 REMOVED INSTAGRAM, CENTERED THE REST 🟢 -->
             <div class="flex items-center justify-center gap-10">
                 <!-- WhatsApp -->
                 <button onclick="shareTo('whatsapp')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
@@ -166,7 +172,7 @@
                     <span class="text-[11px] font-bold" style="color: var(--text-main);">WhatsApp</span>
                 </button>
 
-                <!-- Telegram (🟢 SLEEK NEW ICON 🟢) -->
+                <!-- Telegram -->
                 <button onclick="shareTo('telegram')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
                     <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#0088cc] text-white">
                         <svg class="w-6 h-6 mr-0.5" fill="currentColor" viewBox="0 0 24 24">
@@ -187,10 +193,7 @@
         </div>
     </div>
 
-    <!-- Hidden UI -->
-    <div id="page-settings" style="display: none !important;"></div>
-    <div id="bottom-nav" style="display: none !important;"></div>
-
+    <!-- UI Logic Script -->
     <script>
         function toggleDrawer() {
             const drawer = document.getElementById('side-drawer');
@@ -203,11 +206,7 @@
                 setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
             }
         }
-        window.addEventListener('scroll', () => {
-            const btn = document.getElementById('back-to-top');
-            if (window.scrollY > 300) btn.classList.add('visible'); else btn.classList.remove('visible');
-        });
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-                        </html>
+                    </html>
