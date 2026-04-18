@@ -6,6 +6,7 @@ import hashlib
 import os
 import json
 import bleach
+import hmac  # <-- Added for secure password comparison
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -22,6 +23,7 @@ if cred_json:
         cred_dict = json.loads(cred_json)
         cred = credentials.Certificate(cred_dict)
         firebase_admin.initialize_app(cred)
+        print("✅ Firebase initialized successfully.")
     except Exception as e:
         print(f"⚠️ Firebase Error: {e}")
 else:
@@ -32,7 +34,6 @@ AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
-
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
 
 latest_data = []
@@ -51,12 +52,13 @@ limiter = Limiter(
 def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     csp_policy = (
         "default-src 'self' https:; "
         "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.googletagmanager.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com;"
-        "img-src * data:;" # Allowed images to load from anywhere
+        "img-src * data:;"
     )
     response.headers['Content-Security-Policy'] = csp_policy
     return response
@@ -75,8 +77,7 @@ def parse_date_to_timestamp(date_str):
         if match:
             day, month_str, year, hour, minute = match.groups()
             month = FRENCH_MONTHS.get(month_str.lower(), 1)
-            dt = datetime(int(year), int(month), int(day), int(hour), int(minute))
-            return dt.timestamp()
+            return datetime(int(year), int(month), int(day), int(hour), int(minute)).timestamp()
     except Exception:
         pass
     return 0
@@ -92,21 +93,14 @@ def clean_html_text(tag):
             if 'accesshide' in child.get('class', []): continue
             child_text = clean_html_text(child)
             if child_text:
-                if child.name in ['b', 'strong', 'h3', 'h4', 'h5']: 
-                    text_parts.append(f"<b>{child_text}</b>")
-                elif child.name in ['i', 'em']: 
-                    text_parts.append(f"<i>{child_text}</i>")
-                elif child.name in ['p', 'div', 'li', 'br', 'ul']: 
-                    text_parts.append(f"\n{child_text}\n")
-                elif child.name == 'a':
-                     text_parts.append(child_text)
-                else: 
-                    text_parts.append(child_text)
+                if child.name in ['b', 'strong', 'h3', 'h4', 'h5']: text_parts.append(f"<b>{child_text}</b>")
+                elif child.name in ['i', 'em']: text_parts.append(f"<i>{child_text}</i>")
+                elif child.name in ['p', 'div', 'li', 'br', 'ul']: text_parts.append(f"\n{child_text}\n")
+                else: text_parts.append(child_text)
                     
     full_text = " ".join(text_parts)
     full_text = re.sub(r'\n\s*\n', '\n\n', full_text)
-    full_text = re.sub(r' +', ' ', full_text)
-    return bleach.clean(full_text.strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
+    return bleach.clean(re.sub(r' +', ' ', full_text).strip(), tags=['b', 'strong', 'i', 'em'], strip=True)
 
 def extract_links(tag):
     links = []
@@ -115,24 +109,17 @@ def extract_links(tag):
         if 'user/view' in href or 'help.php' in href: continue
         if href and "http" not in href:
              href = f"https://elearning.univ-bejaia.dz{href}" if href.startswith('/') else f"https://elearning.univ-bejaia.dz/{href}"
-        if href and href.startswith('http'):
-            if href not in links:
-                links.append(href)
+        if href and href.startswith('http') and href not in links:
+            links.append(href)
     return links
 
-# --- NEW: EXTRACT IMAGES SAFELY ---
 def extract_images(tag):
     images = []
     for img in tag.find_all("img", src=True):
         src = img.get('src')
-        # Ignore annoying Moodle UI icons (like PDF logos, spacers, etc)
-        if 'theme/image.php' in src or '/pix/' in src or 'icon' in src.lower() or 'spacer' in src.lower():
-            continue
-        
-        # Fix relative URLs
+        if 'theme/image.php' in src or '/pix/' in src or 'icon' in src.lower() or 'spacer' in src.lower(): continue
         if src and "http" not in src:
             src = f"https://elearning.univ-bejaia.dz{src}" if src.startswith('/') else f"https://elearning.univ-bejaia.dz/{src}"
-            
         if src not in images:
             images.append(src)
     return images
@@ -142,10 +129,7 @@ def send_fcm_notification(title, body_preview):
         android_config = messaging.AndroidConfig(
             priority='high',
             ttl=86400,
-            notification=messaging.AndroidNotification(
-                default_sound=True,
-                default_vibrate_timings=True
-            )
+            notification=messaging.AndroidNotification(default_sound=True, default_vibrate_timings=True)
         )
         safe_title = bleach.clean(title, tags=[], strip=True)
         message = messaging.Message(
@@ -154,17 +138,19 @@ def send_fcm_notification(title, body_preview):
             topic='announcements',
         )
         messaging.send(message)
-        print(f"🚀 FCM Notification Sent")
+        print("🚀 FCM Notification Sent")
     except Exception as e:
         print(f"❌ FCM Error: {e}")
 
-# --- ROBUST "CATCH-ALL" SCRAPER ---
+# --- ROBUST SCRAPER ---
 def scrape_task():
     try:
-        print("Checking for updates...")
-        session = requests.Session()
-        session.headers.update(HEADERS)
-        response = session.get(AFFICHAGE_URL, timeout=30)
+        # Optimized: Use context manager for session to pool connections cleanly
+        with requests.Session() as session:
+            session.headers.update(HEADERS)
+            response = session.get(AFFICHAGE_URL, timeout=30)
+            response.raise_for_status()
+            
         soup = BeautifulSoup(response.text, 'html.parser')
         cards = soup.select('li.activity')
         
@@ -177,57 +163,46 @@ def scrape_task():
 
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
 
-            content_area = tag.select_one('.contentwithoutlink, .activity-altcontent, .no-overflow')
-            if not content_area:
-                content_area = tag 
-            
+            content_area = tag.select_one('.contentwithoutlink, .activity-altcontent, .no-overflow') or tag
             body_html = clean_html_text(content_area)
             
-            title = "Information"
-            title_match = re.search(r'<b>(.*?)</b>', body_html)
+            title, title_match = "Information", re.search(r'<b>(.*?)</b>', body_html)
             instancename = tag.select_one('.instancename')
             
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
                 body_html = body_html.replace(title_match.group(0), "", 1)
             elif instancename:
-                title_text = instancename.get_text(strip=True)
-                title = title_text.replace(" Fichier", "").replace(" URL", "").replace(" Dossier", "")
+                title = instancename.get_text(strip=True).replace(" Fichier", "").replace(" URL", "").replace(" Dossier", "")
             
-            date_text = "Général"
-            timestamp = 0
+            date_text, timestamp = "Général", 0
             date_match = re.search(r'Affiché le\s*[:]?\s*([0-9]{1,2}\s+[a-zA-Zéû]+\s+[0-9]{4}.*?(\d{1,2}[h:]\d{1,2})?)', raw_text, re.IGNORECASE)
             
             if date_match:
                 date_text = date_match.group(1).strip()
                 timestamp = parse_date_to_timestamp(date_text)
             
-            links = extract_links(tag)
-            images = extract_images(tag) # <-- NEW
+            source_link = f"{AFFICHAGE_URL}#{re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))}" if tag.get('id') else AFFICHAGE_URL
 
-            source_link = AFFICHAGE_URL
-            if tag.get('id'):
-                safe_id = re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))
-                source_link = f"{AFFICHAGE_URL}#{safe_id}"
-
-            item = {
+            new_data.append({
                 "id": unique_id,
                 "title": bleach.clean(title, tags=[], strip=True),
                 "body": body_html,
-                "links": links,
-                "images": images, # <-- NEW
+                "links": extract_links(tag),
+                "images": extract_images(tag),
                 "date": bleach.clean(date_text, tags=[], strip=True),
                 "timestamp": timestamp,
                 "source": source_link
-            }
-            new_data.append(item)
+            })
         
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         return new_data
 
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Network Error scraping Moodle: {e}")
     except Exception as e:
-        print(f"❌ Scraper Error: {e}")
-        return None
+        print(f"❌ Core Scraper Error: {e}")
+    return None
 
 # --- BACKGROUND LOOP ---
 def background_loop():
@@ -235,24 +210,21 @@ def background_loop():
     print("--- Background Loop Started ---")
     while True:
         scraped_items = scrape_task()
-        if scraped_items:
+        if scraped_items is not None:
             if not first_run and latest_data:
                 old_ids = {item['id'] for item in latest_data}
-                for i in range(min(5, len(scraped_items))):
-                    item = scraped_items[i]
+                for item in scraped_items[:5]:
                     if item['id'] not in old_ids:
                         print(f"🔔 NEW: {item['title']}")
                         send_fcm_notification(item['title'], "New announcement")
                         break 
             latest_data = scraped_items
             first_run = False
-            print(f"✅ Loaded {len(latest_data)} items.")
         time.sleep(600)
 
 # --- ROUTES ---
 @app.route('/')
-def index():
-    return render_template('index.html')
+def index(): return render_template('index.html')
 
 @app.route('/api/announcements')
 def api_data():
@@ -261,35 +233,28 @@ def api_data():
     return response
 
 @app.route('/install')
-def install_page():
-    return render_template('download.html')
+def install_page(): return render_template('download.html')
 
 @app.route('/robots.txt')
-def robots():
-    return "User-agent: *\nDisallow: /api/\nDisallow: /test-notification-railway"
+def robots(): return "User-agent: *\nDisallow: /api/\nDisallow: /test-notification-railway"
 
 @app.route('/test-notification-railway', methods=['GET', 'POST'])
 @limiter.limit("5 per minute") 
 def manual_test():
     if request.method == 'POST':
-        password = request.form.get('password')
-        if password == ADMIN_PASSWORD:
+        password = request.form.get('password', '')
+        # Optimized: Prevent Timing Attacks using hmac.compare_digest
+        if hmac.compare_digest(password, ADMIN_PASSWORD):
             try:
                 send_fcm_notification("Security Test", "Secure System Operational.")
                 return "<h1>✅ Success</h1><p>Secure Notification Sent!</p>"
             except Exception as e:
                 return f"<h1>Error</h1><p>{str(e)}</p>"
         else:
-            return "<h1>❌ Access Denied</h1>"
-    return """
-    <form method="POST">
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">SEND</button>
-    </form>
-    """
+            return "<h1>❌ Access Denied</h1>", 403
+    return '<form method="POST"><input type="password" name="password" placeholder="Password" required><button type="submit">SEND</button></form>'
 
 threading.Thread(target=background_loop, daemon=True).start()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
