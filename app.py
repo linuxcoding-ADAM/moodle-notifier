@@ -6,7 +6,7 @@ import hashlib
 import os
 import json
 import bleach
-import hmac  # <-- Added for secure password comparison
+import hmac
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -35,9 +35,20 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
+CACHE_FILE = 'moodle_cache.json'
 
+# --- 🟢 NEW: LOAD FROM CACHE ON STARTUP 🟢 ---
 latest_data = []
 first_run = True
+
+try:
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+            latest_data = json.load(f)
+        print(f"📦 Successfully loaded {len(latest_data)} items from offline cache!")
+except Exception as e:
+    print(f"⚠️ Could not load cache: {e}")
+
 app = Flask(__name__)
 
 # --- SECURITY ---
@@ -145,7 +156,6 @@ def send_fcm_notification(title, body_preview):
 # --- ROBUST SCRAPER ---
 def scrape_task():
     try:
-        # Optimized: Use context manager for session to pool connections cleanly
         with requests.Session() as session:
             session.headers.update(HEADERS)
             response = session.get(AFFICHAGE_URL, timeout=30)
@@ -199,7 +209,7 @@ def scrape_task():
         return new_data
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Network Error scraping Moodle: {e}")
+        print(f"❌ Network Error scraping Moodle (Server likely down): {e}")
     except Exception as e:
         print(f"❌ Core Scraper Error: {e}")
     return None
@@ -210,7 +220,15 @@ def background_loop():
     print("--- Background Loop Started ---")
     while True:
         scraped_items = scrape_task()
+        
         if scraped_items is not None:
+            # 🟢 NEW: SAVE TO CACHE 🟢
+            try:
+                with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(scraped_items, f, ensure_ascii=False)
+            except Exception as e:
+                print(f"⚠️ Could not write to cache: {e}")
+
             if not first_run and latest_data:
                 old_ids = {item['id'] for item in latest_data}
                 for item in scraped_items[:5]:
@@ -218,8 +236,10 @@ def background_loop():
                         print(f"🔔 NEW: {item['title']}")
                         send_fcm_notification(item['title'], "New announcement")
                         break 
+                        
             latest_data = scraped_items
             first_run = False
+            
         time.sleep(600)
 
 # --- ROUTES ---
@@ -243,7 +263,6 @@ def robots(): return "User-agent: *\nDisallow: /api/\nDisallow: /test-notificati
 def manual_test():
     if request.method == 'POST':
         password = request.form.get('password', '')
-        # Optimized: Prevent Timing Attacks using hmac.compare_digest
         if hmac.compare_digest(password, ADMIN_PASSWORD):
             try:
                 send_fcm_notification("Security Test", "Secure System Operational.")
