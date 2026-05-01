@@ -8,9 +8,9 @@ let displayedCount = 0;
 const BATCH_SIZE = 15;
 let isLoading = false;
 
-// 🟢 NEW: TRANSLATION CACHE & STATE 🟢
-let currentLang = localStorage.getItem('target-language') || 'en'; // default English
-let translatedCache = {}; // Stores { id: { title: "...", body: "..." } }
+let currentLang = localStorage.getItem('target-language') || 'en';
+let translatedCache = {}; 
+let currentShareText = ""; 
 
 const DOM = {};
 
@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.headerCancelBtn = document.getElementById('header-cancel-btn');
     DOM.backToTop = document.getElementById('back-to-top');
 
-    // Init Language Indicator
     updateLangIndicator();
     initApp();
 
@@ -119,26 +118,20 @@ function loadMore() {
                 Ouvrir sur e-learning
             </a>` : '';
 
-        // 🟢 ADDED TRANSLATE BUTTON NEXT TO SHARE 🟢
         card.innerHTML = `
             <div class="flex justify-between items-center w-full mb-3">
                 <span class="announcement-date" style="margin-bottom: 0;">${item.date}</span>
-                
                 <div class="flex items-center gap-2">
                     <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Translate">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                            <path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
-                        </svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
                     </button>
                     <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                     </button>
                 </div>
             </div>
-            
             <h3 id="title-${item.id}" class="announcement-title w-full">${item.title}</h3>
             <div id="body-${item.id}" class="announcement-body mt-1 w-full">${item.body}</div>
-            
             ${imagesHtml}${linksHtml}${sourceBtn}
         `;
         fragment.appendChild(card);
@@ -151,13 +144,11 @@ function loadMore() {
     if (displayedCount >= activeList.length) DOM.endMessage.classList.remove('hidden');
 }
 
-// 🟢 NEW TRANSLATION ENGINE 🟢
+// 🟢 TRANSLATION ENGINE 🟢
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
     localStorage.setItem('target-language', currentLang);
     updateLangIndicator();
-    
-    // Clear translation cache so if they click translate again, it translates to the new language
     translatedCache = {}; 
     showToast(`Language set to ${currentLang === 'en' ? 'English' : 'Arabic'}`);
 }
@@ -175,7 +166,6 @@ async function translateAnnouncement(id) {
     const bodyEl = document.getElementById(`body-${id}`);
     const btnEl = document.getElementById(`btn-trans-${id}`);
 
-    // If already translated, revert to French
     if (titleEl.hasAttribute('data-translated')) {
         titleEl.innerHTML = item.title;
         bodyEl.innerHTML = item.body;
@@ -186,13 +176,10 @@ async function translateAnnouncement(id) {
         return;
     }
 
-    // Loading State
     btnEl.style.opacity = '0.5';
 
-    // If we already fetched it in this language, use cache
     if (!translatedCache[id]) {
         try {
-            // Clean text for API, replacing <br> with newlines so formatting doesn't break
             let safeTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
             let safeBody = item.body.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
 
@@ -208,56 +195,76 @@ async function translateAnnouncement(id) {
             let translatedBody = '';
             dataBody[0].forEach(t => { if(t[0]) translatedBody += t[0] });
 
-            // Restore newlines to HTML <br>
             translatedBody = translatedBody.replace(/\n/g, '<br>');
-
             translatedCache[id] = { title: translatedTitle, body: translatedBody };
         } catch (e) {
-            console.error("Translation failed", e);
             showToast("Translation Failed. Check internet.");
             btnEl.style.opacity = '1';
             return;
         }
     }
 
-    // Apply Translation
     titleEl.innerHTML = translatedCache[id].title;
     bodyEl.innerHTML = translatedCache[id].body;
     titleEl.setAttribute('data-translated', 'true');
     btnEl.style.opacity = '1';
 
-    // Right-To-Left Support for Arabic
     if (currentLang === 'ar') {
         titleEl.classList.add('text-rtl');
         bodyEl.classList.add('text-rtl');
     }
 }
 
-// 🟢 HYBRID SHARE SYSTEM 🟢
+// 🟢 HYBRID SHARE SYSTEM (RESTORED THE CUSTOM MENU) 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
     let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
-    let shareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
+    currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
         if (navigator.share) {
-            await navigator.share({ title: item.title, text: shareText });
+            await navigator.share({ title: item.title, text: currentShareText });
         } else {
             throw new Error("No navigator.share");
         }
     } catch (err) {
-        // Fallback for APK / Desktop
-        const isAndroid = /android/i.test(navigator.userAgent);
-        if (isAndroid) {
-            window.location.href = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(shareText)};end`;
-            setTimeout(() => { navigator.clipboard.writeText(shareText); showToast("Annonce copiée !"); }, 500);
-        } else {
-            navigator.clipboard.writeText(shareText);
-            showToast("Annonce copiée dans le presse-papier !");
-        }
+        // If navigator.share fails (inside APK WebView), open the custom Share Sheet
+        openShareSheet();
     }
+}
+
+// 🟢 CUSTOM SHARE SHEET CONTROLS 🟢
+function openShareSheet() {
+    const sheet = document.getElementById('share-sheet');
+    const overlay = document.getElementById('share-overlay');
+    overlay.style.visibility = 'visible';
+    setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        sheet.classList.remove('translate-y-full');
+    }, 10);
+}
+
+function closeShareSheet() {
+    const sheet = document.getElementById('share-sheet');
+    const overlay = document.getElementById('share-overlay');
+    sheet.classList.add('translate-y-full');
+    overlay.classList.add('opacity-0');
+    setTimeout(() => { overlay.style.visibility = 'hidden'; }, 400);
+}
+
+function shareTo(platform) {
+    const encodedText = encodeURIComponent(currentShareText);
+    if (platform === 'whatsapp') {
+        window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
+    } else if (platform === 'telegram') {
+        window.location.href = `tg://msg?text=${encodedText}`;
+    } else if (platform === 'copy') {
+        navigator.clipboard.writeText(currentShareText);
+        showToast("Text copied to clipboard!");
+    }
+    closeShareSheet();
 }
 
 function showToast(message) {
@@ -274,7 +281,6 @@ function showToast(message) {
     }, 2500);
 }
 
-// OPTIMIZED SCROLL
 let scrollTimeout;
 window.addEventListener('scroll', () => {
     if (!scrollTimeout) {
