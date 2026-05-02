@@ -56,7 +56,24 @@ async function initApp() {
         const response = await fetch(`/api/announcements?t=${Date.now()}`);
         if (!response.ok) throw new Error("API Limit");
         
-        allAnnouncements = await response.json();
+        const result = await response.json();
+        
+        // 🟢 HANDLE DYNAMIC SERVER STATUS 🟢
+        const statusIndicator = document.getElementById('server-status-indicator');
+        const statusText = document.getElementById('server-status-text');
+        
+        if (result.status === 'offline') {
+            statusIndicator.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
+            statusText.innerText = 'Loading from Cache';
+            statusText.className = 'text-[10px] text-red-500 font-bold uppercase tracking-widest';
+        } else {
+            statusIndicator.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
+            statusText.innerText = 'Server Online';
+            statusText.className = 'text-[10px] text-green-500 font-bold uppercase tracking-widest';
+        }
+
+        // 🟢 LOAD DATA 🟢
+        allAnnouncements = result.data;
         activeList = [...allAnnouncements];
         DOM.cardsContainer.innerHTML = ''; 
         
@@ -87,7 +104,6 @@ function handleSearch(query) {
     else loadMore();
 }
 
-// 🟢 ORIGINAL CARD ARCHITECTURE RESTORED 🟢
 function loadMore() {
     if (isLoading || displayedCount >= activeList.length) return;
     isLoading = true;
@@ -119,10 +135,8 @@ function loadMore() {
                 Ouvrir sur e-learning
             </a>` : '';
 
-        // Safely get text whether it's from the old backend or new backend
         let textBody = item.body || item.description || "";
 
-        // The Layout exactly as shown in the screenshot
         card.innerHTML = `
             <div class="flex justify-between items-center w-full mb-4">
                 <span class="announcement-date">${item.date}</span>
@@ -153,7 +167,7 @@ function loadMore() {
     if (displayedCount >= activeList.length) DOM.endMessage.classList.remove('hidden');
 }
 
-// 🟢 MICROSOFT TRANSLATION ENGINE 🟢
+// 🟢 GOOGLE TRANSLATE ENGINE (RESTORED) 🟢
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
     localStorage.setItem('target-language', currentLang);
@@ -194,25 +208,23 @@ async function translateAnnouncement(id) {
             let safeTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
             let safeBody = textBody.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
 
-            const response = await fetch('/api/translate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    texts: [safeTitle, safeBody],
-                    to: currentLang
-                })
-            });
+            const resTitle = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeTitle)}`);
+            const resBody = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeBody)}`);
+            
+            const dataTitle = await resTitle.json();
+            const dataBody = await resBody.json();
 
-            if (!response.ok) throw new Error("Translation failed");
-            const data = await response.json();
+            let translatedTitle = '';
+            dataTitle[0].forEach(t => { if(t[0]) translatedTitle += t[0] });
 
-            let translatedTitle = data.translated_texts[0];
-            let translatedBody = data.translated_texts[1].replace(/\n/g, '<br>');
+            let translatedBody = '';
+            dataBody[0].forEach(t => { if(t[0]) translatedBody += t[0] });
 
+            translatedBody = translatedBody.replace(/\n/g, '<br>');
             translatedCache[id] = { title: translatedTitle, body: translatedBody };
         } catch (e) {
             console.log(e);
-            showToast("Translation Failed. Check API Key or Internet.");
+            showToast("Translation Failed. Check internet.");
             btnEl.style.opacity = '1';
             return;
         }
