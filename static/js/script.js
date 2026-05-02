@@ -56,24 +56,7 @@ async function initApp() {
         const response = await fetch(`/api/announcements?t=${Date.now()}`);
         if (!response.ok) throw new Error("API Limit");
         
-        const result = await response.json();
-        
-        // 🟢 HANDLE DYNAMIC SERVER STATUS 🟢
-        const statusIndicator = document.getElementById('server-status-indicator');
-        const statusText = document.getElementById('server-status-text');
-        
-        if (result.status === 'offline') {
-            statusIndicator.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
-            statusText.innerText = 'Loading from Cache';
-            statusText.className = 'text-[10px] text-red-500 font-bold uppercase tracking-widest';
-        } else {
-            statusIndicator.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
-            statusText.innerText = 'Server Online';
-            statusText.className = 'text-[10px] text-green-500 font-bold uppercase tracking-widest';
-        }
-
-        // 🟢 LOAD DATA 🟢
-        allAnnouncements = result.data;
+        allAnnouncements = await response.json();
         activeList = [...allAnnouncements];
         DOM.cardsContainer.innerHTML = ''; 
         
@@ -93,7 +76,7 @@ async function initApp() {
 
 function handleSearch(query) {
     activeList = query 
-        ? allAnnouncements.filter(item => item.title.toLowerCase().includes(query) || (item.body && item.body.toLowerCase().includes(query)) || (item.description && item.description.toLowerCase().includes(query)) || item.date.toLowerCase().includes(query))
+        ? allAnnouncements.filter(item => item.title.toLowerCase().includes(query) || item.body.toLowerCase().includes(query) || item.date.toLowerCase().includes(query))
         : [...allAnnouncements];
         
     displayedCount = 0;
@@ -122,7 +105,7 @@ function loadMore() {
             </a>`).join('');
 
         let imagesHtml = item.images.map(img => `
-            <div class="w-full rounded-xl overflow-hidden border border-white/5 mt-4 mb-2 shadow-md relative">
+            <div class="announcement-media relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
                 <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
                 <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -135,26 +118,20 @@ function loadMore() {
                 Ouvrir sur e-learning
             </a>` : '';
 
-        let textBody = item.body || item.description || "";
-
         card.innerHTML = `
-            <div class="flex justify-between items-center w-full mb-4">
-                <span class="announcement-date">${item.date}</span>
-                
+            <div class="flex justify-between items-center w-full mb-3">
+                <span class="announcement-date" style="margin-bottom: 0;">${item.date}</span>
                 <div class="flex items-center gap-2">
-                    <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Translate">
+                    <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Translate">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
                     </button>
-                    <button onclick="shareAnnouncement('${item.id}')" class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
+                    <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                     </button>
                 </div>
             </div>
-            
             <h3 id="title-${item.id}" class="announcement-title w-full">${item.title}</h3>
-            
-            <div id="body-${item.id}" class="announcement-body w-full">${textBody}</div>
-            
+            <div id="body-${item.id}" class="announcement-body mt-1 w-full">${item.body}</div>
             ${imagesHtml}${linksHtml}${sourceBtn}
         `;
         fragment.appendChild(card);
@@ -167,7 +144,7 @@ function loadMore() {
     if (displayedCount >= activeList.length) DOM.endMessage.classList.remove('hidden');
 }
 
-// 🟢 GOOGLE TRANSLATE ENGINE (RESTORED) 🟢
+// 🟢 TRANSLATION ENGINE 🟢
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
     localStorage.setItem('target-language', currentLang);
@@ -189,11 +166,9 @@ async function translateAnnouncement(id) {
     const bodyEl = document.getElementById(`body-${id}`);
     const btnEl = document.getElementById(`btn-trans-${id}`);
 
-    let textBody = item.body || item.description || "";
-
     if (titleEl.hasAttribute('data-translated')) {
         titleEl.innerHTML = item.title;
-        bodyEl.innerHTML = textBody;
+        bodyEl.innerHTML = item.body;
         titleEl.removeAttribute('data-translated');
         titleEl.classList.remove('text-rtl');
         bodyEl.classList.remove('text-rtl');
@@ -206,7 +181,7 @@ async function translateAnnouncement(id) {
     if (!translatedCache[id]) {
         try {
             let safeTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
-            let safeBody = textBody.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
+            let safeBody = item.body.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
 
             const resTitle = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeTitle)}`);
             const resBody = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeBody)}`);
@@ -223,7 +198,6 @@ async function translateAnnouncement(id) {
             translatedBody = translatedBody.replace(/\n/g, '<br>');
             translatedCache[id] = { title: translatedTitle, body: translatedBody };
         } catch (e) {
-            console.log(e);
             showToast("Translation Failed. Check internet.");
             btnEl.style.opacity = '1';
             return;
@@ -241,29 +215,35 @@ async function translateAnnouncement(id) {
     }
 }
 
-// 🟢 HYBRID SHARE SYSTEM 🟢
+// 🟢 HYBRID SHARE SYSTEM (RESTORED THE CUSTOM MENU) 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
-    let textBody = item.body || item.description || "";
-    let cleanBody = textBody.replace(/<[^>]*>?/gm, '').trim();
-    
+    let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
     currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
-        if (navigator.share) await navigator.share({ title: item.title, text: currentShareText });
-        else throw new Error("No navigator.share");
+        if (navigator.share) {
+            await navigator.share({ title: item.title, text: currentShareText });
+        } else {
+            throw new Error("No navigator.share");
+        }
     } catch (err) {
+        // If navigator.share fails (inside APK WebView), open the custom Share Sheet
         openShareSheet();
     }
 }
 
+// 🟢 CUSTOM SHARE SHEET CONTROLS 🟢
 function openShareSheet() {
     const sheet = document.getElementById('share-sheet');
     const overlay = document.getElementById('share-overlay');
     overlay.style.visibility = 'visible';
-    setTimeout(() => { overlay.classList.remove('opacity-0'); sheet.classList.remove('translate-y-full'); }, 10);
+    setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        sheet.classList.remove('translate-y-full');
+    }, 10);
 }
 
 function closeShareSheet() {
@@ -276,9 +256,11 @@ function closeShareSheet() {
 
 function shareTo(platform) {
     const encodedText = encodeURIComponent(currentShareText);
-    if (platform === 'whatsapp') window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
-    else if (platform === 'telegram') window.location.href = `tg://msg?text=${encodedText}`;
-    else if (platform === 'copy') {
+    if (platform === 'whatsapp') {
+        window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
+    } else if (platform === 'telegram') {
+        window.location.href = `tg://msg?text=${encodedText}`;
+    } else if (platform === 'copy') {
         navigator.clipboard.writeText(currentShareText);
         showToast("Text copied to clipboard!");
     }
