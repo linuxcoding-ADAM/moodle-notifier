@@ -76,7 +76,7 @@ async function initApp() {
 
 function handleSearch(query) {
     activeList = query 
-        ? allAnnouncements.filter(item => item.title.toLowerCase().includes(query) || item.body.toLowerCase().includes(query) || item.date.toLowerCase().includes(query))
+        ? allAnnouncements.filter(item => item.title.toLowerCase().includes(query) || (item.description && item.description.toLowerCase().includes(query)) || item.date.toLowerCase().includes(query))
         : [...allAnnouncements];
         
     displayedCount = 0;
@@ -87,6 +87,7 @@ function handleSearch(query) {
     else loadMore();
 }
 
+// 🟢 NEW STRUCTURED UI RENDERER 🟢
 function loadMore() {
     if (isLoading || displayedCount >= activeList.length) return;
     isLoading = true;
@@ -94,10 +95,36 @@ function loadMore() {
     const nextBatch = activeList.slice(displayedCount, displayedCount + BATCH_SIZE);
     const fragment = document.createDocumentFragment();
 
+    // Map keys to pretty SVGs for the Grid
+    const iconMap = {
+        'Module': '<svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>',
+        'Type': '<svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>',
+        'Date': '<svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+        'Groupe': '<svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>',
+        'Salle': '<svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>'
+    };
+
     nextBatch.forEach((item) => {
         const card = document.createElement('div');
         card.className = 'glass-card flex flex-col items-start w-full';
 
+        // 1. Build Meta Grid
+        let metaHtml = '';
+        if (item.meta && Object.keys(item.meta).length > 0) {
+            let rows = '';
+            for (const [key, value] of Object.entries(item.meta)) {
+                let icon = iconMap[key] || '<svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                rows += `
+                    <div class="meta-row">
+                        <span class="meta-label">${icon} ${key}:</span>
+                        <span class="meta-value">${value}</span>
+                    </div>
+                `;
+            }
+            metaHtml = `<div class="meta-grid">${rows}</div>`;
+        }
+
+        // 2. Buttons & Images
         let linksHtml = item.links.map(link => `
             <a href="${link}" target="_blank" rel="external" class="link-btn">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -105,7 +132,7 @@ function loadMore() {
             </a>`).join('');
 
         let imagesHtml = item.images.map(img => `
-            <div class="announcement-media relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
+            <div class="announcement-media relative mt-2 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
                 <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
                 <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -118,20 +145,32 @@ function loadMore() {
                 Ouvrir sur e-learning
             </a>` : '';
 
+        // 3. Assemble Card
         card.innerHTML = `
             <div class="flex justify-between items-center w-full mb-3">
-                <span class="announcement-date" style="margin-bottom: 0;">${item.date}</span>
                 <div class="flex items-center gap-2">
-                    <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Translate">
+                    <span class="text-xs text-accent-color opacity-80">📢</span>
+                    <h3 id="title-${item.id}" class="announcement-title w-full m-0">${item.title}</h3>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
                     </button>
-                    <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
+                    <button onclick="shareAnnouncement('${item.id}')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                     </button>
                 </div>
             </div>
-            <h3 id="title-${item.id}" class="announcement-title w-full">${item.title}</h3>
-            <div id="body-${item.id}" class="announcement-body mt-1 w-full">${item.body}</div>
+            
+            ${metaHtml}
+            
+            <div id="body-${item.id}" class="announcement-body w-full">${item.description}</div>
+            
+            <div class="announcement-footer w-full">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Affiché le : ${item.date}
+            </div>
+            
             ${imagesHtml}${linksHtml}${sourceBtn}
         `;
         fragment.appendChild(card);
@@ -144,7 +183,7 @@ function loadMore() {
     if (displayedCount >= activeList.length) DOM.endMessage.classList.remove('hidden');
 }
 
-// 🟢 TRANSLATION ENGINE 🟢
+// 🟢 GOOGLE TRANSLATION ENGINE (Translates Title and Pure Description) 🟢
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
     localStorage.setItem('target-language', currentLang);
@@ -168,7 +207,7 @@ async function translateAnnouncement(id) {
 
     if (titleEl.hasAttribute('data-translated')) {
         titleEl.innerHTML = item.title;
-        bodyEl.innerHTML = item.body;
+        bodyEl.innerHTML = item.description;
         titleEl.removeAttribute('data-translated');
         titleEl.classList.remove('text-rtl');
         bodyEl.classList.remove('text-rtl');
@@ -180,8 +219,8 @@ async function translateAnnouncement(id) {
 
     if (!translatedCache[id]) {
         try {
-            let safeTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
-            let safeBody = item.body.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
+            let safeTitle = item.title;
+            let safeBody = item.description.replace(/<br\s*[\/]?>/gi, '\n');
 
             const resTitle = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeTitle)}`);
             const resBody = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeBody)}`);
@@ -215,35 +254,27 @@ async function translateAnnouncement(id) {
     }
 }
 
-// 🟢 HYBRID SHARE SYSTEM (RESTORED THE CUSTOM MENU) 🟢
+// 🟢 HYBRID SHARE SYSTEM 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
-    let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
+    let cleanBody = item.description.replace(/<[^>]*>?/gm, '').trim();
     currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
-        if (navigator.share) {
-            await navigator.share({ title: item.title, text: currentShareText });
-        } else {
-            throw new Error("No navigator.share");
-        }
+        if (navigator.share) await navigator.share({ title: item.title, text: currentShareText });
+        else throw new Error("No navigator.share");
     } catch (err) {
-        // If navigator.share fails (inside APK WebView), open the custom Share Sheet
         openShareSheet();
     }
 }
 
-// 🟢 CUSTOM SHARE SHEET CONTROLS 🟢
 function openShareSheet() {
     const sheet = document.getElementById('share-sheet');
     const overlay = document.getElementById('share-overlay');
     overlay.style.visibility = 'visible';
-    setTimeout(() => {
-        overlay.classList.remove('opacity-0');
-        sheet.classList.remove('translate-y-full');
-    }, 10);
+    setTimeout(() => { overlay.classList.remove('opacity-0'); sheet.classList.remove('translate-y-full'); }, 10);
 }
 
 function closeShareSheet() {
@@ -256,11 +287,9 @@ function closeShareSheet() {
 
 function shareTo(platform) {
     const encodedText = encodeURIComponent(currentShareText);
-    if (platform === 'whatsapp') {
-        window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
-    } else if (platform === 'telegram') {
-        window.location.href = `tg://msg?text=${encodedText}`;
-    } else if (platform === 'copy') {
+    if (platform === 'whatsapp') window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
+    else if (platform === 'telegram') window.location.href = `tg://msg?text=${encodedText}`;
+    else if (platform === 'copy') {
         navigator.clipboard.writeText(currentShareText);
         showToast("Text copied to clipboard!");
     }
