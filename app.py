@@ -12,6 +12,8 @@ from flask import Flask, render_template, jsonify, request
 from bs4 import BeautifulSoup, NavigableString, Tag
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+# --- FIREBASE SETUP ---
 import firebase_admin
 from firebase_admin import credentials, messaging
 
@@ -25,6 +27,7 @@ if cred_json:
     except Exception as e:
         print(f"⚠️ Firebase Error: {e}")
 
+# --- CONFIG ---
 AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
@@ -32,6 +35,7 @@ CACHE_FILE = 'moodle_cache.json'
 
 latest_data = []
 first_run = True
+moodle_status = "online"  # 🟢 NEW: Tracks if Moodle is up or down
 
 try:
     if os.path.exists(CACHE_FILE):
@@ -41,7 +45,6 @@ except Exception:
     pass
 
 app = Flask(__name__)
-
 limiter = Limiter(get_remote_address, app=app, default_limits=["500 per day", "100 per hour"], storage_uri="memory://")
 
 @app.after_request
@@ -104,41 +107,6 @@ def extract_images(tag):
         if src not in images: images.append(src)
     return images
 
-# 🟢 SMART METADATA EXTRACTOR 🟢
-def extract_metadata(title, text):
-    meta = {}
-    combined = f"{title} {text}".replace('\n', ' ')
-    
-    # 1. Type
-    types = ['Interrogation', 'Examen', 'Rattrapage', 'Soutenance', 'TD', 'TP', 'Cours', 'Consultation', 'Affichage']
-    for t in types:
-        if re.search(r'\b' + t + r'\b', combined, re.IGNORECASE):
-            if 'récupération' in combined.lower() and t in ['Interrogation', 'TD', 'TP', 'Cours']:
-                meta['Type'] = f"{t} de récupération"
-            else:
-                meta['Type'] = t
-            break
-            
-    # 2. Module
-    mod_match = re.search(r'(?i)(?:module|matière)\s+(?:de\s+|d[\'’])?\s*["\']?([A-Za-z0-9éèàêîôûç\s]{2,25}?)["\']?(?:\.|,|<|\n|\s+(?:est|sera|programmé|prévu|:))', combined)
-    if mod_match:
-        m = mod_match.group(1).strip()
-        if len(m) > 2: meta['Module'] = m.title()
-
-    # 3. Groupe
-    grp_match = re.search(r'(?i)groupe[s]?\s+([A-Za-z0-9,\s&et]{1,20})(?:\.|<|\n|sont|est|:)', combined)
-    if grp_match: meta['Groupe'] = grp_match.group(1).strip().upper()
-
-    # 4. Date (Événement)
-    date_match = re.search(r'(?i)(?:le\s+)?((?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s+\d{1,2}\s+[a-zéû]+(?:(?:\s+)?\d{4})?)', combined)
-    if date_match: meta['Date'] = date_match.group(1).strip().capitalize()
-        
-    # 5. Salle
-    salle_match = re.search(r'(?i)(?:en\s+)?(?:salle|amphi|amphithéâtre|local)\s+([A-Za-z0-9]+)', combined)
-    if salle_match: meta['Salle'] = salle_match.group(1).strip().upper()
-
-    return meta
-
 def send_fcm_notification(title, body_preview):
     try:
         android_config = messaging.AndroidConfig(priority='high', ttl=86400, notification=messaging.AndroidNotification(default_sound=True, default_vibrate_timings=True))
@@ -148,12 +116,14 @@ def send_fcm_notification(title, body_preview):
     except Exception as e: print(f"❌ FCM Error: {e}")
 
 def scrape_task():
+    global moodle_status
     try:
         with requests.Session() as session:
             session.headers.update(HEADERS)
             response = session.get(AFFICHAGE_URL, timeout=30)
             response.raise_for_status()
             
+        moodle_status = "online" # 🟢 Moodle is working
         soup = BeautifulSoup(response.text, 'html.parser')
         cards = soup.select('li.activity')
         
@@ -176,9 +146,7 @@ def scrape_task():
             elif instancename:
                 title = instancename.get_text(strip=True).replace(" Fichier", "").replace(" URL", "").replace(" Dossier", "")
             
-            # Extract Meta & Pure Description (No bold, no messy colors)
             pure_description = bleach.clean(body_html, tags=[], strip=True)
-            meta_data = extract_metadata(title, pure_description)
             
             date_text, timestamp = "Général", 0
             date_match = re.search(r'Affiché le\s*[:]?\s*([0-9]{1,2}\s+[a-zA-Zéû]+\s+[0-9]{4}.*?(\d{1,2}[h:]\d{1,2})?)', raw_text, re.IGNORECASE)
@@ -191,8 +159,7 @@ def scrape_task():
             new_data.append({
                 "id": unique_id,
                 "title": bleach.clean(title, tags=[], strip=True),
-                "meta": meta_data, # 🟢 NEW META DICT 🟢
-                "description": pure_description.replace('\n', '<br>'), # 🟢 CLEAN DESCRIPTION 🟢
+                "description": pure_description.replace('\n', '<br>'),
                 "links": extract_links(tag),
                 "images": extract_images(tag),
                 "date": bleach.clean(date_text, tags=[], strip=True),
@@ -203,8 +170,13 @@ def scrape_task():
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         return new_data
 
-    except Exception as e: print(f"❌ Scraper Error: {e}")
-    return None
+    except requests.exceptions.RequestException as e:
+        moodle_status = "offline" # 🔴 Moodle crashed
+        print(f"❌ Moodle is Down: {e}")
+        return None
+    except Exception as e:
+        print(f"❌ Scraper Error: {e}")
+        return None
 
 def background_loop():
     global latest_data, first_run
@@ -231,7 +203,12 @@ def index(): return render_template('index.html')
 
 @app.route('/api/announcements')
 def api_data():
-    response = jsonify(latest_data)
+    # 🟢 NEW: Send the data AND the server status to the frontend
+    response_payload = {
+        "status": moodle_status,
+        "data": latest_data
+    }
+    response = jsonify(response_payload)
     response.headers['Cache-Control'] = 'public, max-age=60'
     return response
 
