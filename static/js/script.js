@@ -76,7 +76,7 @@ async function initApp() {
 
 function handleSearch(query) {
     activeList = query 
-        ? allAnnouncements.filter(item => item.title.toLowerCase().includes(query) || (item.description && item.description.toLowerCase().includes(query)) || item.date.toLowerCase().includes(query))
+        ? allAnnouncements.filter(item => item.title.toLowerCase().includes(query) || (item.body && item.body.toLowerCase().includes(query)) || (item.description && item.description.toLowerCase().includes(query)) || item.date.toLowerCase().includes(query))
         : [...allAnnouncements];
         
     displayedCount = 0;
@@ -87,7 +87,7 @@ function handleSearch(query) {
     else loadMore();
 }
 
-// 🟢 NEW STRICT TEXT ARCHITECTURE RENDERER 🟢
+// 🟢 ORIGINAL CARD ARCHITECTURE RESTORED 🟢
 function loadMore() {
     if (isLoading || displayedCount >= activeList.length) return;
     isLoading = true;
@@ -97,72 +97,50 @@ function loadMore() {
 
     nextBatch.forEach((item) => {
         const card = document.createElement('div');
-        card.className = 'glass-card flex flex-col items-start w-full relative';
+        card.className = 'glass-card flex flex-col items-start w-full';
 
-        // 1. Build Meta Info (Aligned text without icons)
-        let metaHtml = '';
-        if (item.meta && Object.keys(item.meta).length > 0) {
-            let rows = '';
-            for (const [key, value] of Object.entries(item.meta)) {
-                rows += `
-                    <div class="flex text-[0.85rem] mb-1.5 leading-snug">
-                        <span class="w-20 flex-shrink-0" style="color: var(--text-muted);">${key}:</span>
-                        <span class="font-semibold text-white">${value}</span>
-                    </div>
-                `;
-            }
-            metaHtml = `<div class="w-full pt-4 pb-2">${rows}</div>`;
-        } else {
-            // Add a small spacer if there's no meta to keep things clean
-            metaHtml = `<div class="h-4"></div>`;
-        }
-
-        // 2. Links & Images
         let linksHtml = item.links.map(link => `
-            <a href="${link}" target="_blank" rel="external" class="link-btn mt-4">
+            <a href="${link}" target="_blank" rel="external" class="link-btn">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 Télécharger le fichier
             </a>`).join('');
 
         let imagesHtml = item.images.map(img => `
-            <div class="w-full rounded-xl overflow-hidden border border-white/5 mt-4">
+            <div class="w-full rounded-xl overflow-hidden border border-white/5 mt-4 mb-2 shadow-md relative">
                 <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
+                <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                </a>
             </div>`).join('');
 
         let sourceBtn = item.source ? `
-            <a href="${item.source}" target="_blank" rel="external" class="source-btn mt-2">
+            <a href="${item.source}" target="_blank" rel="external" class="source-btn">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 Ouvrir sur e-learning
             </a>` : '';
 
-        // 3. Assemble Card Structure (Strict layout)
+        // Safely get text whether it's from the old backend or new backend
+        let textBody = item.body || item.description || "";
+
+        // The Layout exactly as shown in the screenshot
         card.innerHTML = `
-            <!-- Action Buttons (Translate & Share floating top right) -->
-            <div class="absolute top-5 right-5 flex items-center gap-1.5 z-10">
-                <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 border border-white/10 active:scale-90 transition-transform">
-                    <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
-                </button>
-                <button onclick="shareAnnouncement('${item.id}')" class="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 border border-white/10 active:scale-90 transition-transform">
-                    <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                </button>
+            <div class="flex justify-between items-center w-full mb-4">
+                <span class="announcement-date">${item.date}</span>
+                
+                <div class="flex items-center gap-2">
+                    <button id="btn-trans-${item.id}" onclick="translateAnnouncement('${item.id}')" class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Translate">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+                    </button>
+                    <button onclick="shareAnnouncement('${item.id}')" class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform shadow-sm" style="background-color: var(--date-bg); color: var(--accent-color);" aria-label="Partager">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    </button>
+                </div>
             </div>
-
-            <!-- TITLE BLOCK (Thick Top & Bottom Borders) -->
-            <div class="w-full border-t-2 border-white/20 pt-4 pb-4 mt-8 border-b-2">
-                <h3 id="title-${item.id}" class="announcement-title m-0 pr-16">${item.title}</h3>
-            </div>
-
-            <!-- META BLOCK -->
-            ${metaHtml}
-
-            <!-- DESCRIPTION BLOCK (Thin Top & Bottom Borders) -->
-            <div class="w-full border-t border-white/10 pt-4 pb-4 border-b mb-4">
-                <div id="body-${item.id}" class="announcement-body">${item.description}</div>
-            </div>
-
-            <!-- FOOTER BLOCK -->
-            <div class="text-[0.75rem] font-mono text-gray-400 mt-2">
-                Affiché le : ${item.date}
-            </div>
-
+            
+            <h3 id="title-${item.id}" class="announcement-title w-full">${item.title}</h3>
+            
+            <div id="body-${item.id}" class="announcement-body w-full">${textBody}</div>
+            
             ${imagesHtml}${linksHtml}${sourceBtn}
         `;
         fragment.appendChild(card);
@@ -175,7 +153,7 @@ function loadMore() {
     if (displayedCount >= activeList.length) DOM.endMessage.classList.remove('hidden');
 }
 
-// 🟢 GOOGLE TRANSLATION ENGINE 🟢
+// 🟢 MICROSOFT TRANSLATION ENGINE 🟢
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'ar' : 'en';
     localStorage.setItem('target-language', currentLang);
@@ -197,9 +175,11 @@ async function translateAnnouncement(id) {
     const bodyEl = document.getElementById(`body-${id}`);
     const btnEl = document.getElementById(`btn-trans-${id}`);
 
+    let textBody = item.body || item.description || "";
+
     if (titleEl.hasAttribute('data-translated')) {
         titleEl.innerHTML = item.title;
-        bodyEl.innerHTML = item.description;
+        bodyEl.innerHTML = textBody;
         titleEl.removeAttribute('data-translated');
         titleEl.classList.remove('text-rtl');
         bodyEl.classList.remove('text-rtl');
@@ -211,25 +191,28 @@ async function translateAnnouncement(id) {
 
     if (!translatedCache[id]) {
         try {
-            let safeTitle = item.title;
-            let safeBody = item.description.replace(/<br\s*[\/]?>/gi, '\n');
+            let safeTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
+            let safeBody = textBody.replace(/<br\s*[\/]?>/gi, '\n').replace(/<[^>]*>?/gm, '').trim();
 
-            const resTitle = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeTitle)}`);
-            const resBody = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${currentLang}&dt=t&q=${encodeURIComponent(safeBody)}`);
-            
-            const dataTitle = await resTitle.json();
-            const dataBody = await resBody.json();
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    texts: [safeTitle, safeBody],
+                    to: currentLang
+                })
+            });
 
-            let translatedTitle = '';
-            dataTitle[0].forEach(t => { if(t[0]) translatedTitle += t[0] });
+            if (!response.ok) throw new Error("Translation failed");
+            const data = await response.json();
 
-            let translatedBody = '';
-            dataBody[0].forEach(t => { if(t[0]) translatedBody += t[0] });
+            let translatedTitle = data.translated_texts[0];
+            let translatedBody = data.translated_texts[1].replace(/\n/g, '<br>');
 
-            translatedBody = translatedBody.replace(/\n/g, '<br>');
             translatedCache[id] = { title: translatedTitle, body: translatedBody };
         } catch (e) {
-            showToast("Translation Failed. Check internet.");
+            console.log(e);
+            showToast("Translation Failed. Check API Key or Internet.");
             btnEl.style.opacity = '1';
             return;
         }
@@ -246,28 +229,18 @@ async function translateAnnouncement(id) {
     }
 }
 
-// 🟢 HYBRID SHARE SYSTEM (FORMATTED TEXT) 🟢
+// 🟢 HYBRID SHARE SYSTEM 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
-    // Build the Meta Text nicely for sharing
-    let metaText = '';
-    if (item.meta && Object.keys(item.meta).length > 0) {
-        for (const [key, value] of Object.entries(item.meta)) {
-            // Adds padding to make keys align perfectly in text format
-            metaText += `${key.padEnd(10, ' ')} : ${value}\n`;
-        }
-        metaText += '\n──────────────────────\n';
-    }
-
-    let cleanBody = item.description.replace(/<[^>]*>?/gm, '').trim();
+    let textBody = item.body || item.description || "";
+    let cleanBody = textBody.replace(/<[^>]*>?/gm, '').trim();
     
-    // Exact requested text formatting!
-    currentShareText = `━━━━━━━━━━━━━━━━━━━━━━\n${item.title}\n━━━━━━━━━━━━━━━━━━━━━━\n\n${metaText}${cleanBody}\n\n──────────────────────\nAffiché le : ${item.date}\n\n[ 🔗 Lien : ${item.source || 'https://elearning.univ-bejaia.dz'} ]\n[ 📱 App : https://stbejaia.up.railway.app/install ]`;
+    currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
 
     try {
-        if (navigator.share) await navigator.share({ text: currentShareText });
+        if (navigator.share) await navigator.share({ title: item.title, text: currentShareText });
         else throw new Error("No navigator.share");
     } catch (err) {
         openShareSheet();
@@ -295,7 +268,7 @@ function shareTo(platform) {
     else if (platform === 'telegram') window.location.href = `tg://msg?text=${encodedText}`;
     else if (platform === 'copy') {
         navigator.clipboard.writeText(currentShareText);
-        showToast("Texte copié !");
+        showToast("Text copied to clipboard!");
     }
     closeShareSheet();
 }
