@@ -79,17 +79,17 @@
             opacity: 0.8;
         }
 
-        /* Phone Mockup - Responsive */
-        .phone-frame {
+        /* Android Phone Frame */
+        .android-phone {
             position: relative;
-            width: 260px;
-            height: 540px;
-            border-radius: 36px;
+            width: 270px;
+            height: 560px;
+            border-radius: 30px;
             background: #110C1A;
-            border: 6px solid #2a2238;
+            border: 6px solid #1a1a2e;
             box-shadow: 
-                0 0 0 2px #111,
-                0 20px 40px -10px rgba(139, 92, 246, 0.3),
+                0 0 0 2px #333,
+                0 25px 50px -15px rgba(139, 92, 246, 0.4),
                 inset 0 0 0 2px rgba(255,255,255,0.05);
             overflow: hidden;
             transition: transform 0.1s ease-out;
@@ -98,46 +98,40 @@
         }
 
         @media (min-width: 768px) {
-            .phone-frame {
-                width: 320px;
-                height: 650px;
-                border: 8px solid #2a2238;
-                border-radius: 40px;
-                box-shadow: 
-                    0 0 0 2px #111,
-                    0 25px 50px -12px rgba(139, 92, 246, 0.3),
-                    inset 0 0 0 2px rgba(255,255,255,0.05);
+            .android-phone {
+                width: 310px;
+                height: 640px;
+                border: 8px solid #1a1a2e;
+                border-radius: 36px;
             }
         }
 
-        /* 3D Tilt for Desktop Hero */
+        /* Android Punch-Hole Camera */
+        .camera-hole {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 50;
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.2);
+        }
+
+        /* 3D Tilt for Desktop Sticky Phone */
         @media (min-width: 1024px) {
             .phone-3d {
-                transform: perspective(1000px) rotateX(10deg) rotateY(-15deg) rotateZ(5deg);
+                transform: perspective(1000px) rotateX(5deg) rotateY(-10deg) rotateZ(2deg);
                 transform-style: preserve-3d;
             }
         }
 
-        .phone-notch {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 20px;
-            background: #2a2238;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-            z-index: 20;
-        }
-
-        @media (min-width: 768px) {
-            .phone-notch {
-                width: 120px;
-                height: 25px;
-                border-bottom-left-radius: 16px;
-                border-bottom-right-radius: 16px;
-            }
+        /* Parallax layers */
+        .parallax-element {
+            will-change: transform;
+            transition: transform 0.1s ease-out;
         }
 
         /* Custom Scrollbar */
@@ -155,9 +149,21 @@
             background: #8B5CF6; 
         }
         
-        /* Utility */
         .text-balance {
             text-wrap: balance;
+        }
+
+        /* Blur fade effect for steps */
+        .step {
+            transition: opacity 0.5s, filter 0.5s;
+        }
+        .step.inactive {
+            opacity: 0.3;
+            filter: blur(2px);
+        }
+        .step.active {
+            opacity: 1;
+            filter: blur(0);
         }
     </style>
 </head>
@@ -178,153 +184,293 @@
         </div>
     </nav>
 
-    <!-- Hero Section (Consultation Screen) -->
-    <section class="relative pt-28 md:pt-32 pb-16 md:pb-24 overflow-hidden">
-        <div class="absolute inset-0 bg-hero-glow -z-10"></div>
+    <!-- Parallax Background Orbs -->
+    <div class="fixed top-20 left-10 w-[300px] h-[300px] bg-brand/20 rounded-full blur-[80px] -z-10 parallax-element" data-speed="0.1"></div>
+    <div class="fixed bottom-20 right-10 w-[400px] h-[400px] bg-indigo-600/20 rounded-full blur-[100px] -z-10 parallax-element" data-speed="-0.15"></div>
+
+    <!-- Hero Header -->
+    <header class="relative pt-32 pb-16 md:pt-40 md:pb-20 text-center px-4 md:px-6 z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border-brand/30 text-brand-light text-[10px] md:text-xs font-medium mb-6">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
+            </span>
+            Version 1.9.9 (Beta) Disponible
+        </div>
+        <h1 class="text-4xl sm:text-5xl md:text-7xl font-display font-extrabold tracking-tight leading-[1.1] mb-6 text-balance max-w-4xl mx-auto">
+            Restez <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-light to-indigo-400">connecté</span> à votre scolarité.
+        </h1>
+        <p class="text-base md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed text-balance">
+            L'application essentielle pour les étudiants de l'Université de Bejaïa. Découvrez l'expérience ST Affichage à travers une interface Android moderne.
+        </p>
+        <div class="flex justify-center">
+            <a href="/static/ST%20Affichage.apk" download class="btn-glow bg-brand text-white px-8 py-4 rounded-full font-semibold flex items-center gap-3 transition-transform hover:scale-105 shadow-xl">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Télécharger l'Application
+            </a>
+        </div>
+    </header>
+
+    <!-- Scrollytelling Section -->
+    <section class="relative max-w-7xl mx-auto px-4 md:px-6 mt-10">
         
-        <!-- Glowing Orb -->
-        <div class="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-brand-light/20 rounded-full blur-[60px] md:blur-[80px] -z-10 top-0 left-[-50px] md:left-[-100px] opacity-50"></div>
+        <!-- Desktop Sticky Visual Container -->
+        <div class="hidden lg:flex w-1/2 float-right sticky top-28 h-[75vh] items-center justify-center z-20 perspective-container">
+            <!-- Background glow behind phone -->
+            <div class="absolute w-40 h-40 bg-brand/30 rounded-full blur-[50px] animate-pulse" style="animation-duration: 4s;"></div>
+            
+            <div class="android-phone phone-3d parallax-element" id="sticky-phone" data-speed="0.05">
+                <div class="camera-hole"></div>
+                
+                <!-- Screen 1: Consultation -->
+                <div class="absolute inset-0 z-10 transition-opacity duration-700 opacity-100" id="desktop-screen-1">
+                    <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-8 relative">
+                        <div class="px-5 py-3 flex items-center justify-between border-b border-white/5 relative z-10">
+                            <div class="flex flex-col gap-1 w-5">
+                                <div class="h-0.5 bg-gray-200 w-full rounded"></div>
+                                <div class="h-0.5 bg-gray-200 w-4/5 rounded"></div>
+                                <div class="h-0.5 bg-gray-200 w-full rounded"></div>
+                            </div>
+                            <div class="text-center flex flex-col items-center">
+                                <p class="text-[8px] text-[#A855F7] font-bold tracking-[0.2em] uppercase mb-0.5">Univ Bejaïa</p>
+                                <div class="font-display font-extrabold text-sm tracking-tight flex items-center">ST Affichage</div>
+                            </div>
+                            <div class="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                                <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </div>
+                        </div>
+                        <div class="px-5 mt-4 relative z-10">
+                            <div class="bg-[#1b1525] rounded-full border border-brand/40 flex items-center px-4 py-2.5">
+                                <svg class="w-4 h-4 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <span class="text-gray-500 text-xs font-medium">Search announcements...</span>
+                            </div>
+                        </div>
+                        <div class="px-5 mt-6 flex-1 overflow-hidden relative z-10">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="px-3 py-1 bg-[#241d36] rounded-full text-[9px] text-[#A855F7] font-bold tracking-wider">25 MAI 2026</div>
+                            </div>
+                            <h2 class="text-[1.35rem] font-display font-bold leading-[1.2] mb-3">Consultation des Copies d'examen</h2>
+                            <p class="text-xs text-gray-400 mb-6 flex items-center gap-1.5 font-medium">
+                                <span class="w-1 h-1 rounded-full bg-red-500"></span> Le titre de l'affichage
+                            </p>
+                            <p class="text-xs text-gray-200 leading-[1.6] font-semibold">
+                                "Open Source LMD, ING et ING TM" Nous portons à la connaissance des étudiants des cycles LMD, ING et ING TM qui ont passé l'examen d' Open Source que la consultation de leurs copies d'examen aura lieu le Dimanche 31/05/2026 à partir de 11h00.
+                            </p>
+                            <div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#110C1A] to-transparent pointer-events-none"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen 2: Search -->
+                <div class="absolute inset-0 z-20 transition-opacity duration-700 opacity-0" id="desktop-screen-2">
+                    <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-8 relative">
+                        <div class="px-5 py-4 flex items-center gap-3 border-b border-white/5 relative z-10">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            <div class="flex-1 bg-[#1b1525] rounded-full border border-brand text-white flex items-center px-4 py-2 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+                                <span class="text-sm font-medium">Notes Math|</span>
+                                <span class="w-0.5 h-4 bg-brand animate-pulse ml-0.5"></span>
+                            </div>
+                        </div>
+                        <div class="px-5 mt-4 flex-1 overflow-hidden relative z-10">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-4">Résultats de recherche (2)</p>
+                            <div class="bg-[#1b1525] rounded-2xl p-4 mb-3 border border-white/5 shadow-lg">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="px-2 py-0.5 bg-brand/20 text-brand-light rounded text-[9px] font-bold">L2 INFO</span>
+                                    <span class="text-[10px] text-gray-500">Il y a 2h</span>
+                                </div>
+                                <h3 class="text-base font-display font-bold leading-tight mb-1">Notes Mathématiques 3</h3>
+                                <p class="text-xs text-gray-400">Affichage des notes d'examen et de TD...</p>
+                            </div>
+                            <div class="bg-[#1b1525] rounded-2xl p-4 border border-white/5 shadow-lg">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="px-2 py-0.5 bg-brand/20 text-brand-light rounded text-[9px] font-bold">L1 ST</span>
+                                    <span class="text-[10px] text-gray-500">Hier</span>
+                                </div>
+                                <h3 class="text-base font-display font-bold leading-tight mb-1">Consultation Math 1</h3>
+                                <p class="text-xs text-gray-400">La consultation aura lieu à la salle S4 pour les groupes...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen 3: Notifications -->
+                <div class="absolute inset-0 z-30 transition-opacity duration-700 opacity-0" id="desktop-screen-3">
+                    <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-8 relative">
+                        <div class="px-5 py-4 flex items-center justify-between border-b border-white/5 relative z-10">
+                            <div class="font-display font-extrabold text-lg tracking-tight">Annonces récentes</div>
+                            <div class="relative">
+                                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-[#110C1A] rounded-full"></span>
+                            </div>
+                        </div>
+                        <div class="absolute top-20 left-0 w-full px-4 z-20">
+                            <div class="bg-gray-800/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-white/10 translate-y-2 animate-bounce-slow">
+                                <div class="flex gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(139,92,246,0.5)]">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white mb-0.5">Nouvel Affichage</h4>
+                                        <p class="text-xs text-gray-300 leading-tight">L'emploi du temps de L2 Informatique S4 a été mis à jour.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-5 mt-20 flex-1 overflow-hidden relative z-10 opacity-30 blur-[2px]">
+                             <div class="w-full h-24 bg-[#1b1525] rounded-2xl mb-4"></div>
+                             <div class="w-full h-24 bg-[#1b1525] rounded-2xl mb-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Story Steps -->
+        <div class="lg:w-[45%] w-full pb-32">
+            
+            <!-- Step 1 -->
+            <div class="step active min-h-[70vh] flex flex-col justify-center py-16" data-screen="1">
+                <div class="w-12 h-12 bg-brand/20 rounded-xl flex items-center justify-center mb-6 text-brand-light shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-display font-bold mb-4">Vos Affichages, Instantanément</h2>
+                <p class="text-gray-400 text-base md:text-lg leading-relaxed">Accédez à toutes vos consultations de copies, notes d'examen et emplois du temps avec une interface fluide et un design Dark Mode immersif, optimisé pour les smartphones Android.</p>
+                
+                <!-- Mobile Only Phone -->
+                <div class="lg:hidden mt-10 flex justify-center">
+                    <div class="android-phone">
+                        <div class="camera-hole"></div>
+                        <!-- Screen 1 Clone for Mobile -->
+                        <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-7 relative">
+                            <div class="px-4 py-3 flex items-center justify-between border-b border-white/5 relative z-10">
+                                <div class="flex flex-col gap-1 w-4"><div class="h-0.5 bg-gray-200 w-full rounded"></div><div class="h-0.5 bg-gray-200 w-4/5 rounded"></div><div class="h-0.5 bg-gray-200 w-full rounded"></div></div>
+                                <div class="text-center flex flex-col items-center">
+                                    <p class="text-[7px] text-[#A855F7] font-bold tracking-[0.2em] uppercase mb-0.5">Univ Bejaïa</p>
+                                    <div class="font-display font-extrabold text-xs tracking-tight">ST Affichage</div>
+                                </div>
+                                <div class="w-6 h-6 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                                    <svg class="w-2.5 h-2.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </div>
+                            </div>
+                            <div class="px-4 mt-3 relative z-10">
+                                <div class="bg-[#1b1525] rounded-full border border-brand/40 flex items-center px-3 py-2">
+                                    <svg class="w-3.5 h-3.5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <span class="text-gray-500 text-[10px]">Search announcements...</span>
+                                </div>
+                            </div>
+                            <div class="px-4 mt-4 flex-1 overflow-hidden relative z-10">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="px-2 py-1 bg-[#241d36] rounded-full text-[8px] text-[#A855F7] font-bold tracking-wider">25 MAI 2026</div>
+                                </div>
+                                <h2 class="text-lg font-display font-bold leading-[1.2] mb-2">Consultation des Copies d'examen</h2>
+                                <p class="text-[10px] text-gray-400 mb-4 flex items-center gap-1.5 font-medium"><span class="w-1 h-1 rounded-full bg-red-500"></span> Le titre de l'affichage</p>
+                                <p class="text-[11px] text-gray-200 leading-[1.6] font-semibold">"Open Source LMD, ING et ING TM" Nous portons à la connaissance des étudiants des cycles LMD, ING et ING TM qui ont passé l'examen d' Open Source que la consultation de leurs copies d'examen aura lieu le Dimanche 31/05/2026 à partir de 11h00.</p>
+                                <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#110C1A] to-transparent pointer-events-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step inactive min-h-[70vh] flex flex-col justify-center py-16" data-screen="2">
+                <div class="w-12 h-12 bg-brand/20 rounded-xl flex items-center justify-center mb-6 text-brand-light shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-display font-bold mb-4">Recherche Universelle</h2>
+                <p class="text-gray-400 text-base md:text-lg leading-relaxed">Gagnez du temps grâce à la fonction de recherche intégrée. Trouvez instantanément un affichage spécifique en tapant simplement quelques mots-clés comme "Notes" ou "Consultation".</p>
+                
+                <!-- Mobile Only Phone -->
+                <div class="lg:hidden mt-10 flex justify-center">
+                    <div class="android-phone">
+                        <div class="camera-hole"></div>
+                        <!-- Screen 2 Clone for Mobile -->
+                        <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-7 relative">
+                            <div class="px-4 py-3 flex items-center gap-3 border-b border-white/5 relative z-10">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                <div class="flex-1 bg-[#1b1525] rounded-full border border-brand text-white flex items-center px-3 py-1.5 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+                                    <span class="text-xs font-medium">Notes Math|</span><span class="w-0.5 h-3.5 bg-brand animate-pulse ml-0.5"></span>
+                                </div>
+                            </div>
+                            <div class="px-4 mt-3 flex-1 overflow-hidden relative z-10">
+                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider mb-3">Résultats de recherche (2)</p>
+                                <div class="bg-[#1b1525] rounded-xl p-3 mb-2 border border-white/5 shadow-lg">
+                                    <div class="flex justify-between items-start mb-1.5">
+                                        <span class="px-1.5 py-0.5 bg-brand/20 text-brand-light rounded text-[8px] font-bold">L2 INFO</span><span class="text-[9px] text-gray-500">Il y a 2h</span>
+                                    </div>
+                                    <h3 class="text-sm font-display font-bold leading-tight mb-1 text-white">Notes Mathématiques 3</h3>
+                                    <p class="text-[10px] text-gray-400">Affichage des notes d'examen et de TD...</p>
+                                </div>
+                                <div class="bg-[#1b1525] rounded-xl p-3 border border-white/5 shadow-lg">
+                                    <div class="flex justify-between items-start mb-1.5">
+                                        <span class="px-1.5 py-0.5 bg-brand/20 text-brand-light rounded text-[8px] font-bold">L1 ST</span><span class="text-[9px] text-gray-500">Hier</span>
+                                    </div>
+                                    <h3 class="text-sm font-display font-bold leading-tight mb-1 text-white">Consultation Math 1</h3>
+                                    <p class="text-[10px] text-gray-400">La consultation aura lieu à la salle S4 pour les groupes...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step inactive min-h-[70vh] flex flex-col justify-center py-16" data-screen="3">
+                <div class="w-12 h-12 bg-brand/20 rounded-xl flex items-center justify-center mb-6 text-brand-light shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-display font-bold mb-4">Ne Ratez Plus Rien</h2>
+                <p class="text-gray-400 text-base md:text-lg leading-relaxed">L'application vous alerte en temps réel. Recevez une notification push sur votre smartphone Android dès qu'un nouvel affichage vous concernant est publié. Fini les déplacements inutiles au département !</p>
+                
+                <!-- Mobile Only Phone -->
+                <div class="lg:hidden mt-10 flex justify-center">
+                    <div class="android-phone">
+                        <div class="camera-hole"></div>
+                        <!-- Screen 3 Clone for Mobile -->
+                        <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-7 relative">
+                            <div class="px-4 py-3 flex items-center justify-between border-b border-white/5 relative z-10">
+                                <div class="font-display font-extrabold text-base tracking-tight">Annonces récentes</div>
+                                <div class="relative">
+                                    <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 border-2 border-[#110C1A] rounded-full"></span>
+                                </div>
+                            </div>
+                            <div class="absolute top-16 left-0 w-full px-3 z-20">
+                                <div class="bg-gray-800/95 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 translate-y-2 animate-bounce-slow">
+                                    <div class="flex gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-brand flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(139,92,246,0.5)]">
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-white mb-0.5">Nouvel Affichage</h4>
+                                            <p class="text-[10px] text-gray-300 leading-tight">L'emploi du temps de L2 Informatique S4 a été mis à jour.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-4 mt-16 flex-1 overflow-hidden relative z-10 opacity-30 blur-[2px]">
+                                 <div class="w-full h-20 bg-[#1b1525] rounded-xl mb-3"></div>
+                                 <div class="w-full h-20 bg-[#1b1525] rounded-xl mb-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
         
-        <div class="max-w-7xl mx-auto px-4 md:px-6 grid lg:grid-cols-2 gap-10 md:gap-12 items-center relative z-10 w-full">
-            
-            <!-- Content -->
-            <div class="text-center lg:text-left order-2 lg:order-1">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border-brand/30 text-brand-light text-[10px] md:text-xs font-medium mb-4 md:mb-6">
-                    <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
-                    </span>
-                    Version 1.9.9 (Beta) Disponible
-                </div>
-                
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-extrabold tracking-tight leading-[1.1] mb-4 md:mb-6 text-balance">
-                    Restez <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-light to-indigo-400">connecté</span> à <br class="hidden sm:block">votre scolarité.
-                </h1>
-                
-                <p class="text-base md:text-lg text-gray-400 mb-6 md:mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed text-balance">
-                    L'application essentielle pour les étudiants de l'Université de Bejaïa. Accédez à vos affichages et notes instantanément avec un design moderne.
-                </p>
-
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 md:gap-4">
-                    <a href="/static/ST%20Affichage.apk" download class="btn-glow bg-brand text-white w-full sm:w-auto px-6 md:px-8 py-3.5 md:py-4 rounded-full font-semibold flex items-center justify-center gap-3 transition-transform hover:scale-105">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Télécharger l'App
-                    </a>
-                </div>
-
-                <div class="mt-6 md:mt-8 flex items-center justify-center lg:justify-start gap-4 md:gap-6 text-xs md:text-sm text-gray-500 font-medium">
-                    <div class="flex items-center gap-1.5 md:gap-2">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Vérifié & Sécurisé
-                    </div>
-                    <div class="flex items-center gap-1.5 md:gap-2">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Rapide & Léger
-                    </div>
-                </div>
-            </div>
-
-            <!-- Phone Mockup 1 (Consultation) -->
-            <div class="relative flex justify-center lg:justify-end perspective-container order-1 lg:order-2">
-                <!-- Floating Elements behind phone (Desktop only) -->
-                <div class="hidden md:block absolute w-24 h-24 bg-indigo-500/20 rounded-2xl backdrop-blur-xl border border-white/10 -left-6 top-20 animate-pulse" style="animation-duration: 4s; transform: translateZ(-50px);"></div>
-                <div class="hidden md:block absolute w-32 h-32 bg-brand/20 rounded-full backdrop-blur-xl border border-white/10 -right-4 bottom-20 animate-pulse" style="animation-duration: 5s; transform: translateZ(50px);"></div>
-
-                <div class="phone-frame phone-3d" id="phone-mockup-hero">
-                    <div class="phone-notch"></div>
-                    
-                    <!-- Screenshot 1 with Parallax -->
-                    <div class="w-full h-full relative overflow-hidden bg-[#110C1A]">
-                        <!-- Replace screenshot1.png with your actual image file in the static folder -->
-                        <img src="{{ url_for('static', filename='screenshot1.png') }}" alt="Screenshot Consultation" class="absolute top-0 left-0 w-full min-h-[120%] object-cover img-parallax" data-speed="0.15">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Search Feature Section -->
-    <section class="py-16 md:py-24 relative bg-[#07050d] border-t border-white/5">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <!-- Mockup 2 (Search) -->
-            <div class="order-2 md:order-1 flex justify-center">
-                <div class="phone-frame">
-                    <div class="phone-notch"></div>
-                    <!-- Screenshot 2 with Parallax -->
-                    <div class="w-full h-full relative overflow-hidden bg-[#110C1A]">
-                        <!-- Replace screenshot2.png with your actual image file in the static folder -->
-                        <img src="{{ url_for('static', filename='screenshot2.png') }}" alt="Screenshot Search" class="absolute top-0 left-0 w-full min-h-[120%] object-cover img-parallax" data-speed="0.15">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Content -->
-            <div class="order-1 md:order-2 text-center md:text-left">
-                <div class="w-12 h-12 md:w-14 md:h-14 bg-brand/20 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-brand-light shadow-[0_0_20px_rgba(139,92,246,0.2)] mx-auto md:mx-0">
-                    <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-                <h2 class="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">Recherche Universelle</h2>
-                <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-lg mx-auto md:mx-0">
-                    Gagnez du temps grâce à la fonction de recherche intégrée. <strong>Trouvez instantanément</strong> un affichage de notes, une consultation de copies ou un emploi du temps spécifique parmi toutes les annonces, en tapant simplement quelques mots-clés.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Notification Feature Section -->
-    <section class="py-16 md:py-24 relative bg-[#0b0914] border-t border-white/5">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            
-            <!-- Content -->
-            <div class="text-center md:text-left">
-                <div class="w-12 h-12 md:w-14 md:h-14 bg-brand/20 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-brand-light shadow-[0_0_20px_rgba(139,92,246,0.2)] mx-auto md:mx-0">
-                    <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                </div>
-                <h2 class="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">Ne ratez plus rien.</h2>
-                <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-lg mx-auto md:mx-0 mb-6">
-                    L'application vous alerte en temps réel. Recevez une notification push dès qu'un nouvel affichage vous concernant est publié. Fini les déplacements inutiles au département !
-                </p>
-                <ul class="text-left space-y-3 md:space-y-4 max-w-md mx-auto md:mx-0">
-                    <li class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-brand mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="text-sm md:text-base text-gray-300">Alertes instantanées sur votre téléphone.</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-brand mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="text-sm md:text-base text-gray-300">Support natif du Dark/Light mode.</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-brand mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="text-sm md:text-base text-gray-300">Interface fluide et optimisée pour tous les réseaux.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Mockup 3 (Notifications) -->
-            <div class="flex justify-center">
-                <div class="phone-frame">
-                    <div class="phone-notch"></div>
-                    <!-- Screenshot 3 with Parallax -->
-                    <div class="w-full h-full relative overflow-hidden bg-[#110C1A]">
-                        <!-- Replace screenshot3.png with your actual image file in the static folder -->
-                        <img src="{{ url_for('static', filename='screenshot3.png') }}" alt="Screenshot Notifications" class="absolute top-0 left-0 w-full min-h-[120%] object-cover img-parallax" data-speed="0.15">
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="clear-both"></div>
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-white/5 py-8 md:py-10 relative z-10 bg-black/40">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 text-center md:text-left">
+    <footer class="border-t border-white/5 py-8 relative z-10 bg-black/60 mt-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
             <div class="flex items-center gap-3">
                 <img src="{{ url_for('static', filename='favicon.png') }}" alt="ST Affichage Icon" class="w-8 h-8 rounded-lg shadow-[0_0_10px_rgba(139,92,246,0.3)]">
                 <span class="font-display font-bold text-base md:text-lg">ST Affichage</span>
             </div>
-            
-            <p class="text-xs md:text-sm text-gray-500">© 2026 Adam Mila. Tous droits réservés.</p>
-            
-            <div class="text-[10px] md:text-xs text-gray-600 max-w-xs md:max-w-none">
+            <p class="text-xs text-gray-500">© 2026 Adam Mila. Tous droits réservés.</p>
+            <div class="text-[10px] text-gray-600 max-w-xs md:max-w-none">
                 L'application n'est pas officiellement affiliée à l'Université de Bejaïa.
             </div>
         </div>
@@ -334,14 +480,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const navbar = document.getElementById('navbar');
-            const heroPhone = document.getElementById('phone-mockup-hero');
+            const parallaxElements = document.querySelectorAll('.parallax-element');
+            const stickyPhone = document.getElementById('sticky-phone');
             
-            let scrollY = window.scrollY;
-            let ticking = false;
-
-            // Navbar glass effect on scroll
+            // Navbar and global parallax
             window.addEventListener('scroll', () => {
-                scrollY = window.scrollY;
+                const scrollY = window.scrollY;
                 
                 if (scrollY > 50) {
                     navbar.classList.add('glass-card', 'border-b');
@@ -350,36 +494,57 @@
                     navbar.classList.remove('glass-card', 'border-b');
                     navbar.classList.add('glass', 'border-b-0');
                 }
-            });
 
-            // 3D Tilt Effect on mouse move for the hero section (Desktop only)
-            const heroSection = document.querySelector('section');
-            heroSection.addEventListener('mousemove', (e) => {
-                if(window.innerWidth < 1024) return; // Only apply on large screens
-                
-                const xAxis = (window.innerWidth / 2 - e.pageX) / 45;
-                const yAxis = (window.innerHeight / 2 - e.pageY) / 45;
-                
-                // Add base rotation to the mouse movement
-                heroPhone.style.transform = `perspective(1000px) rotateY(${-15 + xAxis}deg) rotateX(${10 - yAxis}deg) rotateZ(5deg)`;
-            });
-
-            heroSection.addEventListener('mouseleave', () => {
-                if(window.innerWidth < 1024) return;
-                heroPhone.style.transform = `perspective(1000px) rotateX(10deg) rotateY(-15deg) rotateZ(5deg)`;
-            });
-            
-            // Image Parallax Effect Inside Phone Frames
-            const parallaxImages = document.querySelectorAll('.img-parallax');
-            window.addEventListener('scroll', () => {
-                parallaxImages.forEach(img => {
-                    const speed = parseFloat(img.getAttribute('data-speed'));
-                    const rect = img.parentElement.getBoundingClientRect();
-                    const centerOffset = rect.top - (window.innerHeight / 2) + (rect.height / 2);
-                    const yPos = -(centerOffset * speed);
-                    img.style.transform = `translateY(${yPos}px)`;
+                // Global parallax objects
+                parallaxElements.forEach(el => {
+                    const speed = parseFloat(el.getAttribute('data-speed'));
+                    const yPos = -(scrollY * speed);
+                    // Add subtle rotation to the phone frame alongside translation
+                    if(el.id === 'sticky-phone') {
+                        // Desktop tilt effect happens in CSS, we just apply Y translation
+                        el.style.transform = `perspective(1000px) rotateX(5deg) rotateY(-10deg) rotateZ(2deg) translateY(${yPos}px)`;
+                    } else {
+                        el.style.transform = `translateY(${yPos}px)`;
+                    }
                 });
             });
+            
+            // Scrollytelling Logic (Desktop Only)
+            if(window.innerWidth >= 1024) {
+                const steps = document.querySelectorAll('.step');
+                const desktopScreens = {
+                    '1': document.getElementById('desktop-screen-1'),
+                    '2': document.getElementById('desktop-screen-2'),
+                    '3': document.getElementById('desktop-screen-3')
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            // Update text opacity blur effect
+                            steps.forEach(s => {
+                                s.classList.remove('active');
+                                s.classList.add('inactive');
+                            });
+                            entry.target.classList.remove('inactive');
+                            entry.target.classList.add('active');
+
+                            // Change sticky phone screen
+                            const targetScreen = entry.target.getAttribute('data-screen');
+                            Object.values(desktopScreens).forEach(screen => {
+                                if(screen) screen.style.opacity = '0';
+                            });
+                            if (desktopScreens[targetScreen]) {
+                                desktopScreens[targetScreen].style.opacity = '1';
+                            }
+                        }
+                    });
+                }, {
+                    rootMargin: '-40% 0px -40% 0px' // Trigger when step is around the middle of viewport
+                });
+
+                steps.forEach(step => observer.observe(step));
+            }
 
             // Add custom animation for notification
             const style = document.createElement('style');
