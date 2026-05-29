@@ -167,9 +167,7 @@
     <nav class="fixed top-0 left-0 w-full z-50 glass border-b-0 transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
             <div class="flex items-center gap-2.5 md:gap-3">
-                <div class="w-8 h-8 md:w-10 md:h-10 bg-brand rounded-lg md:rounded-xl flex items-center justify-center font-display font-bold text-base md:text-lg shadow-[0_0_15px_rgba(139,92,246,0.4)]">
-                    st
-                </div>
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="ST Affichage Icon" class="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl shadow-[0_0_15px_rgba(139,92,246,0.4)]">
                 <span class="font-display font-bold text-lg md:text-xl tracking-tight">ST Affichage</span>
             </div>
             <a href="/static/ST%20Affichage.apk" download class="bg-brand hover:bg-brand-light text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-medium transition-all btn-glow flex items-center gap-2 text-xs md:text-sm">
@@ -235,54 +233,10 @@
                 <div class="phone-frame phone-3d" id="phone-mockup-hero">
                     <div class="phone-notch"></div>
                     
-                    <!-- App UI Replica - Screen 1 -->
-                    <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-7 md:pt-8 relative">
-                        <div class="px-4 md:px-5 py-3 md:py-4 flex items-center justify-between border-b border-white/5 relative z-10">
-                            <!-- Hamburger -->
-                            <div class="flex flex-col gap-1 w-4 md:w-5">
-                                <div class="h-0.5 bg-gray-200 w-full rounded"></div>
-                                <div class="h-0.5 bg-gray-200 w-4/5 rounded"></div>
-                                <div class="h-0.5 bg-gray-200 w-full rounded"></div>
-                            </div>
-                            <!-- Title -->
-                            <div class="text-center flex flex-col items-center">
-                                <p class="text-[7px] md:text-[8px] text-[#A855F7] font-bold tracking-[0.2em] uppercase mb-0.5">Univ Bejaïa</p>
-                                <div class="font-display font-extrabold text-xs md:text-sm tracking-tight flex items-center">
-                                    ST Affichage
-                                </div>
-                            </div>
-                            <!-- Close Btn -->
-                            <div class="w-6 h-6 md:w-7 md:h-7 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                                <svg class="w-2.5 h-2.5 md:w-3 md:h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </div>
-                        </div>
-
-                        <!-- App Search -->
-                        <div class="px-4 md:px-5 mt-3 md:mt-4 relative z-10">
-                            <div class="bg-[#1b1525] rounded-full border border-brand/40 flex items-center px-3 md:px-4 py-2 md:py-2.5">
-                                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-500 mr-2 md:mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <span class="text-gray-500 text-[10px] md:text-xs font-medium">Search announcements...</span>
-                            </div>
-                        </div>
-
-                        <!-- App Content -->
-                        <div class="px-4 md:px-5 mt-4 md:mt-6 flex-1 overflow-hidden relative z-10">
-                            <div class="flex items-center justify-between mb-3 md:mb-4">
-                                <div class="px-2.5 md:px-3 py-1 bg-[#241d36] rounded-full text-[8px] md:text-[9px] text-[#A855F7] font-bold tracking-wider">25 MAI 2026</div>
-                            </div>
-                            
-                            <h2 class="text-lg md:text-[1.35rem] font-display font-bold leading-[1.2] mb-2 md:mb-3">Consultation des Copies d'examen</h2>
-                            <p class="text-[10px] md:text-xs text-gray-400 mb-4 md:mb-6 flex items-center gap-1.5 font-medium">
-                                <span class="w-1 h-1 rounded-full bg-red-500"></span> Le titre de l'affichage
-                            </p>
-                            
-                            <p class="text-[11px] md:text-xs text-gray-200 leading-[1.6] font-semibold">
-                                "Open Source LMD, ING et ING TM" Nous portons à la connaissance des étudiants des cycles LMD, ING et ING TM qui ont passé l'examen d' Open Source que la consultation de leurs copies d'examen aura lieu le Dimanche 31/05/2026 à partir de 11h00.
-                            </p>
-
-                            <!-- Gradient fade out at bottom -->
-                            <div class="absolute bottom-0 left-0 w-full h-16 md:h-24 bg-gradient-to-t from-[#110C1A] to-transparent pointer-events-none"></div>
-                        </div>
+                    <!-- Screenshot 1 with Parallax -->
+                    <div class="w-full h-full relative overflow-hidden bg-[#110C1A]">
+                        <!-- Replace screenshot1.png with your actual image file in the static folder -->
+                        <img src="{{ url_for('static', filename='screenshot1.png') }}" alt="Screenshot Consultation" class="absolute top-0 left-0 w-full min-h-[120%] object-cover img-parallax" data-speed="0.15">
                     </div>
                 </div>
             </div>
@@ -296,38 +250,10 @@
             <div class="order-2 md:order-1 flex justify-center">
                 <div class="phone-frame">
                     <div class="phone-notch"></div>
-                    <!-- App UI Replica - Screen 2 (Search) -->
-                    <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-7 md:pt-8 relative">
-                        <div class="px-4 md:px-5 py-3 md:py-4 flex items-center gap-3 border-b border-white/5 relative z-10">
-                            <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                            <div class="flex-1 bg-[#1b1525] rounded-full border border-brand text-white flex items-center px-3 md:px-4 py-1.5 md:py-2 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
-                                <span class="text-xs md:text-sm font-medium">Notes Math|</span>
-                                <span class="w-0.5 h-3.5 md:h-4 bg-brand animate-pulse ml-0.5"></span>
-                            </div>
-                        </div>
-                        <div class="px-4 md:px-5 mt-3 md:mt-4 flex-1 overflow-hidden relative z-10">
-                            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-3 md:mb-4">Résultats de recherche (2)</p>
-                            
-                            <!-- Result 1 -->
-                            <div class="bg-[#1b1525] rounded-xl md:rounded-2xl p-3 md:p-4 mb-2 md:mb-3 border border-white/5 shadow-lg">
-                                <div class="flex justify-between items-start mb-1.5 md:mb-2">
-                                    <span class="px-1.5 md:px-2 py-0.5 bg-brand/20 text-brand-light rounded text-[8px] md:text-[9px] font-bold">L2 INFO</span>
-                                    <span class="text-[9px] md:text-[10px] text-gray-500">Il y a 2h</span>
-                                </div>
-                                <h3 class="text-sm md:text-base font-display font-bold leading-tight mb-1 text-white">Notes Mathématiques 3</h3>
-                                <p class="text-[10px] md:text-xs text-gray-400">Affichage des notes d'examen et de TD...</p>
-                            </div>
-
-                            <!-- Result 2 -->
-                            <div class="bg-[#1b1525] rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/5 shadow-lg">
-                                <div class="flex justify-between items-start mb-1.5 md:mb-2">
-                                    <span class="px-1.5 md:px-2 py-0.5 bg-brand/20 text-brand-light rounded text-[8px] md:text-[9px] font-bold">L1 ST</span>
-                                    <span class="text-[9px] md:text-[10px] text-gray-500">Hier</span>
-                                </div>
-                                <h3 class="text-sm md:text-base font-display font-bold leading-tight mb-1 text-white">Consultation Math 1</h3>
-                                <p class="text-[10px] md:text-xs text-gray-400">La consultation aura lieu à la salle S4 pour les groupes...</p>
-                            </div>
-                        </div>
+                    <!-- Screenshot 2 with Parallax -->
+                    <div class="w-full h-full relative overflow-hidden bg-[#110C1A]">
+                        <!-- Replace screenshot2.png with your actual image file in the static folder -->
+                        <img src="{{ url_for('static', filename='screenshot2.png') }}" alt="Screenshot Search" class="absolute top-0 left-0 w-full min-h-[120%] object-cover img-parallax" data-speed="0.15">
                     </div>
                 </div>
             </div>
@@ -378,36 +304,10 @@
             <div class="flex justify-center">
                 <div class="phone-frame">
                     <div class="phone-notch"></div>
-                    <!-- App UI Replica - Screen 3 (Notifications) -->
-                    <div class="w-full h-full bg-[#110C1A] text-white flex flex-col pt-7 md:pt-8 relative">
-                        <div class="px-4 md:px-5 py-3 md:py-4 flex items-center justify-between border-b border-white/5 relative z-10">
-                            <div class="font-display font-extrabold text-base md:text-lg tracking-tight">Annonces récentes</div>
-                            <div class="relative">
-                                <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                <span class="absolute top-0 right-0 w-2 h-2 md:w-2.5 md:h-2.5 bg-red-500 border-2 border-[#110C1A] rounded-full"></span>
-                            </div>
-                        </div>
-
-                        <!-- Notifications Overlay Mockup -->
-                        <div class="absolute top-16 md:top-20 left-0 w-full px-3 md:px-4 z-20">
-                            <div class="bg-gray-800/95 backdrop-blur-md rounded-xl md:rounded-2xl p-3 md:p-4 shadow-2xl border border-white/10 translate-y-2 animate-bounce-slow">
-                                <div class="flex gap-2.5 md:gap-3">
-                                    <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-brand flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(139,92,246,0.5)]">
-                                        <svg class="w-3.5 h-3.5 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-xs md:text-sm font-bold text-white mb-0.5">Nouvel Affichage</h4>
-                                        <p class="text-[10px] md:text-xs text-gray-300 leading-tight">L'emploi du temps de L2 Informatique S4 a été mis à jour.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="px-4 md:px-5 mt-16 md:mt-20 flex-1 overflow-hidden relative z-10 opacity-30 blur-[2px]">
-                            <!-- Blurred background content -->
-                             <div class="w-full h-20 md:h-24 bg-[#1b1525] rounded-xl md:rounded-2xl mb-3 md:mb-4"></div>
-                             <div class="w-full h-20 md:h-24 bg-[#1b1525] rounded-xl md:rounded-2xl mb-3 md:mb-4"></div>
-                        </div>
+                    <!-- Screenshot 3 with Parallax -->
+                    <div class="w-full h-full relative overflow-hidden bg-[#110C1A]">
+                        <!-- Replace screenshot3.png with your actual image file in the static folder -->
+                        <img src="{{ url_for('static', filename='screenshot3.png') }}" alt="Screenshot Notifications" class="absolute top-0 left-0 w-full min-h-[120%] object-cover img-parallax" data-speed="0.15">
                     </div>
                 </div>
             </div>
@@ -418,9 +318,7 @@
     <footer class="border-t border-white/5 py-8 md:py-10 relative z-10 bg-black/40">
         <div class="max-w-7xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 text-center md:text-left">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-bold text-xs shadow-[0_0_10px_rgba(139,92,246,0.3)]">
-                    st
-                </div>
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="ST Affichage Icon" class="w-8 h-8 rounded-lg shadow-[0_0_10px_rgba(139,92,246,0.3)]">
                 <span class="font-display font-bold text-base md:text-lg">ST Affichage</span>
             </div>
             
@@ -471,6 +369,18 @@
                 heroPhone.style.transform = `perspective(1000px) rotateX(10deg) rotateY(-15deg) rotateZ(5deg)`;
             });
             
+            // Image Parallax Effect Inside Phone Frames
+            const parallaxImages = document.querySelectorAll('.img-parallax');
+            window.addEventListener('scroll', () => {
+                parallaxImages.forEach(img => {
+                    const speed = parseFloat(img.getAttribute('data-speed'));
+                    const rect = img.parentElement.getBoundingClientRect();
+                    const centerOffset = rect.top - (window.innerHeight / 2) + (rect.height / 2);
+                    const yPos = -(centerOffset * speed);
+                    img.style.transform = `translateY(${yPos}px)`;
+                });
+            });
+
             // Add custom animation for notification
             const style = document.createElement('style');
             style.innerHTML = `
