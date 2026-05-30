@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Notification - Admin Terminal</title>
+    <title>SYS_ADMIN - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { 
             background-color: #050505; 
-            color: #fff; 
+            color: #39ff14; 
             font-family: 'JetBrains Mono', monospace; 
             background-image: 
                 radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 60%),
@@ -18,14 +18,10 @@
             background-size: 100% 100%, 30px 30px, 30px 30px;
         }
         
-        .neon-text {
-            color: #39ff14;
-            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5), 0 0 10px rgba(57, 255, 20, 0.3);
-        }
-        
         .neon-border {
             border: 1px solid rgba(57, 255, 20, 0.5);
             box-shadow: 0 0 15px rgba(57, 255, 20, 0.1), inset 0 0 15px rgba(57, 255, 20, 0.05);
+            background: rgba(0, 10, 0, 0.8);
             backdrop-filter: blur(5px);
         }
         
@@ -47,6 +43,7 @@
             border: 1px solid #39ff14;
             text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
             box-shadow: 0 0 10px rgba(57, 255, 20, 0.2), inset 0 0 5px rgba(57, 255, 20, 0.2);
+            cursor: pointer;
         }
         
         .neon-btn:hover {
@@ -56,6 +53,53 @@
             box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
         }
 
+        .terminal-panel {
+            background: #000;
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .terminal-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .terminal-panel::-webkit-scrollbar-thumb {
+            background: rgba(57, 255, 20, 0.5);
+            border-radius: 4px;
+        }
+
+        /* Hide radio buttons */
+        input[type="radio"] {
+            display: none;
+        }
+
+        .dept-card {
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        input[type="radio"]:checked + .dept-card {
+            background: rgba(57, 255, 20, 0.2);
+            border-color: #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-ok { background: #39ff14; box-shadow: 0 0 5px #39ff14; }
+        .status-empty { background: #facc15; box-shadow: 0 0 5px #facc15; }
+        .status-error { background: #ff3333; box-shadow: 0 0 5px #ff3333; }
+        
         .alert-error {
             color: #ff3333;
             border-color: #ff3333;
@@ -64,69 +108,261 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="p-8 rounded-xl neon-border bg-black/80 max-w-md w-full relative overflow-hidden">
-        
-        <!-- Scanner line effect -->
-        <div class="absolute top-0 left-0 w-full h-1 bg-[#39ff14] opacity-20 animate-[scan_3s_ease-in-out_infinite]"></div>
-        
-        <style>
-            @keyframes scan {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(300px); }
-            }
-        </style>
-
-        <div class="text-center mb-8">
-            <svg class="w-12 h-12 mx-auto mb-4 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-            </svg>
-            <h1 class="text-2xl font-bold tracking-widest neon-text">SYS_ADMIN</h1>
-            <p class="text-[10px] text-green-700 uppercase mt-2 tracking-widest">Notification Override Terminal</p>
-        </div>
-        
-        {% if status == 'success' %}
-            <div class="mb-6 p-4 border border-[#39ff14] text-[#39ff14] rounded bg-green-900/20 shadow-[0_0_15px_rgba(57,255,20,0.1)] text-center">
-                <p class="text-lg font-bold">✅ SEQUENCE COMPLETED</p>
-                <p class="text-xs mt-2 opacity-80">Test notification dispatched successfully.</p>
-            </div>
-        {% elif status == 'error' %}
-            <div class="mb-6 p-4 border alert-error rounded bg-red-900/20 text-center">
-                <p class="text-lg font-bold">❌ FATAL EXCEPTION</p>
-                <p class="text-xs mt-2 opacity-80">{{ message }}</p>
-            </div>
-        {% elif status == 'denied' %}
-            <div class="mb-6 p-4 border alert-error rounded bg-red-900/20 text-center animate-pulse">
-                <p class="text-lg font-bold">❌ ACCESS DENIED</p>
-                <p class="text-xs mt-2 opacity-80">Invalid security clearance.</p>
-            </div>
-        {% endif %}
-
-        <form method="POST" class="flex flex-col gap-5 relative z-10">
-            <div class="flex flex-col">
-                <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> target_dept:</label>
-                <select name="department" class="p-3 mb-4 rounded neon-input transition-all text-center tracking-widest outline-none cursor-pointer">
-                    {% for slug, dept in departments.items() %}
-                        <option value="{{ slug }}">{{ dept.name }}</option>
-                    {% endfor %}
-                </select>
-                <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> input_key:</label>
-                <input type="password" name="password" placeholder="****************" required autofocus
-                       class="p-3 rounded neon-input transition-all text-center tracking-widest placeholder-green-900/50">
+<body class="p-4 md:p-8 min-h-screen">
+    
+    <!-- LOGIN VIEW -->
+    <div id="login-view" class="flex items-center justify-center min-h-[80vh]">
+        <div class="p-8 rounded-xl neon-border max-w-md w-full relative overflow-hidden">
+            <div class="text-center mb-8">
+                <svg class="w-12 h-12 mx-auto mb-4 drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <h1 class="text-2xl font-bold tracking-widest">SYS_ADMIN</h1>
+                <p class="text-[10px] text-green-700 uppercase mt-2 tracking-widest">Authentication Required</p>
             </div>
             
-            <button type="submit" class="p-3 mt-2 rounded transition-all neon-btn font-bold tracking-[0.2em] uppercase text-sm group relative overflow-hidden">
-                <span class="relative z-10">Transmit Signal</span>
-                <div class="absolute inset-0 bg-[#39ff14] scale-x-0 group-hover:scale-x-100 transition-transform origin-left z-0"></div>
-            </button>
-        </form>
-        
-        <div class="mt-8 text-[10px] text-green-800 flex justify-between items-center border-t border-green-900/30 pt-4">
-            <span class="tracking-widest">BEJAIA_AFFICHAGE_V2.0</span>
-            <span class="flex items-center gap-2">
-                STATUS: ONLINE <span class="w-2 h-2 rounded-full bg-[#39ff14] animate-pulse shadow-[0_0_5px_rgba(57,255,20,0.8)]"></span>
-            </span>
+            <div id="login-error" class="mb-6 p-4 border alert-error rounded bg-red-900/20 text-center hidden">
+                <p class="text-xs opacity-80">ACCESS DENIED: Invalid Key</p>
+            </div>
+
+            <form id="login-form" class="flex flex-col gap-5">
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> input_key:</label>
+                    <input type="password" id="sys-pwd" placeholder="****************" required autofocus
+                           class="p-3 rounded neon-input transition-all text-center tracking-widest placeholder-green-900/50">
+                </div>
+                <button type="submit" class="p-3 mt-2 rounded transition-all neon-btn font-bold tracking-[0.2em] uppercase text-sm">
+                    Authenticate
+                </button>
+            </form>
         </div>
     </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view" class="hidden max-w-7xl mx-auto space-y-6">
+        
+        <header class="flex justify-between items-end border-b border-[#39ff14] pb-4 mb-6">
+            <div>
+                <h1 class="text-3xl font-bold tracking-widest drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]">SYS_ADMIN DASHBOARD</h1>
+                <p class="text-xs text-green-700 uppercase tracking-widest mt-1">Status: <span class="status-dot status-ok ml-1"></span> ONLINE</p>
+            </div>
+            <button onclick="logout()" class="text-xs hover:text-white transition-colors">>> LOGOUT</button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- LEFT COLUMN: Notification Sender -->
+            <div class="neon-border p-6 rounded-xl flex flex-col gap-6 lg:col-span-1">
+                <div>
+                    <h2 class="text-lg font-bold mb-4 tracking-widest border-b border-[#39ff14]/30 pb-2">>> NOTIFICATION DISPATCH</h2>
+                    <form id="notify-form" class="flex flex-col gap-4">
+                        
+                        <!-- Target Dept -->
+                        <div>
+                            <label class="text-[10px] text-green-600 mb-2 block tracking-widest uppercase">> target_dept:</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                {% for slug, dept in departments.items() %}
+                                <label>
+                                    <input type="radio" name="department" value="{{ slug }}" required>
+                                    <div class="dept-card rounded text-xs flex items-center justify-center gap-1">
+                                        <span>{{ dept.icon }}</span> {{ dept.short_name }}
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Message Title -->
+                        <div class="flex flex-col">
+                            <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> title:</label>
+                            <input type="text" name="title" value="Test Notification" required
+                                   class="p-2 rounded neon-input text-sm">
+                        </div>
+
+                        <!-- Message Body -->
+                        <div class="flex flex-col">
+                            <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> body:</label>
+                            <input type="text" name="body" value="This is a test notification from the system." required
+                                   class="p-2 rounded neon-input text-sm">
+                        </div>
+                        
+                        <div id="notify-result" class="text-xs hidden p-2 border border-[#39ff14] text-center mt-2 bg-green-900/20"></div>
+
+                        <button type="submit" class="p-3 mt-2 rounded neon-btn font-bold tracking-[0.2em] uppercase text-sm mt-4">
+                            Transmit Signal
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Status and Logs -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                
+                <!-- Status Panel -->
+                <div class="neon-border p-6 rounded-xl">
+                    <h2 class="text-lg font-bold mb-4 tracking-widest border-b border-[#39ff14]/30 pb-2">>> SYSTEM STATUS</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="status-grid">
+                        {% for slug, dept in departments.items() %}
+                        <div class="border border-[#39ff14]/30 p-3 rounded flex flex-col gap-1 bg-black/40">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-xs uppercase">{{ dept.short_name }}</span>
+                                <span class="status-dot status-empty" id="dot-{{ slug }}"></span>
+                            </div>
+                            <div class="text-[10px] text-green-600 font-mono">Last: <span id="last-{{ slug }}" class="text-[#39ff14]">Pending...</span></div>
+                            <div class="text-[10px] text-green-600 font-mono">Items: <span id="count-{{ slug }}" class="text-[#39ff14]">0</span></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Live Logs -->
+                <div class="neon-border p-6 rounded-xl flex-1 flex flex-col">
+                    <h2 class="text-lg font-bold mb-4 tracking-widest border-b border-[#39ff14]/30 pb-2">>> LIVE TERMINAL LOGS</h2>
+                    <div class="terminal-panel" id="terminal-panel">
+                        <div>> Initializing connection...</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adminPwd = '';
+        let pollingInterval = null;
+
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const loginError = document.getElementById('login-error');
+        const terminal = document.getElementById('terminal-panel');
+
+        // Login Logic
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pwd = document.getElementById('sys-pwd').value;
+            
+            try {
+                const res = await fetch(`/api/logs?pwd=${encodeURIComponent(pwd)}`);
+                if (res.ok) {
+                    adminPwd = pwd;
+                    loginView.classList.add('hidden');
+                    dashboardView.classList.remove('hidden');
+                    startPolling();
+                } else {
+                    loginError.classList.remove('hidden');
+                }
+            } catch (err) {
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        function logout() {
+            adminPwd = '';
+            if (pollingInterval) clearInterval(pollingInterval);
+            document.getElementById('sys-pwd').value = '';
+            loginError.classList.add('hidden');
+            dashboardView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+        }
+
+        // Notification Sender Logic
+        document.getElementById('notify-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            formData.append('password', adminPwd);
+
+            const resultDiv = document.getElementById('notify-result');
+            resultDiv.classList.remove('hidden', 'alert-error');
+            resultDiv.textContent = "Transmitting...";
+            
+            try {
+                const res = await fetch('/test-notification-railway', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    resultDiv.textContent = "✅ SEQUENCE COMPLETED: Signal Dispatched";
+                    resultDiv.className = "text-xs p-2 border border-[#39ff14] text-center mt-4 bg-green-900/20";
+                } else {
+                    resultDiv.textContent = "❌ FATAL EXCEPTION: Dispatch Failed";
+                    resultDiv.className = "text-xs p-2 border alert-error text-center mt-4 bg-red-900/20";
+                }
+            } catch (err) {
+                resultDiv.textContent = "❌ NETWORK ERROR";
+                resultDiv.className = "text-xs p-2 border alert-error text-center mt-4 bg-red-900/20";
+            }
+            setTimeout(() => resultDiv.classList.add('hidden'), 5000);
+        });
+
+        // Polling Logic
+        let lastLogCount = 0;
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch(`/api/logs?pwd=${encodeURIComponent(adminPwd)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const logs = data.logs || [];
+                    
+                    if (logs.length !== lastLogCount) {
+                        terminal.innerHTML = '';
+                        logs.forEach(log => {
+                            const div = document.createElement('div');
+                            // Colorize markers
+                            let formatted = log
+                                .replace(/✅/g, '<span style="color:#39ff14">✅</span>')
+                                .replace(/❌/g, '<span style="color:#ff3333">❌</span>')
+                                .replace(/⚠️/g, '<span style="color:#facc15">⚠️</span>')
+                                .replace(/🚀/g, '<span style="color:#a855f7">🚀</span>')
+                                .replace(/🔔/g, '<span style="color:#3b82f6">🔔</span>')
+                                .replace(/\[(.*?:\d{2}:\d{2})\]/g, '<span style="color:gray">[$1]</span>');
+                            
+                            div.innerHTML = `> ${formatted}`;
+                            terminal.appendChild(div);
+                        });
+                        terminal.scrollTop = terminal.scrollHeight;
+                        lastLogCount = logs.length;
+                    }
+                }
+            } catch (err) {
+                console.error("Log fetch error");
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch(`/api/status?pwd=${encodeURIComponent(adminPwd)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    for (const [slug, stats] of Object.entries(data)) {
+                        const lastEl = document.getElementById(`last-${slug}`);
+                        const countEl = document.getElementById(`count-${slug}`);
+                        const dotEl = document.getElementById(`dot-${slug}`);
+                        
+                        if (lastEl) lastEl.textContent = stats.last_scraped;
+                        if (countEl) countEl.textContent = stats.item_count;
+                        
+                        if (dotEl) {
+                            dotEl.className = 'status-dot';
+                            if (stats.status === 'ok') dotEl.classList.add('status-ok');
+                            else if (stats.status === 'empty') dotEl.classList.add('status-empty');
+                            else if (stats.status === 'error') dotEl.classList.add('status-error');
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Status fetch error");
+            }
+        }
+
+        function startPolling() {
+            fetchLogs();
+            fetchStatus();
+            pollingInterval = setInterval(() => {
+                fetchLogs();
+                fetchStatus();
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

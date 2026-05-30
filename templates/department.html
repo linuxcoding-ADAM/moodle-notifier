@@ -8,7 +8,6 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
 
-    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -26,13 +25,11 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#110C1A">
 
-    <!-- 🟢 INJECT DEPT INFO FOR JS 🟢 -->
     <script>
         window.DEPT_SLUG = "{{ dept.slug }}";
         window.FCM_TOPIC = "{{ dept.fcm_topic }}";
     </script>
     
-    <!-- 🟢 FIREBASE APP SETUP (for FCM) 🟢 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
@@ -62,7 +59,7 @@
                 <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px] max-w-[60vw] truncate" style="color: var(--accent-color);">{{ dept.name }}</span>
                 <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none flex items-center gap-1.5" style="color: var(--text-main);">
                     <span>{{ dept.icon }}</span> 
-                    <span style="max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ dept.name }}</span>
+                    <span style="max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ dept.short_name }}</span>
                 </h1>
             </div>
 
@@ -111,7 +108,7 @@
         <div class="p-6 pb-4 flex justify-between items-start">
             <div class="flex flex-col mt-2">
                 <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: var(--accent-color);">Béjaïa Affichage</span>
-                <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main); max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ dept.name }}</h2>
+                <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main); max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ dept.short_name }}</h2>
                 <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 2.0.0 (Beta)</p>
             </div>
             <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
@@ -122,9 +119,9 @@
         <div class="p-5 flex-1 mt-2">
             
             <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Navigation</h3>
-            <div class="settings-card" onclick="window.location.href='/'">
+            <div class="settings-card" onclick="window.location.href='/select'">
                 <div class="flex items-center">
-                    <div class="icon-box bg-[var(--accent-color)]">
+                    <div class="icon-box" style="background-color: var(--accent-color);">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
                     </div>
                     <span class="setting-label">Retour (Changer Dép.)</span>

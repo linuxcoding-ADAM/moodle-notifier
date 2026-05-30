@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Choisir votre Département — Béjaïa Affichage</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="antialiased selection:bg-[#8B5CF6] selection:text-white pb-10" style="background-color: var(--bg-color);">
+
+    <!-- Header -->
+    <nav class="fixed top-0 left-0 w-full z-50 bg-[#110C1A]/80 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-4xl mx-auto px-4 md:px-6 h-16 flex items-center">
+            <button onclick="history.back()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <span class="heading-text font-bold text-lg tracking-tight ml-2" style="color: var(--text-main);">Béjaïa Affichage</span>
+        </div>
+    </nav>
+
+    <main class="relative z-10 pt-24 px-4 md:px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-8">
+                <h1 class="heading-text text-2xl md:text-3xl font-bold mb-2" style="color: var(--text-main);">Choisir votre département</h1>
+                <p class="text-sm md:text-base text-gray-400">Sélectionnez le département que vous souhaitez consulter.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for slug, dept in departments.items() %}
+                <a href="/{{ dept.slug }}" 
+                   onclick="localStorage.setItem('selected_department', '{{ dept.slug }}')" 
+                   class="dept-card glass-card p-5 flex items-center gap-4 group cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+                   data-slug="{{ dept.slug }}"
+                   style="text-decoration: none; margin-bottom: 0;">
+                    
+                    <div class="text-3xl">{{ dept.icon }}</div>
+                    <div class="flex-1">
+                        <h3 class="heading-text font-bold text-sm md:text-base mb-1 group-hover:text-[#8B5CF6] transition-colors" style="color: var(--text-main);">{{ dept.name }}</h3>
+                        <div class="flex items-center gap-1 text-[#8B5CF6] text-xs font-semibold opacity-70 group-hover:opacity-100 transition-opacity">
+                            Accéder
+                            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('selected_department');
+            if (saved) {
+                const activeCard = document.querySelector(`.dept-card[data-slug="${saved}"]`);
+                if (activeCard) {
+                    activeCard.style.borderColor = 'var(--accent-color)';
+                    activeCard.style.background = 'rgba(139, 92, 246, 0.1)';
+                    activeCard.querySelector('h3').style.color = 'var(--accent-color)';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
