@@ -36,7 +36,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
-        // User should add firebaseConfig in script.js or here if needed to grab tokens
         window.initializeApp = initializeApp;
         window.getMessaging = getMessaging;
         window.getToken = getToken;
@@ -48,17 +47,22 @@
     <div id="page-home" class="active">
         <!-- HEADER -->
         <div id="main-header" class="header-glass sticky top-0 z-40 px-5 py-4 flex justify-between items-center shadow-sm h-[72px]">
-            <a href="/" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
+            
+            <div class="flex items-center gap-2">
+                <!-- Hamburger Menu on Left -->
+                <button onclick="toggleDrawer()" class="w-10 h-10 flex items-center justify-start opacity-80 hover:opacity-100 active:scale-90 transition-transform" style="color: var(--text-main);">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16M4 18h10"></path>
+                    </svg>
+                </button>
+            </div>
 
             <!-- HEADER TITLE -->
-            <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max cursor-pointer" onclick="toggleDrawer()" style="pointer-events: auto;">
-                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px]" style="color: var(--accent-color);">Béjaïa Affichage</span>
-                <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none whitespace-nowrap flex items-center gap-1.5" style="color: var(--text-main);">
-                    <span>{{ dept.icon }}</span> {{ dept.name }}
+            <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max pointer-events-none text-center">
+                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px] max-w-[60vw] truncate" style="color: var(--accent-color);">{{ dept.name }}</span>
+                <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none flex items-center gap-1.5" style="color: var(--text-main);">
+                    <span>{{ dept.icon }}</span> 
+                    <span style="max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ dept.name }}</span>
                 </h1>
             </div>
 
@@ -107,7 +111,7 @@
         <div class="p-6 pb-4 flex justify-between items-start">
             <div class="flex flex-col mt-2">
                 <span class="text-[10px] font-bold tracking-[0.25em] uppercase mb-1" style="color: var(--accent-color);">Béjaïa Affichage</span>
-                <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main);">{{ dept.name }}</h2>
+                <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main); max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ dept.name }}</h2>
                 <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 2.0.0 (Beta)</p>
             </div>
             <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
@@ -117,17 +121,17 @@
 
         <div class="p-5 flex-1 mt-2">
             
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Switch Department</h3>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Navigation</h3>
             <div class="settings-card" onclick="window.location.href='/'">
                 <div class="flex items-center">
-                    <div class="icon-box bg-purple">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    <div class="icon-box bg-[var(--accent-color)]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
                     </div>
-                    <span class="setting-label">Changer de Département</span>
+                    <span class="setting-label">Retour (Changer Dép.)</span>
                 </div>
             </div>
 
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-4" style="color: var(--text-muted);">Preferences</h3>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-8" style="color: var(--text-muted);">Preferences</h3>
             
             <div class="settings-card" onclick="toggleLanguage()">
                 <div class="flex items-center">
@@ -210,44 +214,44 @@
                 <button onclick="shareTo('whatsapp')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
                     <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#25D366] text-white">
                         <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-185:                     </div>
-186:                     <span class="text-[11px] font-bold" style="color: var(--text-main);">WhatsApp</span>
-187:                 </button>
-188: 
-189:                 <!-- Telegram -->
-190:                 <button onclick="shareTo('telegram')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-191:                     <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#0088cc] text-white">
-192:                         <svg class="w-6 h-6 mr-0.5" fill="currentColor" viewBox="0 0 24 24">
-193:                             <path d="M1.946 9.315c-.522-.174-.527-.455.01-.664l19.53-7.531c.538-.208 1.002.102.833.94l-3.328 15.65c-.14.659-.536.818-1.084.508l-5.992-4.417-2.883 2.855c-.318.318-.585.585-1.2.585l.428-6.113L19.4 1.956c.486-.431-.1-.666-.75-.23l-13.805 8.7z"></path>
-194:                         </svg>
-195:                     </div>
-196:                     <span class="text-[11px] font-bold" style="color: var(--text-main);">Telegram</span>
-197:                 </button>
-198: 
-199:                 <!-- Copier -->
-200:                 <button onclick="shareTo('copy')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-201:                     <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: var(--text-main);">
-202:                         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-203:                     </div>
-204:                     <span class="text-[11px] font-bold" style="color: var(--text-main);">Copy</span>
-205:                 </button>
-206:             </div>
-207:         </div>
-208:     </div>
-209: 
-210:     <script>
-211:         function toggleDrawer() {
-212:             const drawer = document.getElementById('side-drawer');
-213:             const overlay = document.getElementById('drawer-overlay');
-214:             if (drawer.classList.contains('-translate-x-full')) {
-215:                 overlay.style.visibility = 'visible'; drawer.style.visibility = 'visible';
-216:                 setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full'); }, 10);
-217:             } else {
-218:                 drawer.classList.add('-translate-x-full'); overlay.classList.add('opacity-0');
-219:                 setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
-220:             }
-221:         }
-222:     </script>
-223:     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-224: </body>
-225: </html>
+                    </div>
+                    <span class="text-[11px] font-bold" style="color: var(--text-main);">WhatsApp</span>
+                </button>
+
+                <!-- Telegram -->
+                <button onclick="shareTo('telegram')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-[#0088cc] text-white">
+                        <svg class="w-6 h-6 mr-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M1.946 9.315c-.522-.174-.527-.455.01-.664l19.53-7.531c.538-.208 1.002.102.833.94l-3.328 15.65c-.14.659-.536.818-1.084.508l-5.992-4.417-2.883 2.855c-.318.318-.585.585-1.2.585l.428-6.113L19.4 1.956c.486-.431-.1-.666-.75-.23l-13.805 8.7z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-[11px] font-bold" style="color: var(--text-main);">Telegram</span>
+                </button>
+
+                <!-- Copier -->
+                <button onclick="shareTo('copy')" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: var(--text-main);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <span class="text-[11px] font-bold" style="color: var(--text-main);">Copy</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('side-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            if (drawer.classList.contains('-translate-x-full')) {
+                overlay.style.visibility = 'visible'; drawer.style.visibility = 'visible';
+                setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full'); }, 10);
+            } else {
+                drawer.classList.add('-translate-x-full'); overlay.classList.add('opacity-0');
+                setTimeout(() => { overlay.style.visibility = 'hidden'; drawer.style.visibility = 'hidden'; }, 400); 
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

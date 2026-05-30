@@ -230,6 +230,11 @@ def scrape_department(moodle_url):
         with requests.Session() as session:
             session.headers.update(HEADERS)
             response = session.get(moodle_url, timeout=30)
+            
+            if 'login' in response.url or 'loginform' in response.text.lower():
+                print(f"❌ [{moodle_url}] Authentication required — page redirected to login")
+                return []
+                
             response.raise_for_status()
             
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -239,6 +244,21 @@ def scrape_department(moodle_url):
         
         if not cards:
             cards = soup.select('div.activity-wrapper')
+            
+        if not cards:
+            cards = soup.select('div.course-content')
+            
+        if not cards:
+            cards = soup.select('ul.section')
+            
+        if not cards:
+            cards = soup.select('div.sectionname')
+            
+        if not cards:
+            cards = soup.select('div[data-region="blocks-column"]')
+            
+        if not cards:
+            cards = soup.select('div.main-inner')
         
         if not cards:
             cards = soup.select('div[data-activityname]')
@@ -252,9 +272,14 @@ def scrape_department(moodle_url):
                 for child in children:
                     if len(child.get_text(strip=True)) > 20:
                         cards.append(child)
+                        
+        if not cards:
+            all_divs = soup.find_all('div')
+            cards = [div for div in all_divs if len(div.get_text(strip=True)) > 100]
         
         if not cards:
             print(f"⚠️ No content found at {moodle_url} — page structure may have changed.")
+            print(f"📄 First 2000 chars of HTML:\n{response.text[:2000]}")
             return []
         
         new_data = []
