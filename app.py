@@ -37,9 +37,7 @@ def custom_log(msg):
     timestamp = datetime.now().strftime("%H:%M:%S")
     formatted_msg = f"[{timestamp}] {msg}"
     print(formatted_msg)
-    log_buffer.append(formatted_msg)
-
-# --- MOODLE AUTHENTICATED SESSION ---
+    log_buffer.append(format# --- MOODLE AUTHENTICATED SESSION ---
 class MoodleSession:
     """Handles Moodle login and maintains an authenticated requests.Session."""
 
@@ -54,6 +52,7 @@ class MoodleSession:
         self.password = os.environ.get('MOODLE_PASSWORD', '')
         self.last_auth_time = 0
         self.is_authenticated = False
+        self.enrolled_slugs = set()
         self._lock = threading.Lock()
 
     def authenticate(self):
@@ -64,7 +63,6 @@ class MoodleSession:
                 return False
 
             try:
-                # Step 1: GET the login page to extract the logintoken
                 login_page = self.session.get(self.LOGIN_URL, timeout=30)
                 login_page.raise_for_status()
 
@@ -72,7 +70,6 @@ class MoodleSession:
                 token_input = soup.find('input', {'name': 'logintoken'})
                 logintoken = token_input['value'] if token_input else ''
 
-                # Step 2: POST credentials
                 payload = {
                     'anchor': '',
                     'logintoken': logintoken,
@@ -81,8 +78,8 @@ class MoodleSession:
                 }
                 resp = self.session.post(self.LOGIN_URL, data=payload, timeout=30)
 
-                # Check if login succeeded: after login Moodle redirects away from /login/
-                if 'login' not in resp.url.lower() or 'testsession' in resp.url.lower():
+                # Success if the final URL does NOT contain /login/index.php
+                if '/login/index.php' not in resp.url:
                     self.is_authenticated = True
                     self.last_auth_time = time.time()
                     custom_log("✅ Moodle login successful")
@@ -114,7 +111,6 @@ class MoodleSession:
         kwargs.setdefault('timeout', 30)
         resp = self.session.get(url, **kwargs)
 
-        # Check if we got bounced to login
         if self._needs_reauth(resp):
             custom_log(f"⚠️ Session expired for {url} — retrying after re-auth")
             if self.re_authenticate():
@@ -123,7 +119,7 @@ class MoodleSession:
 
     def _needs_reauth(self, resp):
         """Detect if the response indicates we need to log in again."""
-        if 'login' in resp.url.lower() and 'testsession' not in resp.url.lower():
+        if '/login/index.php' in resp.url:
             return True
         lower_html = resp.text[:3000].lower()
         if 'loginform' in lower_html or 'id="login"' in lower_html:
@@ -132,6 +128,55 @@ class MoodleSession:
             return True
         return False
 
+    def ensure_enrolled(self, url, slug):
+        """Check for and complete auto-enrollment if required, returning the final page response."""
+        resp = self.get(url)
+
+        if slug in self.enrolled_slugs:
+            return resp
+
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        
+        enroll_form = None
+        for form in soup.find_all('form'):
+            action = form.get('action', '').lower()
+            if 'enrol' in action:
+                enroll_form = form
+                break
+
+        if not enroll_form:
+            enroll_keywords = ["m'inscrire", "enrol me", "s'inscrire", "auto-inscription"]
+            for keyword in enroll_keywords:
+                btn = soup.find(lambda tag: tag.name in ['button', 'a', 'input'] and keyword in tag.get_text(strip=True).lower())
+                if btn:
+                    enroll_form = btn.find_parent('form')
+                    break
+                    
+        if enroll_form:
+            action_url = enroll_form.get('action')
+            if not action_url:
+                action_url = url
+            
+            payload = {}
+            for input_tag in enroll_form.find_all('input'):
+                name = input_tag.get('name')
+                value = input_tag.get('value', '')
+                if name:
+                    payload[name] = value
+                    
+            try:
+                enroll_resp = self.session.post(action_url, data=payload, timeout=30)
+                enroll_resp.raise_for_status()
+                custom_log(f"✅ [{slug}] Auto-enrolled successfully")
+                self.enrolled_slugs.add(slug)
+                return self.get(url)
+            except Exception as e:
+                custom_log(f"❌ [{slug}] Auto-enrollment failed: {e}")
+                return resp
+        else:
+            custom_log(f"⚠️ [{slug}] No enrollment button found — already enrolled or access denied")
+            self.enrolled_slugs.add(slug)
+            return resp
 
 # Create the global Moodle session
 moodle = MoodleSession()
@@ -326,7 +371,10 @@ def send_fcm_notification(title, body_preview, topic, dept_slug):
             topic=topic,
         )
         response_id = messaging.send(message)
-        custom_log(f"✅ [{dept_slug}] FCM Response: {response_id}")
+        if response_id and response_id.startswith('projects/'):
+            custom_log(f"✅ [{dept_slug}] FCM confirmed delivery to topic: {topic} (ID: {response_id})")
+        else:
+            custom_log(f"✅ [{dept_slug}] FCM Response: {response_id}")
         return True, f"FCM Response: {response_id}"
     except Exception as e:
         error_detail = f"[{type(e).__name__}] {e}"
@@ -337,11 +385,11 @@ def send_fcm_notification(title, body_preview, topic, dept_slug):
 def scrape_department(moodle_url, slug):
     """Scrape a Moodle department page using the authenticated MoodleSession."""
     try:
-        response = moodle.get(moodle_url)
+        response = moodle.ensure_enrolled(moodle_url, slug)
 
         # Final check after potential re-auth retry
         lower_html = response.text[:3000].lower()
-        if 'login' in response.url.lower() and 'testsession' not in response.url.lower():
+        if '/login/index.php' in response.url:
             custom_log(f"❌ [{slug}] Moodle requires login — cannot scrape without authentication")
             return []
         if 'guests cannot access' in lower_html:
@@ -603,6 +651,20 @@ def api_status():
     if not hmac.compare_digest(pwd, ADMIN_PASSWORD):
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(department_status)
+
+@app.route('/api/fcm-test-topic/<slug>')
+@limiter.limit("5 per minute")
+def api_fcm_test_topic(slug):
+    pwd = request.args.get('pwd', '')
+    if not hmac.compare_digest(pwd, ADMIN_PASSWORD):
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    dept = DEPARTMENTS.get(slug)
+    if not dept:
+        return jsonify({"error": "Department not found"}), 404
+        
+    success, detail = send_fcm_notification("API Test", "This is a direct API test.", dept['fcm_topic'], slug)
+    return jsonify({"success": success, "detail": detail})
 
 @app.route('/test-notification-railway', methods=['GET', 'POST'])
 @limiter.limit("20 per minute") 

@@ -56,7 +56,7 @@
 
             <!-- HEADER TITLE -->
             <div class="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center w-max pointer-events-none text-center">
-                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px] max-w-[60vw] truncate" style="color: var(--accent-color);">{{ dept.name }}</span>
+                <span class="text-[9px] font-bold tracking-[0.3em] uppercase mb-[2px] max-w-[60vw] truncate" style="color: var(--accent-color);">Univ Bejaïa</span>
                 <h1 class="text-[1.25rem] font-extrabold tracking-tight heading-text leading-none flex items-center gap-1.5" style="color: var(--text-main);">
                     <span style="max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ dept.short_name }}</span>
                 </h1>
@@ -110,24 +110,14 @@
                 <h2 class="text-2xl font-bold heading-text tracking-tight whitespace-nowrap" style="color: var(--text-main); max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ dept.short_name }}</h2>
                 <p class="text-[11px] opacity-60 font-mono mt-1" style="color: var(--text-muted);">Version 2.0.0 (Beta)</p>
             </div>
-            <button onclick="toggleDrawer()" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
-                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button onclick="window.location.href='/select'" class="w-9 h-9 flex items-center justify-center rounded-full bg-black/10 active:scale-90 transition-transform mt-2" style="color: var(--text-main);">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             </button>
         </div>
 
         <div class="p-5 flex-1 mt-2">
-            
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Navigation</h3>
-            <div class="settings-card" onclick="window.location.href='/select'">
-                <div class="flex items-center">
-                    <div class="icon-box" style="background-color: var(--accent-color);">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
-                    </div>
-                    <span class="setting-label">Retour (Changer Dép.)</span>
-                </div>
-            </div>
 
-            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2 mt-8" style="color: var(--text-muted);">Preferences</h3>
+            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-3 ml-2" style="color: var(--text-muted);">Preferences</h3>
             
             <div class="settings-card" onclick="toggleLanguage()">
                 <div class="flex items-center">
