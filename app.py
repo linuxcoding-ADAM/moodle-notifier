@@ -261,17 +261,21 @@ def robots(): return "User-agent: *\nDisallow: /api/\nDisallow: /test-notificati
 @app.route('/test-notification-railway', methods=['GET', 'POST'])
 @limiter.limit("5 per minute") 
 def manual_test():
+    status = None
+    message = None
     if request.method == 'POST':
         password = request.form.get('password', '')
         if hmac.compare_digest(password, ADMIN_PASSWORD):
             try:
                 send_fcm_notification("Security Test", "Secure System Operational.")
-                return "<h1>✅ Success</h1><p>Secure Notification Sent!</p>"
+                status = 'success'
             except Exception as e:
-                return f"<h1>Error</h1><p>{str(e)}</p>"
+                status = 'error'
+                message = str(e)
         else:
-            return "<h1>❌ Access Denied</h1>", 403
-    return '<form method="POST"><input type="password" name="password" placeholder="Password" required><button type="submit">SEND</button></form>'
+            status = 'denied'
+            return render_template('test_notification.html', status=status, message=message), 403
+    return render_template('test_notification.html', status=status, message=message)
 
 threading.Thread(target=background_loop, daemon=True).start()
 

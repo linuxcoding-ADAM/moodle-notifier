@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notification - Admin Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #050505; 
+            color: #fff; 
+            font-family: 'JetBrains Mono', monospace; 
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 60%),
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
+        
+        .neon-text {
+            color: #39ff14;
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5), 0 0 10px rgba(57, 255, 20, 0.3);
+        }
+        
+        .neon-border {
+            border: 1px solid rgba(57, 255, 20, 0.5);
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.1), inset 0 0 15px rgba(57, 255, 20, 0.05);
+            backdrop-filter: blur(5px);
+        }
+        
+        .neon-input {
+            color: #39ff14;
+            background: rgba(0, 20, 0, 0.5);
+            border: 1px solid rgba(57, 255, 20, 0.3);
+        }
+        
+        .neon-input:focus {
+            outline: none;
+            border-color: #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3), inset 0 0 5px rgba(57, 255, 20, 0.2);
+        }
+        
+        .neon-btn {
+            background: transparent;
+            color: #39ff14;
+            border: 1px solid #39ff14;
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2), inset 0 0 5px rgba(57, 255, 20, 0.2);
+        }
+        
+        .neon-btn:hover {
+            background-color: #39ff14;
+            color: #000;
+            text-shadow: none;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
+        }
+
+        .alert-error {
+            color: #ff3333;
+            border-color: #ff3333;
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.5);
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.2), inset 0 0 5px rgba(255, 51, 51, 0.1);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="p-8 rounded-xl neon-border bg-black/80 max-w-md w-full relative overflow-hidden">
+        
+        <!-- Scanner line effect -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-[#39ff14] opacity-20 animate-[scan_3s_ease-in-out_infinite]"></div>
+        
+        <style>
+            @keyframes scan {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(300px); }
+            }
+        </style>
+
+        <div class="text-center mb-8">
+            <svg class="w-12 h-12 mx-auto mb-4 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <h1 class="text-2xl font-bold tracking-widest neon-text">SYS_ADMIN</h1>
+            <p class="text-[10px] text-green-700 uppercase mt-2 tracking-widest">Notification Override Terminal</p>
+        </div>
+        
+        {% if status == 'success' %}
+            <div class="mb-6 p-4 border border-[#39ff14] text-[#39ff14] rounded bg-green-900/20 shadow-[0_0_15px_rgba(57,255,20,0.1)] text-center">
+                <p class="text-lg font-bold">✅ SEQUENCE COMPLETED</p>
+                <p class="text-xs mt-2 opacity-80">Test notification dispatched successfully.</p>
+            </div>
+        {% elif status == 'error' %}
+            <div class="mb-6 p-4 border alert-error rounded bg-red-900/20 text-center">
+                <p class="text-lg font-bold">❌ FATAL EXCEPTION</p>
+                <p class="text-xs mt-2 opacity-80">{{ message }}</p>
+            </div>
+        {% elif status == 'denied' %}
+            <div class="mb-6 p-4 border alert-error rounded bg-red-900/20 text-center animate-pulse">
+                <p class="text-lg font-bold">❌ ACCESS DENIED</p>
+                <p class="text-xs mt-2 opacity-80">Invalid security clearance.</p>
+            </div>
+        {% endif %}
+
+        <form method="POST" class="flex flex-col gap-5 relative z-10">
+            <div class="flex flex-col">
+                <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> input_key:</label>
+                <input type="password" name="password" placeholder="****************" required autofocus
+                       class="p-3 rounded neon-input transition-all text-center tracking-widest placeholder-green-900/50">
+            </div>
+            
+            <button type="submit" class="p-3 mt-2 rounded transition-all neon-btn font-bold tracking-[0.2em] uppercase text-sm group relative overflow-hidden">
+                <span class="relative z-10">Transmit Signal</span>
+                <div class="absolute inset-0 bg-[#39ff14] scale-x-0 group-hover:scale-x-100 transition-transform origin-left z-0"></div>
+            </button>
+        </form>
+        
+        <div class="mt-8 text-[10px] text-green-800 flex justify-between items-center border-t border-green-900/30 pt-4">
+            <span class="tracking-widest">ST_AFFICHAGE_V1.9</span>
+            <span class="flex items-center gap-2">
+                STATUS: ONLINE <span class="w-2 h-2 rounded-full bg-[#39ff14] animate-pulse shadow-[0_0_5px_rgba(57,255,20,0.8)]"></span>
+            </span>
+        </div>
+    </div>
+</body>
+</html>
