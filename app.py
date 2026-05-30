@@ -37,7 +37,9 @@ def custom_log(msg):
     timestamp = datetime.now().strftime("%H:%M:%S")
     formatted_msg = f"[{timestamp}] {msg}"
     print(formatted_msg)
-    log_buffer.append(format# --- MOODLE AUTHENTICATED SESSION ---
+    log_buffer.append(formatted_msg)
+
+# --- MOODLE AUTHENTICATED SESSION ---
 class MoodleSession:
     """Handles Moodle login and maintains an authenticated requests.Session."""
 
