@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Béjaïa Affichage — Annonces Universitaires en Temps Réel</title>
+    <meta name="description" content="Plateforme d'affichage universitaire en temps réel pour tous les départements de la Faculté de Technologie, Université de Béjaïa.">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HH5ZV5VW8"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-6HH5ZV5VW8');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#110C1A">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syne', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#8B5CF6',
+                            dark: '#110C1A',
+                            light: '#A855F7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #110C1A;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        .heading-text { font-family: 'Syne', sans-serif; }
+
+        /* Glassmorphism card */
+        .glass-card-landing {
+            background: rgba(27, 21, 37, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s, border-color 0.3s;
+        }
+        .glass-card-landing:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.2);
+        }
+        .glass-card-landing:active {
+            transform: scale(0.97);
+        }
+
+        /* Department card icon pulse */
+        .dept-icon {
+            font-size: 2rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.4));
+        }
+
+        /* Glow button */
+        .btn-glow {
+            position: relative;
+        }
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: inherit;
+            border-radius: inherit;
+            filter: blur(15px);
+            opacity: 0.4;
+            z-index: -1;
+            transition: opacity 0.3s;
+        }
+        .btn-glow:hover::before {
+            opacity: 0.7;
+        }
+
+        /* Reveal animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Ambient orb */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #110C1A; }
+        ::-webkit-scrollbar-thumb { background: #2a2238; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8B5CF6; }
+
+        /* Feature icon box */
+        .feature-icon-box {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand selection:text-white">
+
+    <!-- AUTO-REDIRECT RETURNING USERS -->
+    <script>
+        (function() {
+            var saved = localStorage.getItem('selected_department');
+            if (saved && window.location.pathname === '/') {
+                window.location.replace('/' + saved);
+            }
+        })();
+    </script>
+
+    <!-- Ambient Background Orbs -->
+    <div class="orb top-[-10%] left-[-5%] w-[40vw] h-[40vw] max-w-[500px] max-h-[500px] bg-brand/20"></div>
+    <div class="orb top-[50%] right-[-10%] w-[30vw] h-[30vw] max-w-[400px] max-h-[400px] bg-indigo-600/15"></div>
+    <div class="orb bottom-[-5%] left-[30%] w-[25vw] h-[25vw] max-w-[300px] max-h-[300px] bg-purple-600/10"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 bg-[#110C1A]/80 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 md:gap-3">
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="Béjaïa Affichage" class="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl shadow-[0_0_15px_rgba(139,92,246,0.4)]">
+                <span class="heading-text font-bold text-lg md:text-xl tracking-tight">Béjaïa Affichage</span>
+            </div>
+            <a href="/install" class="bg-brand hover:bg-brand-light text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-medium transition-all btn-glow flex items-center gap-2 text-xs md:text-sm">
+                <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span class="hidden sm:inline">Télécharger APK</span>
+                <span class="sm:hidden">APK</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="relative z-10">
+
+        <!-- Hero Section -->
+        <header class="pt-28 pb-12 md:pt-40 md:pb-20 text-center px-4 md:px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="reveal inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-brand/30 text-brand-light text-[10px] md:text-xs font-medium mb-6">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
+                    </span>
+                    Faculté de Technologie — Université de Béjaïa
+                </div>
+                <h1 class="reveal heading-text text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6" style="transition-delay: 80ms;">
+                    Annonces universitaires<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-light via-purple-400 to-indigo-400">en temps réel.</span>
+                </h1>
+                <p class="reveal text-base md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed" style="transition-delay: 160ms;">
+                    Consultez les affichages de votre département instantanément. Recevez des notifications push, cherchez par mot-clé, et traduisez en un clic.
+                </p>
+                <div class="reveal" style="transition-delay: 240ms;">
+                    <a href="#departments" class="btn-glow inline-flex items-center gap-3 bg-brand text-white px-8 py-4 rounded-full font-semibold transition-transform hover:scale-105 shadow-xl text-sm md:text-base">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        Choisir votre Département
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Features Section -->
+        <section class="py-16 md:py-24 px-4 md:px-6">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-12 md:mb-16">
+                    <h2 class="reveal heading-text text-2xl md:text-4xl font-bold mb-4">Tout ce dont vous avez besoin</h2>
+                    <p class="reveal text-gray-400 text-sm md:text-base max-w-lg mx-auto" style="transition-delay: 80ms;">Une plateforme complète pour ne plus jamais rater un affichage.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    <!-- Feature 1 -->
+                    <div class="reveal glass-card-landing p-6 md:p-8">
+                        <div class="feature-icon-box bg-brand/20 text-brand-light mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <h3 class="heading-text font-bold text-lg mb-2">Scraping en Temps Réel</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Les annonces sont récupérées automatiquement depuis la plateforme e-learning toutes les 10 minutes.</p>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="reveal glass-card-landing p-6 md:p-8" style="transition-delay: 80ms;">
+                        <div class="feature-icon-box bg-green-500/20 text-green-400 mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        </div>
+                        <h3 class="heading-text font-bold text-lg mb-2">Notifications Push</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Recevez une alerte instantanée sur votre smartphone dès qu'un nouvel affichage est publié pour votre département.</p>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="reveal glass-card-landing p-6 md:p-8" style="transition-delay: 160ms;">
+                        <div class="feature-icon-box bg-blue-500/20 text-blue-400 mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <h3 class="heading-text font-bold text-lg mb-2">Recherche Instantanée</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Trouvez n'importe quel affichage en tapant un mot-clé. Recherche par titre, contenu ou date.</p>
+                    </div>
+                    <!-- Feature 4 -->
+                    <div class="reveal glass-card-landing p-6 md:p-8" style="transition-delay: 240ms;">
+                        <div class="feature-icon-box bg-orange-500/20 text-orange-400 mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+                        </div>
+                        <h3 class="heading-text font-bold text-lg mb-2">Traduction Intégrée</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Traduisez chaque annonce en anglais ou en arabe en un seul clic, directement dans l'application.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Department Selector Section -->
+        <section id="departments" class="py-16 md:py-24 px-4 md:px-6 scroll-mt-20">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-12 md:mb-16">
+                    <h2 class="reveal heading-text text-2xl md:text-4xl font-bold mb-4">Choisissez votre département</h2>
+                    <p class="reveal text-gray-400 text-sm md:text-base max-w-lg mx-auto" style="transition-delay: 80ms;">Sélectionnez votre département pour accéder à vos affichages et recevoir les notifications correspondantes.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    {% for slug, dept in departments.items() %}
+                    <a href="/{{ dept.slug }}" onclick="localStorage.setItem('selected_department', '{{ dept.slug }}')" class="reveal glass-card-landing p-6 md:p-8 flex flex-col items-start group cursor-pointer no-underline" style="transition-delay: {{ loop.index0 * 80 }}ms; text-decoration: none;">
+                        <div class="dept-icon mb-4">{{ dept.icon }}</div>
+                        <h3 class="heading-text font-bold text-base md:text-lg mb-2 text-white group-hover:text-brand-light transition-colors">{{ dept.name }}</h3>
+                        <div class="mt-auto pt-4 flex items-center gap-2 text-brand-light text-sm font-semibold opacity-70 group-hover:opacity-100 transition-opacity">
+                            Accéder
+                            <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 relative z-10">
+        <div class="max-w-6xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div class="flex items-center gap-3">
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="Béjaïa Affichage" class="w-8 h-8 rounded-lg shadow-[0_0_10px_rgba(139,92,246,0.3)]">
+                <span class="heading-text font-bold text-base md:text-lg">Béjaïa Affichage</span>
+            </div>
+            <p class="text-xs text-gray-500">© 2026 Adam Mila. Tous droits réservés.</p>
+            <div class="text-[10px] text-gray-600 max-w-xs md:max-w-none">
+                Application indépendante, non affiliée officiellement à l'Université de Béjaïa.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Reveal Animation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var reveals = document.querySelectorAll('.reveal');
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            reveals.forEach(function(el) { observer.observe(el); });
+        });
+    </script>
+</body>
+</html>

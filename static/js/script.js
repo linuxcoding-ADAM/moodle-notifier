@@ -1,5 +1,5 @@
 /* =========================================
-   ST AFFICHAGE - SECURE CORE
+   BÉJAÏA AFFICHAGE - SECURE CORE
    ========================================= */
 
 let allAnnouncements = [];
@@ -21,6 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.searchBarContainer = document.getElementById('search-bar-container');
     DOM.headerCancelBtn = document.getElementById('header-cancel-btn');
     DOM.backToTop = document.getElementById('back-to-top');
+
+    // Make sure we remember the dept
+    if (window.DEPT_SLUG) {
+        localStorage.setItem('selected_department', window.DEPT_SLUG);
+        handlePushSubscription(window.DEPT_SLUG, window.FCM_TOPIC);
+    }
 
     updateLangIndicator();
     initApp();
@@ -53,7 +59,8 @@ function cancelSearch() {
 
 async function initApp() {
     try {
-        const response = await fetch(`/api/announcements?t=${Date.now()}`);
+        const slug = window.DEPT_SLUG || 'technologie';
+        const response = await fetch(`/api/announcements/${slug}?t=${Date.now()}`);
         if (!response.ok) throw new Error("API Limit");
         
         allAnnouncements = await response.json();
@@ -61,7 +68,7 @@ async function initApp() {
         DOM.cardsContainer.innerHTML = ''; 
         
         if (!allAnnouncements.length) {
-            DOM.cardsContainer.innerHTML = '<div class="text-center text-[10px] font-mono text-muted mt-20">SYSTEM: NO DATA</div>';
+            DOM.cardsContainer.innerHTML = '<div class="text-center text-[10px] font-mono text-muted mt-20">SYSTEM: NO DATA YET FOR THIS DEPARTMENT</div>';
             return;
         }
         loadMore();
@@ -107,7 +114,7 @@ function loadMore() {
         let imagesHtml = item.images.map(img => `
             <div class="announcement-media relative mt-4 mb-2 w-full rounded-2xl overflow-hidden border border-white/5 shadow-md">
                 <img src="${img}" alt="Announcement Image" class="w-full h-auto object-cover" loading="lazy">
-                <a href="${img}" download="ST_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
+                <a href="${img}" download="Bejaia_Affichage_Image" target="_blank" rel="noopener noreferrer" class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform active:scale-90 shadow-lg z-10">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 </a>
             </div>`).join('');
@@ -215,13 +222,13 @@ async function translateAnnouncement(id) {
     }
 }
 
-// 🟢 HYBRID SHARE SYSTEM (RESTORED THE CUSTOM MENU) 🟢
+// 🟢 HYBRID SHARE SYSTEM 🟢
 async function shareAnnouncement(id) {
     const item = allAnnouncements.find(a => a.id === id);
     if (!item) return;
 
     let cleanBody = item.body.replace(/<[^>]*>?/gm, '').trim();
-    currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Téléchargez l'application ST Affichage :*\nhttps://stbejaia.up.railway.app/install`;
+    currentShareText = `📢 *${item.title}*\n\n${cleanBody}\n\n🔗 *Lien E-learning :*\n${item.source || 'https://elearning.univ-bejaia.dz'}\n\n📱 *Découvrez Béjaïa Affichage :*\nhttps://${window.location.host}`;
 
     try {
         if (navigator.share) {
@@ -230,7 +237,6 @@ async function shareAnnouncement(id) {
             throw new Error("No navigator.share");
         }
     } catch (err) {
-        // If navigator.share fails (inside APK WebView), open the custom Share Sheet
         openShareSheet();
     }
 }
@@ -295,4 +301,50 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 function hardReloadApp() { setTimeout(() => window.location.reload(true), 200); }
-function contactDev() { window.location.href = "mailto:adam.mila.dev@gmail.com?subject=ST%20Affichage%20Bug%20Report"; }
+function contactDev() { window.location.href = "mailto:adam.mila.dev@gmail.com?subject=Béjaïa%20Affichage%20Bug%20Report"; }
+
+// 🟢 FCM PUSH NOTIFICATIONS SUBSCRIPTION 🟢
+async function handlePushSubscription(slug, newTopic) {
+    if (!window.getToken) return; // If firebase isn't initialized or available
+    
+    try {
+        const oldTopic = localStorage.getItem('subscribed_topic');
+        
+        // Wait for service worker to be ready
+        if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.register('/static/firebase-messaging-sw.js');
+            
+            // Only try to get token if we have permission or want to prompt
+            if (Notification.permission === 'granted' || Notification.permission === 'default') {
+                // If you have a VAPID key from Firebase console, pass it here
+                const token = await window.getToken(window.getMessaging(), {
+                    serviceWorkerRegistration: registration
+                });
+                
+                if (token) {
+                    // Unsubscribe from old topic if different
+                    if (oldTopic && oldTopic !== newTopic) {
+                        await fetch('/api/unsubscribe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: token, topic: oldTopic })
+                        });
+                    }
+                    
+                    // Subscribe to new topic
+                    if (oldTopic !== newTopic) {
+                        await fetch('/api/subscribe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: token, topic: newTopic })
+                        });
+                        localStorage.setItem('subscribed_topic', newTopic);
+                        console.log(`Subscribed to topic: ${newTopic}`);
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("FCM Subscription error:", e);
+    }
+}

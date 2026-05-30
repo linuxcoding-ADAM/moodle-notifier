@@ -8,7 +8,7 @@ import json
 import bleach
 import hmac
 from datetime import datetime
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, abort
 from bs4 import BeautifulSoup, NavigableString, Tag
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -29,25 +29,80 @@ if cred_json:
 else:
     print("⚠️ WARNING: FIREBASE_CREDENTIALS missing!")
 
-# --- CONFIG ---
-AFFICHAGE_URL = 'https://elearning.univ-bejaia.dz/course/view.php?id=19989'
+# --- DEPARTMENTS CONFIG ---
+DEPARTMENTS = {
+    "technologie": {
+        "name": "Département de Technologie (ST)",
+        "slug": "technologie",
+        "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19989",
+        "fcm_topic": "dept_technologie",
+        "icon": "⚙️",
+        "cache_file": "cache_technologie.json"
+    },
+    "hydraulique": {
+        "name": "Département d'Hydraulique",
+        "slug": "hydraulique",
+        "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19987",
+        "fcm_topic": "dept_hydraulique",
+        "icon": "💧",
+        "cache_file": "cache_hydraulique.json"
+    },
+    "genie-civil": {
+        "name": "Département de Génie Civil",
+        "slug": "genie-civil",
+        "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19984",
+        "fcm_topic": "dept_genie_civil",
+        "icon": "🏗️",
+        "cache_file": "cache_genie_civil.json"
+    },
+    "genie-mecanique": {
+        "name": "Département de Génie Mécanique",
+        "slug": "genie-mecanique",
+        "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19985",
+        "fcm_topic": "dept_genie_mecanique",
+        "icon": "🔧",
+        "cache_file": "cache_genie_mecanique.json"
+    },
+    "electrotechnique": {
+        "name": "Département d'Électrotechnique Licence",
+        "slug": "electrotechnique",
+        "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19980",
+        "fcm_topic": "dept_electrotechnique",
+        "icon": "⚡",
+        "cache_file": "cache_electrotechnique.json"
+    },
+    "ate": {
+        "name": "Automatique, Télécommunications et Électronique",
+        "slug": "ate",
+        "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19983",
+        "fcm_topic": "dept_ate",
+        "icon": "📡",
+        "cache_file": "cache_ate.json"
+    }
+}
+
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
-CACHE_FILE = 'moodle_cache.json'
 
-# --- 🟢 NEW: LOAD FROM CACHE ON STARTUP 🟢 ---
-latest_data = []
-first_run = True
+# --- IN-MEMORY DATA STORE (keyed by slug) ---
+latest_data = {}
+first_run_flags = {}
 
-try:
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-            latest_data = json.load(f)
-        print(f"📦 Successfully loaded {len(latest_data)} items from offline cache!")
-except Exception as e:
-    print(f"⚠️ Could not load cache: {e}")
+# Load cached data for all departments on startup
+for slug, dept in DEPARTMENTS.items():
+    first_run_flags[slug] = True
+    try:
+        if os.path.exists(dept['cache_file']):
+            with open(dept['cache_file'], 'r', encoding='utf-8') as f:
+                latest_data[slug] = json.load(f)
+            print(f"📦 [{slug}] Loaded {len(latest_data[slug])} items from cache.")
+        else:
+            latest_data[slug] = []
+    except Exception as e:
+        print(f"⚠️ [{slug}] Could not load cache: {e}")
+        latest_data[slug] = []
 
 app = Flask(__name__)
 
@@ -66,7 +121,7 @@ def add_security_headers(response):
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     csp_policy = (
         "default-src 'self' https:; "
-        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.googletagmanager.com; "
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://www.googletagmanager.com https://www.gstatic.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com;"
         "img-src * data:;"
@@ -135,7 +190,8 @@ def extract_images(tag):
             images.append(src)
     return images
 
-def send_fcm_notification(title, body_preview):
+# --- FCM NOTIFICATION (PER-DEPARTMENT) ---
+def send_fcm_notification(title, body_preview, topic, dept_slug):
     try:
         android_config = messaging.AndroidConfig(
             priority='high',
@@ -143,41 +199,86 @@ def send_fcm_notification(title, body_preview):
             notification=messaging.AndroidNotification(default_sound=True, default_vibrate_timings=True)
         )
         safe_title = bleach.clean(title, tags=[], strip=True)
+        dept = DEPARTMENTS.get(dept_slug, {})
+        dept_name = dept.get('name', 'Béjaïa Affichage')
+        dept_icon = dept.get('icon', '📢')
+
         message = messaging.Message(
-            notification=messaging.Notification(title="Nouvelle Annonce ST", body=safe_title),
+            notification=messaging.Notification(
+                title=f"{dept_icon} {dept_name}",
+                body=safe_title
+            ),
             android=android_config,
-            topic='announcements',
+            data={
+                'dept_slug': dept_slug,
+                'click_action': f'/{dept_slug}'
+            },
+            topic=topic,
         )
         messaging.send(message)
-        print("🚀 FCM Notification Sent")
+        print(f"🚀 [{dept_slug}] FCM Notification Sent to topic '{topic}'")
     except Exception as e:
-        print(f"❌ FCM Error: {e}")
+        print(f"❌ [{dept_slug}] FCM Error: {e}")
 
-# --- ROBUST SCRAPER ---
-def scrape_task():
+# --- ROBUST GENERIC SCRAPER ---
+def scrape_department(moodle_url):
+    """
+    Generic Moodle scraper that tries multiple CSS selectors to handle
+    different Moodle page structures. Returns list of announcement dicts or None on failure.
+    """
     try:
         with requests.Session() as session:
             session.headers.update(HEADERS)
-            response = session.get(AFFICHAGE_URL, timeout=30)
+            response = session.get(moodle_url, timeout=30)
             response.raise_for_status()
             
         soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Try multiple selectors in order of specificity
         cards = soup.select('li.activity')
+        
+        if not cards:
+            cards = soup.select('div.activity-wrapper')
+        
+        if not cards:
+            cards = soup.select('div[data-activityname]')
+        
+        if not cards:
+            # Fallback: grab any section content with substantial text
+            sections = soup.select('.section .content, .course-content .section')
+            cards = []
+            for section in sections:
+                children = section.find_all(['div', 'li'], recursive=False)
+                for child in children:
+                    if len(child.get_text(strip=True)) > 20:
+                        cards.append(child)
+        
+        if not cards:
+            print(f"⚠️ No content found at {moodle_url} — page structure may have changed.")
+            return []
         
         new_data = []
         for tag in cards:
-            if 'modtype_forum' in tag.get('class', []): continue
+            # Skip forum module links, navigation, and system elements
+            tag_classes = tag.get('class', [])
+            if isinstance(tag_classes, list):
+                class_str = ' '.join(tag_classes)
+            else:
+                class_str = str(tag_classes)
+            
+            if 'modtype_forum' in class_str: continue
+            if 'modtype_url' in class_str: continue
 
             raw_text = tag.get_text(" ", strip=True)
             if not raw_text or len(raw_text) < 3: continue 
 
             unique_id = hashlib.sha256(raw_text.encode('utf-8')).hexdigest()[:16]
 
-            content_area = tag.select_one('.contentwithoutlink, .activity-altcontent, .no-overflow') or tag
+            content_area = tag.select_one('.contentwithoutlink, .activity-altcontent, .no-overflow, .contentafterlink') or tag
             body_html = clean_html_text(content_area)
             
             title, title_match = "Information", re.search(r'<b>(.*?)</b>', body_html)
-            instancename = tag.select_one('.instancename')
+            instancename = tag.select_one('.instancename, .activityname')
             
             if title_match:
                 title = title_match.group(1).strip().replace(":", "")
@@ -192,7 +293,7 @@ def scrape_task():
                 date_text = date_match.group(1).strip()
                 timestamp = parse_date_to_timestamp(date_text)
             
-            source_link = f"{AFFICHAGE_URL}#{re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))}" if tag.get('id') else AFFICHAGE_URL
+            source_link = f"{moodle_url}#{re.sub(r'[^a-zA-Z0-9-]', '', tag.get('id'))}" if tag.get('id') else moodle_url
 
             new_data.append({
                 "id": unique_id,
@@ -209,55 +310,138 @@ def scrape_task():
         return new_data
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Network Error scraping Moodle (Server likely down): {e}")
+        print(f"❌ Network Error scraping {moodle_url}: {e}")
     except Exception as e:
-        print(f"❌ Core Scraper Error: {e}")
+        print(f"❌ Scraper Error for {moodle_url}: {e}")
     return None
 
-# --- BACKGROUND LOOP ---
+# --- BACKGROUND LOOP (ALL DEPARTMENTS) ---
 def background_loop():
-    global latest_data, first_run
-    print("--- Background Loop Started ---")
+    global latest_data, first_run_flags
+    print("--- Background Loop Started (All Departments) ---")
     while True:
-        scraped_items = scrape_task()
-        
-        if scraped_items is not None:
-            # 🟢 NEW: SAVE TO CACHE 🟢
-            try:
-                with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(scraped_items, f, ensure_ascii=False)
-            except Exception as e:
-                print(f"⚠️ Could not write to cache: {e}")
-
-            if not first_run and latest_data:
-                old_ids = {item['id'] for item in latest_data}
-                for item in scraped_items[:5]:
-                    if item['id'] not in old_ids:
-                        print(f"🔔 NEW: {item['title']}")
-                        send_fcm_notification(item['title'], "New announcement")
-                        break 
-                        
-            latest_data = scraped_items
-            first_run = False
+        for slug, dept in DEPARTMENTS.items():
+            print(f"🔄 [{slug}] Scraping {dept['name']}...")
+            scraped_items = scrape_department(dept['moodle_url'])
             
+            if scraped_items is not None:
+                # Save to department-specific cache file
+                try:
+                    with open(dept['cache_file'], 'w', encoding='utf-8') as f:
+                        json.dump(scraped_items, f, ensure_ascii=False)
+                except Exception as e:
+                    print(f"⚠️ [{slug}] Could not write to cache: {e}")
+
+                # Detect new announcements (skip on first run)
+                if not first_run_flags[slug] and latest_data.get(slug):
+                    old_ids = {item['id'] for item in latest_data[slug]}
+                    for item in scraped_items[:5]:
+                        if item['id'] not in old_ids:
+                            print(f"🔔 [{slug}] NEW: {item['title']}")
+                            send_fcm_notification(item['title'], "New announcement", dept['fcm_topic'], slug)
+                            break 
+                            
+                latest_data[slug] = scraped_items
+                first_run_flags[slug] = False
+                print(f"✅ [{slug}] Scraped {len(scraped_items)} items.")
+            else:
+                print(f"⚠️ [{slug}] Scrape returned None, keeping cached data.")
+            
+            # Small delay between departments to avoid hammering the server
+            time.sleep(5)
+        
+        print("💤 All departments scraped. Sleeping 10 minutes...")
         time.sleep(600)
 
 # --- ROUTES ---
-@app.route('/')
-def index(): return render_template('index.html')
 
-@app.route('/api/announcements')
-def api_data():
-    response = jsonify(latest_data)
+# Landing Page
+@app.route('/')
+def landing():
+    return render_template('landing.html', departments=DEPARTMENTS)
+
+# Department Announcement Page
+@app.route('/<slug>')
+def department_page(slug):
+    dept = DEPARTMENTS.get(slug)
+    if not dept:
+        abort(404)
+    return render_template('department.html', dept=dept, departments=DEPARTMENTS)
+
+# API: Department Announcements
+@app.route('/api/announcements/<slug>')
+def api_dept_data(slug):
+    if slug not in DEPARTMENTS:
+        return jsonify({"error": "Department not found"}), 404
+    data = latest_data.get(slug, [])
+    response = jsonify(data)
     response.headers['Cache-Control'] = 'public, max-age=60'
     return response
 
+# API: Subscribe to FCM topic
+@app.route('/api/subscribe', methods=['POST'])
+@limiter.limit("30 per minute")
+def api_subscribe():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+    
+    token = data.get('token')
+    topic = data.get('topic')
+    
+    if not token or not topic:
+        return jsonify({"error": "Missing token or topic"}), 400
+    
+    # Validate topic belongs to a known department
+    valid_topics = {dept['fcm_topic'] for dept in DEPARTMENTS.values()}
+    if topic not in valid_topics:
+        return jsonify({"error": "Invalid topic"}), 400
+    
+    try:
+        response = messaging.subscribe_to_topic([token], topic)
+        print(f"📬 Subscribed to {topic}: {response.success_count} success, {response.failure_count} failure")
+        return jsonify({"success": True, "topic": topic})
+    except Exception as e:
+        print(f"❌ Subscribe error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# API: Unsubscribe from FCM topic
+@app.route('/api/unsubscribe', methods=['POST'])
+@limiter.limit("30 per minute")
+def api_unsubscribe():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+    
+    token = data.get('token')
+    topic = data.get('topic')
+    
+    if not token or not topic:
+        return jsonify({"error": "Missing token or topic"}), 400
+    
+    valid_topics = {dept['fcm_topic'] for dept in DEPARTMENTS.values()}
+    if topic not in valid_topics:
+        return jsonify({"error": "Invalid topic"}), 400
+    
+    try:
+        response = messaging.unsubscribe_from_topic([token], topic)
+        print(f"📭 Unsubscribed from {topic}: {response.success_count} success, {response.failure_count} failure")
+        return jsonify({"success": True, "topic": topic})
+    except Exception as e:
+        print(f"❌ Unsubscribe error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# Download / Install page
 @app.route('/install')
-def install_page(): return render_template('download.html')
+def install_page():
+    return render_template('download.html')
 
+# Robots.txt
 @app.route('/robots.txt')
-def robots(): return "User-agent: *\nDisallow: /api/\nDisallow: /test-notification-railway"
+def robots():
+    return "User-agent: *\nDisallow: /api/\nDisallow: /test-notification-railway"
 
+# Admin Test Notification Terminal
 @app.route('/test-notification-railway', methods=['GET', 'POST'])
 @limiter.limit("5 per minute") 
 def manual_test():
@@ -265,18 +449,27 @@ def manual_test():
     message = None
     if request.method == 'POST':
         password = request.form.get('password', '')
+        dept_slug = request.form.get('department', 'technologie')
+        
+        if dept_slug not in DEPARTMENTS:
+            dept_slug = 'technologie'
+        
+        dept = DEPARTMENTS[dept_slug]
+        
         if hmac.compare_digest(password, ADMIN_PASSWORD):
             try:
-                send_fcm_notification("Security Test", "Secure System Operational.")
+                send_fcm_notification("Security Test", "Secure System Operational.", dept['fcm_topic'], dept_slug)
                 status = 'success'
+                message = f"Notification sent to {dept['name']} (topic: {dept['fcm_topic']})"
             except Exception as e:
                 status = 'error'
                 message = str(e)
         else:
             status = 'denied'
-            return render_template('test_notification.html', status=status, message=message), 403
-    return render_template('test_notification.html', status=status, message=message)
+            return render_template('test_notification.html', status=status, message=message, departments=DEPARTMENTS), 403
+    return render_template('test_notification.html', status=status, message=message, departments=DEPARTMENTS)
 
+# Start background scraping for ALL departments
 threading.Thread(target=background_loop, daemon=True).start()
 
 if __name__ == '__main__':

@@ -104,6 +104,12 @@
 
         <form method="POST" class="flex flex-col gap-5 relative z-10">
             <div class="flex flex-col">
+                <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> target_dept:</label>
+                <select name="department" class="p-3 mb-4 rounded neon-input transition-all text-center tracking-widest outline-none cursor-pointer">
+                    {% for slug, dept in departments.items() %}
+                        <option value="{{ slug }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
                 <label class="text-[10px] text-green-600 mb-1 tracking-widest uppercase">> input_key:</label>
                 <input type="password" name="password" placeholder="****************" required autofocus
                        class="p-3 rounded neon-input transition-all text-center tracking-widest placeholder-green-900/50">
@@ -116,7 +122,7 @@
         </form>
         
         <div class="mt-8 text-[10px] text-green-800 flex justify-between items-center border-t border-green-900/30 pt-4">
-            <span class="tracking-widest">ST_AFFICHAGE_V1.9</span>
+            <span class="tracking-widest">BEJAIA_AFFICHAGE_V2.0</span>
             <span class="flex items-center gap-2">
                 STATUS: ONLINE <span class="w-2 h-2 rounded-full bg-[#39ff14] animate-pulse shadow-[0_0_5px_rgba(57,255,20,0.8)]"></span>
             </span>
