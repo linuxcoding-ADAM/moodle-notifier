@@ -248,7 +248,6 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {% for slug, dept in departments.items() %}
                     <a href="/{{ dept.slug }}" onclick="localStorage.setItem('selected_department', '{{ dept.slug }}')" class="reveal glass-card-landing p-6 md:p-8 flex flex-col items-start group cursor-pointer no-underline" style="transition-delay: {{ loop.index0 * 80 }}ms; text-decoration: none;">
-                        <div class="dept-icon mb-4">{{ dept.icon }}</div>
                         <h3 class="heading-text font-bold text-base md:text-lg mb-2 text-white group-hover:text-brand-light transition-colors">{{ dept.name }}</h3>
                         <div class="mt-auto pt-4 flex items-center gap-2 text-brand-light text-sm font-semibold opacity-70 group-hover:opacity-100 transition-opacity">
                             Accéder

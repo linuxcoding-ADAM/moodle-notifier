@@ -165,7 +165,7 @@
                                 <label>
                                     <input type="radio" name="department" value="{{ slug }}" required>
                                     <div class="dept-card rounded text-xs flex items-center justify-center gap-1">
-                                        <span>{{ dept.icon }}</span> {{ dept.short_name }}
+                                        {{ dept.short_name }}
                                     </div>
                                 </label>
                                 {% endfor %}
@@ -280,13 +280,23 @@
                     method: 'POST',
                     body: formData
                 });
-                if (res.ok) {
-                    resultDiv.textContent = "✅ SEQUENCE COMPLETED: Signal Dispatched";
+                const json = await res.json();
+                
+                // Append to terminal
+                const logDiv = document.createElement('div');
+                const now = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                
+                if (json.status === 'success') {
+                    resultDiv.textContent = "✅ SEQUENCE COMPLETED";
                     resultDiv.className = "text-xs p-2 border border-[#39ff14] text-center mt-4 bg-green-900/20";
+                    logDiv.innerHTML = `> <span style="color:gray">[${now}]</span> <span style="color:#39ff14">✅ DASHBOARD: ${json.message}</span>`;
                 } else {
-                    resultDiv.textContent = "❌ FATAL EXCEPTION: Dispatch Failed";
+                    resultDiv.textContent = "❌ DISPATCH FAILED";
                     resultDiv.className = "text-xs p-2 border alert-error text-center mt-4 bg-red-900/20";
+                    logDiv.innerHTML = `> <span style="color:gray">[${now}]</span> <span style="color:#ff3333">❌ DASHBOARD: ${json.message}</span>`;
                 }
+                terminal.appendChild(logDiv);
+                terminal.scrollTop = terminal.scrollHeight;
             } catch (err) {
                 resultDiv.textContent = "❌ NETWORK ERROR";
                 resultDiv.className = "text-xs p-2 border alert-error text-center mt-4 bg-red-900/20";

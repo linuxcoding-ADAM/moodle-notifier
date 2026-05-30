@@ -39,6 +39,103 @@ def custom_log(msg):
     print(formatted_msg)
     log_buffer.append(formatted_msg)
 
+# --- MOODLE AUTHENTICATED SESSION ---
+class MoodleSession:
+    """Handles Moodle login and maintains an authenticated requests.Session."""
+
+    LOGIN_URL = "https://elearning.univ-bejaia.dz/login/index.php"
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        })
+        self.username = os.environ.get('MOODLE_USERNAME', '')
+        self.password = os.environ.get('MOODLE_PASSWORD', '')
+        self.last_auth_time = 0
+        self.is_authenticated = False
+        self._lock = threading.Lock()
+
+    def authenticate(self):
+        """Log in to Moodle and store the session cookies."""
+        with self._lock:
+            if not self.username or not self.password:
+                custom_log("⚠️ MOODLE_USERNAME or MOODLE_PASSWORD not set — skipping login")
+                return False
+
+            try:
+                # Step 1: GET the login page to extract the logintoken
+                login_page = self.session.get(self.LOGIN_URL, timeout=30)
+                login_page.raise_for_status()
+
+                soup = BeautifulSoup(login_page.text, 'html.parser')
+                token_input = soup.find('input', {'name': 'logintoken'})
+                logintoken = token_input['value'] if token_input else ''
+
+                # Step 2: POST credentials
+                payload = {
+                    'anchor': '',
+                    'logintoken': logintoken,
+                    'username': self.username,
+                    'password': self.password,
+                }
+                resp = self.session.post(self.LOGIN_URL, data=payload, timeout=30)
+
+                # Check if login succeeded: after login Moodle redirects away from /login/
+                if 'login' not in resp.url.lower() or 'testsession' in resp.url.lower():
+                    self.is_authenticated = True
+                    self.last_auth_time = time.time()
+                    custom_log("✅ Moodle login successful")
+                    return True
+                else:
+                    self.is_authenticated = False
+                    custom_log("❌ Moodle login failed — check credentials")
+                    return False
+
+            except Exception as e:
+                self.is_authenticated = False
+                custom_log(f"❌ Moodle login exception: {type(e).__name__}: {e}")
+                return False
+
+    def re_authenticate(self):
+        """Force a fresh login (e.g. after session expiry)."""
+        custom_log("🔄 Re-authenticating Moodle session...")
+        self.session.cookies.clear()
+        return self.authenticate()
+
+    def ensure_session(self):
+        """Make sure we have a valid session, re-auth if older than 2 hours."""
+        if not self.is_authenticated or (time.time() - self.last_auth_time > 7200):
+            self.authenticate()
+
+    def get(self, url, **kwargs):
+        """GET a URL using the authenticated session. Retries once on auth failure."""
+        self.ensure_session()
+        kwargs.setdefault('timeout', 30)
+        resp = self.session.get(url, **kwargs)
+
+        # Check if we got bounced to login
+        if self._needs_reauth(resp):
+            custom_log(f"⚠️ Session expired for {url} — retrying after re-auth")
+            if self.re_authenticate():
+                resp = self.session.get(url, **kwargs)
+        return resp
+
+    def _needs_reauth(self, resp):
+        """Detect if the response indicates we need to log in again."""
+        if 'login' in resp.url.lower() and 'testsession' not in resp.url.lower():
+            return True
+        lower_html = resp.text[:3000].lower()
+        if 'loginform' in lower_html or 'id="login"' in lower_html:
+            return True
+        if 'guests cannot access' in lower_html:
+            return True
+        return False
+
+
+# Create the global Moodle session
+moodle = MoodleSession()
+
 # --- DEPARTMENTS CONFIG ---
 DEPARTMENTS = {
     "technologie": {
@@ -47,7 +144,7 @@ DEPARTMENTS = {
         "slug": "technologie",
         "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19989",
         "fcm_topic": "dept_technologie",
-        "icon": "⚙️",
+        "icon": "",
         "cache_file": "cache_technologie.json"
     },
     "hydraulique": {
@@ -56,7 +153,7 @@ DEPARTMENTS = {
         "slug": "hydraulique",
         "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19987",
         "fcm_topic": "dept_hydraulique",
-        "icon": "💧",
+        "icon": "",
         "cache_file": "cache_hydraulique.json"
     },
     "genie-civil": {
@@ -65,7 +162,7 @@ DEPARTMENTS = {
         "slug": "genie-civil",
         "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19984",
         "fcm_topic": "dept_genie_civil",
-        "icon": "🏗️",
+        "icon": "",
         "cache_file": "cache_genie_civil.json"
     },
     "genie-mecanique": {
@@ -74,7 +171,7 @@ DEPARTMENTS = {
         "slug": "genie-mecanique",
         "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19985",
         "fcm_topic": "dept_genie_mecanique",
-        "icon": "🔧",
+        "icon": "",
         "cache_file": "cache_genie_mecanique.json"
     },
     "electrotechnique": {
@@ -83,7 +180,7 @@ DEPARTMENTS = {
         "slug": "electrotechnique",
         "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19980",
         "fcm_topic": "dept_electrotechnique",
-        "icon": "⚡",
+        "icon": "",
         "cache_file": "cache_electrotechnique.json"
     },
     "ate": {
@@ -92,14 +189,11 @@ DEPARTMENTS = {
         "slug": "ate",
         "moodle_url": "https://elearning.univ-bejaia.dz/course/view.php?id=19983",
         "fcm_topic": "dept_ate",
-        "icon": "📡",
+        "icon": "",
         "cache_file": "cache_ate.json"
     }
 }
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '34362053')
 
 # --- IN-MEMORY DATA STORE (keyed by slug) ---
@@ -206,6 +300,7 @@ def extract_images(tag):
 
 # --- FCM NOTIFICATION (PER-DEPARTMENT) ---
 def send_fcm_notification(title, body_preview, topic, dept_slug):
+    """Send an FCM notification. Returns (success: bool, detail: str)."""
     try:
         android_config = messaging.AndroidConfig(
             priority='high',
@@ -215,11 +310,12 @@ def send_fcm_notification(title, body_preview, topic, dept_slug):
         safe_title = bleach.clean(title, tags=[], strip=True)
         dept = DEPARTMENTS.get(dept_slug, {})
         dept_name = dept.get('name', 'Béjaïa Affichage')
-        dept_icon = dept.get('icon', '📢')
+
+        custom_log(f"📤 [{dept_slug}] Sending to topic: {topic}")
 
         message = messaging.Message(
             notification=messaging.Notification(
-                title=f"{dept_icon} {dept_name}",
+                title=dept_name,
                 body=safe_title
             ),
             android=android_config,
@@ -229,31 +325,37 @@ def send_fcm_notification(title, body_preview, topic, dept_slug):
             },
             topic=topic,
         )
-        messaging.send(message)
-        custom_log(f"🚀 [{dept_slug}] FCM Sent to '{topic}': {safe_title[:30]}...")
+        response_id = messaging.send(message)
+        custom_log(f"✅ [{dept_slug}] FCM Response: {response_id}")
+        return True, f"FCM Response: {response_id}"
     except Exception as e:
-        custom_log(f"❌ [{dept_slug}] FCM Error: {e}")
+        error_detail = f"[{type(e).__name__}] {e}"
+        custom_log(f"❌ [{dept_slug}] FCM Exception: {error_detail}")
+        return False, f"FCM Exception: {error_detail}"
 
 # --- INTELLIGENT SCRAPER ---
 def scrape_department(moodle_url, slug):
+    """Scrape a Moodle department page using the authenticated MoodleSession."""
     try:
-        with requests.Session() as session:
-            session.headers.update(HEADERS)
-            response = session.get(moodle_url, timeout=30)
-            
-            if 'login' in response.url.lower():
-                custom_log(f"❌ [{slug}] Moodle requires login — cannot scrape without authentication")
-                return []
-                
-            response.raise_for_status()
-            
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        if soup.find(id='login') or soup.find(class_='loginform'):
+        response = moodle.get(moodle_url)
+
+        # Final check after potential re-auth retry
+        lower_html = response.text[:3000].lower()
+        if 'login' in response.url.lower() and 'testsession' not in response.url.lower():
+            custom_log(f"❌ [{slug}] Moodle requires login — cannot scrape without authentication")
+            return []
+        if 'guests cannot access' in lower_html:
+            custom_log(f"❌ [{slug}] Moodle says 'Guests cannot access this course' — login may have failed")
+            return []
+        if 'loginform' in lower_html or 'id="login"' in lower_html:
             custom_log(f"❌ [{slug}] Moodle requires login — loginform found in HTML")
             return []
 
-        # Remove navigation and unwanted elements
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Remove navigation and unwanted elements before any parsing
         for unwanted in soup.select('header, nav, footer, .navbar, .breadcrumb, .block_navigation, .block_settings, #nav-drawer, #page-header, #page-footer'):
             unwanted.decompose()
 
@@ -266,7 +368,7 @@ def scrape_department(moodle_url, slug):
         if not main_region:
             main_region = soup
 
-        # Extract candidates
+        # Extract candidates from the main region only
         candidates = []
         for sel in ['li.activity:not(.modtype_forum):not(.modtype_resource)', 'div.activity-wrapper', 'section.section li']:
             candidates = main_region.select(sel)
@@ -297,6 +399,7 @@ def scrape_department(moodle_url, slug):
             if not has_date and len(clean_body) < 10:
                 continue
                 
+            # Quality scoring
             score = 0
             if has_date: score += 1
             if len(clean_body) > 50: score += 1
@@ -336,7 +439,7 @@ def scrape_department(moodle_url, slug):
                     "source": source_link
                 })
         
-        # Last resort fallback if 0 items found
+        # Last resort fallback: <p> tags with dates
         if passed_count == 0:
             custom_log(f"⚠️ [{slug}] 0 items passed quality filter. Trying fallback paragraph scraper.")
             p_tags = main_region.find_all('p')
@@ -361,7 +464,7 @@ def scrape_department(moodle_url, slug):
         else:
             page_title = soup.title.string if soup.title else "Unknown"
             main_text = main_region.get_text(" ", strip=True)[:500]
-            custom_log(f"⚠️ [{slug}] 0 items found. Title: {page_title}. Content preview: {main_text}...")
+            custom_log(f"⚠️ [{slug}] 0 items found. Title: {page_title}. Content preview: {main_text}")
 
         new_data.sort(key=lambda x: x['timestamp'], reverse=True)
         return new_data
@@ -369,13 +472,17 @@ def scrape_department(moodle_url, slug):
     except requests.exceptions.RequestException as e:
         custom_log(f"❌ [{slug}] Network Error: {e}")
     except Exception as e:
-        custom_log(f"❌ [{slug}] Scraper Error: {e}")
+        custom_log(f"❌ [{slug}] Scraper Error: {type(e).__name__}: {e}")
     return None
 
 # --- BACKGROUND LOOP (ALL DEPARTMENTS) ---
 def background_loop():
     global latest_data, first_run_flags, department_status
     custom_log("--- Background Loop Started (All Departments) ---")
+
+    # Authenticate once at startup before any scraping
+    moodle.authenticate()
+
     while True:
         for slug, dept in DEPARTMENTS.items():
             scraped_items = scrape_department(dept['moodle_url'], slug)
@@ -514,16 +621,16 @@ def manual_test():
         dept = DEPARTMENTS[dept_slug]
         
         if hmac.compare_digest(password, ADMIN_PASSWORD):
-            try:
-                send_fcm_notification(title, body, dept['fcm_topic'], dept_slug)
+            success, detail = send_fcm_notification(title, body, dept['fcm_topic'], dept_slug)
+            if success:
                 status = 'success'
-                message = f"Notification sent to {dept['name']} (topic: {dept['fcm_topic']})"
-            except Exception as e:
+                message = f"Sent to {dept['name']} (topic: {dept['fcm_topic']}). {detail}"
+            else:
                 status = 'error'
-                message = str(e)
+                message = detail
+            return jsonify({"status": status, "message": message})
         else:
-            status = 'denied'
-            return render_template('test_notification.html', status=status, message=message, departments=DEPARTMENTS), 403
+            return jsonify({"status": "denied", "message": "Invalid password"}), 403
             
     return render_template('test_notification.html', status=status, message=message, departments=DEPARTMENTS)
 
