@@ -123,7 +123,7 @@ Designed, developed, and maintained independently by **Adam Mila**.
 
 This application is an independent initiative to help students and is not officially affiliated with the administration of Université de Bejaïa.
 
-*For bug reports, feature requests, or collaboration, please reach out via [Instagram](https://www.instagram.com/41_64_61_6d_20_6d_69_6c_61?igsh=MTJ1em5kN3dneHlnNQ==) or Email.*
+*For bug reports, feature requests, or collaboration, please reach out via [Instagram](https://www.instagram.com/_adam_mila_?igsh=MTJ1em5kN3dneHlnNQ==) or Email.*
 
 ---
 <p align="center">
